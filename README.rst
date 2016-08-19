@@ -55,5 +55,5 @@ Reasons Manipulation
 .. automodule:: WorkflowWebTools.reasonsmanip
    :members:
 
-.. |build| image:: https://travis-ci.org/dabercro/WorkflowWebTools.svg?branch=master
-    :target: https://travis-ci.org/dabercro/WorkflowWebTools
+.. |build| image:: https://travis-ci.org/CMSCompOps/WorkflowWebTools.svg?branch=master
+    :target: https://travis-ci.org/CMSCompOps/WorkflowWebTools
