@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>4D Errors</title>
+    <%include file="rotation_tables.html"/>
+    <script type="text/javascript" src="static/js/piechart.js"></script>
+  </head>
+  <%
+     stringpieinfo = []
+     for info in errordata['pieinfo']:
+         stringpieinfo.append(str(info))
+  %>
+  <body onload="drawpiecharts(${','.join(stringpieinfo)});">
+    <table border="3" style="border-collapse: collapse;">
+      <tr>
+        <th style="font-size:125%; text-align:left; padding:15px;">
+          <span style="color:#0000ff;">Select a variable for the pie chart <br>(the other two make up the axes):</span>
+          <form>
+            <input type="radio" name="pievar" value="stepname"> Step Name <br>
+            <input type="radio" name="pievar" value="sitename"> Site Name <br>
+            <input type="radio" name="pievar" value="errorcode"> Error Code <br>
+            <input type="submit" value="Submit">
+          </form>
+        </td>
+
+        % for col in errordata['collist']:
+          <th class="rotate" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
+        % endfor
+
+      </tr>
+
+      % for row,title_list in errordata['rowzip']:
+      <tr>
+        % if errordata['pievar'] == "stepname":
+          <th title="${row['title'] | h}">${row['name']}</th>
+        % else:
+          <th title="${row['title'] | h}"><a href="../seeworkflow/?workflow=${row['name']}">${row['name']}</a></th>
+        % endif
+
+        % for title in title_list:
+          <th title="${title}"><canvas id="canvas" width="20" height="20" class="piechart"></canvas></th>
+        % endfor
+      </tr>
+      % endfor
+    </table>
+  </body>
+</html>

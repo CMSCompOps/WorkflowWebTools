@@ -1,0 +1,11 @@
+<%
+   links = { 
+     'showlog' : 'Show Logs',
+     'globalerror' : 'Global Error View',
+     'seeworkflow' : 'Workflow Error View',
+     'getaction' : 'Get Latest Actions',
+   }
+%>
+% for link, title in links.iteritems():
+<a href="${link}">${title}</a> <br>
+% endfor

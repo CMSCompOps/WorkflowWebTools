@@ -1,0 +1,24 @@
+th {
+  font-size: 100%;
+}
+
+th.rotate {
+  height: 200px;
+  white-space: nowrap;
+}
+
+th.rotate > div {
+  transform: 
+    translate(0px, 75px)
+    rotate(270deg);
+  width: 20px;
+}
+
+.ui-tooltip {
+  white-space: pre-wrap;
+}
+
+.ui-tooltip-content {
+  font-size: 70%;
+  word-wrap: break-word;
+}

@@ -1,0 +1,6 @@
+*~
+*.pyc
+*/templates/mako_modules/*
+nohup.out
+*.db
+runserver/actions/*.json

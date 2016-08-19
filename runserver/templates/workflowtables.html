@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,user-scalable=yes"/>
+    <title>Workflow Errors</title>
+    <%include file="rotation_tables.html"/>
+    <script type="text/javascript">
+      var shortlist = [
+      % if len(workflowdata['reasonslist'].keys()) != 0:
+        "${'","'.join(workflowdata['reasonslist'].keys())}"
+      % endif
+      ];
+      var fullreasons = {
+      % for short, long in workflowdata['reasonslist'].iteritems():
+        "${short}": "${long}",
+      % endfor
+      };
+      var sitelist = [
+      % for site in workflowdata['allsites']:
+        % if site != 'null':
+        "${site}",
+        % endif
+      % endfor
+      ];
+    </script>
+    <script src="/static/js/addreason.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <style type="text/css">
+      td { text-align: center; }
+    </style>
+  </head>
+  <body>
+    <center>
+    <h1 id="top">${workflow}</h2>
+    <a href="../globalerror">Global Errors</a> <br>
+    <a href="../showlog?search=${workflow}">Workflow logs</a>
+    </center>
+
+    <form name="actionform" method="POST" action="/submitaction">
+      <input type="hidden" name="workflow" value="${workflow}"></input>
+      <input type="radio" name="action" onclick="makeParamTable(this);" value="clone"> Kill and Clone
+      <input type="radio" name="action" onclick="makeParamTable(this);" value="recover"> Recover (ACDC)
+      <input type="radio" name="action" onclick="makeParamTable(this);" value="investigate"> Other action <br>
+
+      <div id="actionparams"></div>
+
+      <%doc>
+      <button id="showmulti" type="button">Apply to multiple?</button> <br>
+      <div id="multiwfs" style="display:none;">
+        <button id="addfilter" type="button">Add Filter</button> <br>
+        <div id="filter" style="display:none;">
+          <input type="text" name="wffilter"></input>
+          <select name="wffiltertype">
+            <option value="none">Filter Type</option>
+            <option value="campaign">Campaign</option>
+            <option value="type">Type of Workflow</option>
+            <option value="whitelise">Site Whitelist</option>
+            <option value="agent">Agent</option>
+            <option value="wfname">Workflow Name</option>
+          </select> <br>
+          <button type="button">Apply filter</button> <br>
+        </div>
+        % for wf in workflowdata['allsteps']:
+          <input type="checkbox" name="multiworkflow" value="${wf}"><a href="?workflow=${wf}">${wf}</a></input> <br>
+        % endfor
+      </div>
+      </%doc>
+      <button id="addreason" type="button" onClick="addReason('reasons');">Add Reason</button> <br>
+      <div id="reasons"></div>
+      <br style="clear:both">
+      <input type="submit" value="Submit">
+    </form>
+
+    <hr>
+    <center>
+    % for step,table in workflowdata['steplist']:
+
+    <h2>${step}</h2>
+
+    <table border="3" style="border-collapse: collapse;">
+      <tr>
+        <th>
+        </th>
+        % for site in workflowdata['allsites']:
+        <th class="rotate"><div>${site}</div></th>
+        % endfor
+      </tr>
+      
+      % for tablerow, error in table:
+      <tr>
+        <th><a href="#${error}">${error}</a></th>
+        % for entry in tablerow:
+        % if entry == 0:
+        <td>${entry}</td>
+        % else:
+        <td style="background-color:#ef4f4f;">${entry}</td>
+        % endif
+        % endfor
+      </tr>
+      % endfor
+      
+    </table>
+    % endfor
+
+    </center>
+    <hr>
+    
+    % for error in workflowdata['allerrors']:
+    <h2 id="${error}">${error}</h2>
+    <p><a href="#top">Back to top</a></p>
+    <% 
+       toprint = '\n --- \n'.join(workflowdata['errors_explained'][error]).replace('\n','<br>')
+    %>
+    <div style="max-width:100%; word-wrap:break-word">
+      ${toprint}
+    <div>
+    % endfor
+    <p><a href="#top">Back to top</a></p>
+
+  </body>
+</html>
