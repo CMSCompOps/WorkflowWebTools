@@ -26,7 +26,7 @@ Show Logs
 Global Error View
 ~~~~~~~~~~~~~~~~~
 
-Get Latests Actions
+Get Latest Actions
 ~~~~~~~~~~~~~~~~~~~
 
 Running the Web Tools

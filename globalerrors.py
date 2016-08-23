@@ -40,15 +40,16 @@ class ErrorInfo(object):
 
         # Store everything into an SQL database for fast retrival
 
-        with urllib2.urlopen(ALL_ERRORS_LOCATION) as res:
-            for stepname, errorcodes in json.load(res).items():
-                stepset.add(stepname)
-                for errorcode, sitenames in errorcodes.items():
-                    errorset.add(errorcode)
-                    for sitename, numbererrors in sitenames.items():
-                        siteset.add(sitename)
-                        curs.execute('INSERT INTO workflows VALUES (?,?,?,?)',
-                                     (stepname, errorcode, sitename, numbererrors))
+        res = urllib2.urlopen(ALL_ERRORS_LOCATION)
+        for stepname, errorcodes in json.load(res).items():
+            stepset.add(stepname)
+            for errorcode, sitenames in errorcodes.items():
+                errorset.add(errorcode)
+                for sitename, numbererrors in sitenames.items():
+                    siteset.add(sitename)
+                    curs.execute('INSERT INTO workflows VALUES (?,?,?,?)',
+                                 (stepname, errorcode, sitename, numbererrors))
+        res.close()
 
         allsteps = list(stepset)
         allsteps.sort()
@@ -57,8 +58,9 @@ class ErrorInfo(object):
         allsites = list(siteset)
         allsites.sort()
 
-        with urllib2.urlopen(EXPLAIN_ERRORS_LOCATION) as res:
-            self.info = curs, allsteps, allerrors, allsites, json.load(res)
+        res = urllib2.urlopen(EXPLAIN_ERRORS_LOCATION)
+        self.info = curs, allsteps, allerrors, allsites, json.load(res)
+        res.close()
 
         self.curs = curs
         self.allsteps = allsteps
@@ -218,7 +220,7 @@ def get_row_col_names(pievar):
     if pievar not in pievarmap.keys():
         pievar = 'errorcode'
 
-    return pievarmap['pievar']
+    return pievarmap[pievar]
 
 
 TITLEMAP = {
@@ -263,24 +265,24 @@ def get_errors_and_pietitles(pievar, session):
     pietitles = []
 
     total_errors = {
-        'row': [0] * len(allmap[colname]),
-        'col': [0] * len(allmap[rowname])
+        'row': [0] * len(allmap[rowname]),
+        'col': [0] * len(allmap[colname])
         }
 
-    for irow in enumerate(allmap[rowname]):
+    for irow, row in enumerate(allmap[rowname]):
 
         pietitlerow = []
 
-        for icol in enumerate(allmap[colname]):
+        for icol, col in enumerate(allmap[colname]):
             toappend = []
             pietitle = ''
             if rowname != 'stepname':
-                pietitle += TITLEMAP[rowname] + ': ' + allmap[rowname][irow] + '\n'
-            pietitle += TITLEMAP[colname] + ': ' + allmap[colname][icol]
+                pietitle += TITLEMAP[rowname] + ': ' + row + '\n'
+            pietitle += TITLEMAP[colname] + ': ' + col
             for piekey, errnum in curs.execute(('SELECT {0}, numbererrors FROM workflows '
                                                 'WHERE {1}=? AND {2}=?'.
                                                 format(pievar, rowname, colname)),
-                                               (allmap[rowname][irow], allmap[colname][icol])):
+                                               (row, col)):
                 if errnum != 0:
                     toappend.append(errnum)
                     if pievar != 'stepname':
@@ -356,9 +358,9 @@ def return_page(pievar, session):
             else:
                 output.append({'title': name, 'name': name})
 
-        for i in enumerate(output):
-            output[i]['title'] = ('Total errors: ' + str(errors[i]) + '\n' +
-                                  output[i]['title'])
+        for i, title in enumerate(output):
+            title['title'] = ('Total errors: ' + str(errors[i]) + '\n' +
+                              title['title'])
 
         return output
 
