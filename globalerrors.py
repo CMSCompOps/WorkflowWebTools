@@ -15,10 +15,12 @@ import time
 
 from .reasonsmanip import reasons_list
 
+
 ALL_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/all_errors.json'
 """Location of the errors file loaded into globalerrors"""
 EXPLAIN_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/explanations.json'
 """Location of errors explanations"""
+
 
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
@@ -80,7 +82,7 @@ class ErrorInfo(object):
         print '##################'
 
     def teardown(self):
-        """Close the database when this object leaves scope"""
+        """Close the database when cache expires"""
         self.conn.close()
         print '##################'
         print 'Connection closed!'
@@ -142,7 +144,7 @@ def check_session(session, can_refresh=False):
         session['info'] = ErrorInfo()
 
     # If session ErrorInfo is old, set up another connection
-    if can_refresh and session.get('info').timestamp < time.time() - 60*5:
+    if can_refresh and session.get('info').timestamp < time.time() - 60*30:
         session.get('info').teardown()
         session.get('info').setup()
 
@@ -182,7 +184,7 @@ def see_workflow(workflow, session):
     :rtype: dict
     """
 
-    curs, _, allerrors, allsites, errors_explained = check_session(session).info
+    curs, _, allerrors, allsites, _ = check_session(session).info
     steplist = get_step_list(workflow, session)
 
     tables = []
@@ -212,7 +214,6 @@ def see_workflow(workflow, session):
         'steplist':  zip(steplist, tables),
         'allerrors': allerrors,
         'allsites':  allsites,
-        'errors_explained': errors_explained,
         'reasonslist': reasons_list(),
         }
 

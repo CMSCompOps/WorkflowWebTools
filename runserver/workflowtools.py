@@ -156,6 +156,19 @@ class WorkflowTools(object):
         newest_json = max(glob.iglob('actions/*.json'), key=os.path.getmtime)
         raise cherrypy.HTTPRedirect('/' + newest_json)
 
+    @cherrypy.expose
+    def explainerror(self, errorcode="0", workflowstep="/"):
+        """Returns an explaination of the error code, along with a link returning to table"""
+
+        if errorcode=="0":
+            return 'Need to specify error. Follow link from workflow tables.'
+
+        return get_template('explainerror.html').render(error=errorcode,
+                                                        explanation=globalerrors.\
+                                                            check_session(cherrypy.session).\
+                                                            get_errors_explained().\
+                                                            get(errorcode, ['No info for this error code']),
+                                                        source=workflowstep)
 
 if __name__ == '__main__':
     conf = {

@@ -42,7 +42,13 @@
           <th title="${row['title'] | h}">${row['name']}</th>
         % else:
           <th title="${row['title'] | h}">
-            <a href="../seeworkflow/?workflow=${row['name'].split('<br>')[0]}">${row['name']}</a>
+            <%
+               workflowstep = '/' + '/'.join(row['name'].split('<br>'))
+               workflowpd = workflowstep.split('/')[1]
+            %>
+            <a href="/seeworkflow/?workflow=${workflowpd}#${workflowstep}">
+              ${row['name']}
+            </a>
           </th>
         % endif
 
