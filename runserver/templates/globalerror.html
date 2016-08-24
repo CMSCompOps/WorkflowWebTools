@@ -16,9 +16,16 @@
         <th style="font-size:125%; text-align:left; padding:15px;">
           <span style="color:#0000ff;">Select a variable for the pie chart <br>(the other two make up the axes):</span>
           <form>
-            <input type="radio" name="pievar" value="stepname"> Step Name <br>
-            <input type="radio" name="pievar" value="sitename"> Site Name <br>
-            <input type="radio" name="pievar" value="errorcode"> Error Code <br>
+            <%
+               pievars = {
+                   'stepname' : 'Step Name',
+                   'sitename' : 'Site Name',
+                   'errorcode' : 'Error Code'
+               }
+            %>
+            % for val, text in pievars.iteritems():
+              <input type="radio" name="pievar" value="${val}">${text}<br>
+            % endfor
             <input type="submit" value="Submit">
           </form>
         </td>
@@ -29,16 +36,20 @@
 
       </tr>
 
-      % for row,title_list in errordata['rowzip']:
-      <tr>
+      % for row, title_list in errordata['rowzip']:
+      <tr bgcolor="${loop.cycle('#e0e0e0', '#ffffff')}">
         % if errordata['pievar'] == "stepname":
           <th title="${row['title'] | h}">${row['name']}</th>
         % else:
-          <th title="${row['title'] | h}"><a href="../seeworkflow/?workflow=${row['name']}">${row['name']}</a></th>
+          <th title="${row['title'] | h}">
+            <a href="../seeworkflow/?workflow=${row['name'].split('<br>')[0]}">${row['name']}</a>
+          </th>
         % endif
 
         % for title in title_list:
-          <th title="${title}"><canvas id="canvas" width="20" height="20" class="piechart"></canvas></th>
+          <th title="${title}">
+            <canvas id="canvas" width="20" height="20" class="piechart">
+          </canvas></th>
         % endfor
       </tr>
       % endfor

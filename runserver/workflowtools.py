@@ -162,8 +162,6 @@ if __name__ == '__main__':
         '/': {
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.sessions.on': True,
-            'tools.sessions.timeout': 5,
-            'tools.sessions.cleanup_freq': 5,
             },
         '/static': {
             'tools.staticdir.on': True,
