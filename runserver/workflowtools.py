@@ -103,7 +103,7 @@ class WorkflowTools(object):
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,
-                   reasons=reasons, params=params)
+                   reasons=reasons, params=params, user=cherrypy.request.login)
 
     @cherrypy.expose
     def getaction(self, test=False):
