@@ -248,7 +248,7 @@ if __name__ == '__main__':
 
     # Refuse to open if the salt.txt file is not there.
     with open('keys/salt.txt', 'r') as saltfile:
-        if len(saltfile.readlines()) != 2:
+        if len(saltfile.readlines()) == 0:
             exit(1)
 
     cherrypy.quickstart(WorkflowTools(), '/', conf)

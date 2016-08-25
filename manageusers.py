@@ -22,9 +22,10 @@ def get_user_db():
 
     if not curs.fetchone():
         # Note that the only un-encrypted value will be the username
-        # Email is kept for password reset of a user
-        curs.execute('CREATE TABLE users (username varchar(31) PRIMARY KEY, email varchar(255) UNIQUE, '
-                     'password varchar(1023), validator varchar(1023), isvalid integer)')
+        # Email is kept (but hashed and salted) for password reset of a user
+        curs.execute('CREATE TABLE users (username varchar(31) PRIMARY KEY, '
+                     'email varchar(255) UNIQUE, password varchar(1023), '
+                     'validator varchar(1023), isvalid integer)')
 
     return conn, curs
 

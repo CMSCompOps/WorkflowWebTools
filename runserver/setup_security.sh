@@ -19,7 +19,7 @@ fi
 
 if [ ! -f keys/salt.txt ]
 then
-    python -c 'import uuid; string = uuid.uuid4().hex; print string[:16]; print string[16:]' > keys/salt.txt
+    python -mgeneratesalt > keys/salt.txt
 fi
 
 openssl req -new -x509 -days 365 -key keys/privkey.pem -out keys/cert.pem
