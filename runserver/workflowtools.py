@@ -99,7 +99,7 @@ class WorkflowTools(object):
             return GET_TEMPLATE('scolduser.html').render(workflow=workflow)
 
         workflows, action, reasons, params = manageactions.\
-            submitaction(workflow, action, **kwargs)
+            submitaction(cherrypy.request.login, workflow, action, **kwargs)
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,
@@ -142,25 +142,30 @@ class WorkflowTools(object):
                    source=workflowstep)
 
     @cherrypy.expose
-    def newuser(self):
-        """
-        :returns: a page to generate a new user
+    def newuser(self, email='', username='', password=''):
+        """The page for registering a new user.
+
+        If accessing the page without filling one of the parameters,
+        you will get a form to submit back to this page via POST.
+        :param str email: The email of the new user
+        :param str username: The username of the new user
+        :param str password: The password of the new user
+        :returns: a page to generate a new user or a confirmation page
         :rtype: str
+        :raises: cherrypy.HTTPRedirect back to the new user page without parameters
+                 if there was a problem entering the user into the database
         """
 
-        return GET_TEMPLATE('newuser.html').\
-            render(emails=manageusers.get_valid_emails())
+        if '' in [email, username, password]:
+            return GET_TEMPLATE('newuser.html').\
+                render(emails=manageusers.get_valid_emails())
 
-    @cherrypy.expose
-    def registeruser(self, email, username, password):
-        """Attempts the registration and notifies the user of the result
-
-        :returns: a results page
-        :rtype: str
-        """
-        manageusers.add_user(email, username, password,
-                             cherrypy.url().strip('/registeruser'))
-        return GET_TEMPLATE('welcome.html').render()
+        add = manageusers.add_user(email, username, password,
+                                   cherrypy.url().strip('/registeruser'))
+        if add == 0:
+            return GET_TEMPLATE('checkemail.html').render(email=email)
+        else:
+            raise cherrypy.HTTPRedirect('/newuser')
 
     @cherrypy.expose
     def confirmuser(self, code):

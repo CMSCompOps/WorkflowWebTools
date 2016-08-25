@@ -8,6 +8,7 @@ import sqlite3
 import random
 import uuid
 import urllib
+import re
 
 from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
@@ -107,7 +108,7 @@ def get_valid_emails():
     return emails
 
 
-def add_user(email, username, password, url=''):
+def add_user(email, username, password, url):
     """Adds the user to the users database and sends a verification email,
        if the parameters are valid.
 
@@ -140,7 +141,7 @@ def add_user(email, username, password, url=''):
 
     print good_email
 
-    if not good_email or username == '' or password == '':
+    if not (good_email and re.match(r'^[A-za-z0-9]+$', username)) or password == '':
         return 1
 
     password = do_salt_hash(password)

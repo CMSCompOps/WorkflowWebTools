@@ -6,6 +6,9 @@ Module to manage actions of WorkflowWebTools.
 
 import os
 import json
+
+
+from datetime import datetime
 from . import reasonsmanip
 
 
@@ -62,9 +65,10 @@ def extract_reasons_params(**kwargs):
     return reasons + notupdate, params
 
 
-def submitaction(workflows, action, **kwargs):
+def submitaction(user, workflows, action, **kwargs):
     """Writes the action to Unified and notifies the user that this happened
 
+    :param str user: is the user that submitted the action
     :param str workflows: is the original workflow name or workflows
     :param str action: is the suggested action for Unified to take
     :param kwargs: can include various reasons and additional datasets
@@ -74,7 +78,8 @@ def submitaction(workflows, action, **kwargs):
 
     reasons, params = extract_reasons_params(**kwargs)
 
-    output_file_name = 'actions/new_action.json'
+    output_file_name = 'actions/{0}_{1}.json'.\
+        format(user, datetime.now().strftime('%Y%m%d'))
 
     add_to_json = {}
     if os.path.isfile(output_file_name):

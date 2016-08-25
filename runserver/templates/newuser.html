@@ -9,7 +9,7 @@
   </head>
 
   <body style="margin-left:5em; margin-top:2em;">
-    <form name="actionform" method="POST" action="/registeruser" onsubmit="return validateForm()">
+    <form name="actionform" method="POST" onsubmit="return validateForm()">
       E-mail: <br>
       <input type="text" name="email"> <br>
       Username: <br>
@@ -21,6 +21,12 @@
       <span id="confirmresult"></span> <br>
       <input type="submit" value="Submit">
     </form>
+
+    <p>
+      The username must only contain alphanumeric characters,
+      or it will not be added to the database.
+    </p>
+    <!-- I'll write the javascript for that later. -->
 
     <p>
       The email must end with one of the following:
