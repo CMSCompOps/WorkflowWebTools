@@ -24,13 +24,6 @@ GET_TEMPLATE = TemplateLookup(directories=['templates'],
                               module_directory='templates/mako_modules').get_template
 
 
-def validate_password(_, username, password):
-
-    if username == 'test' and password == 'test':
-        return True
-    return False
-
-
 class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
 
@@ -188,7 +181,8 @@ class WorkflowTools(object):
     @cherrypy.expose
     def newuser(self):
         """Returns a page to generate a new user"""
-        return GET_TEMPLATE('newuser.html').render()
+        return GET_TEMPLATE('newuser.html').\
+            render(emails=list(manageusers.get_valid_emails()))
 
     @cherrypy.expose
     def registeruser(self, email, username, password):
@@ -230,7 +224,7 @@ if __name__ == '__main__':
         '/submitaction': {
             'tools.auth_basic.on': True,
             'tools.auth_basic.realm': 'localhost',
-            'tools.auth_basic.checkpassword': validate_password
+            'tools.auth_basic.checkpassword': manageusers.validate_password
             }
         }
 

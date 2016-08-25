@@ -24,7 +24,15 @@ function validateForm () {
     var password = form['firstword'].value;
     var checkword = form['secondword'].value;
 
-    if (!(email.endsWith('@gmail.com'))) {
+    var validDomain = false;
+
+    for (iEmail in validEmails) {
+        if (email.endsWith(validEmails[iEmail])) {
+            validDomain = true;
+        }
+    }
+
+    if (!validDomain) {
         errorDir.innerHTML += 'Email does not end in valid domain. <br>';
     }
 

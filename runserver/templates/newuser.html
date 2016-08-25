@@ -2,6 +2,9 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width,user-scalable=yes"/>
+    <script>
+      var validEmails = ["${'","'.join(emails)}"]
+    </script>
     <script src="/static/js/checkuser.js"></script>
   </head>
 
@@ -20,8 +23,15 @@
     </form>
 
     <p>
-      The email must end with <span id="validEmails"></span>
+      The email must end with one of the following:
     </p>
+    <ul>
+      % for email in emails:
+        % if email[0] == '@':
+        <li> ${email}
+        % endif
+      % endfor
+    </ul>
 
     <div id="error"></div>
 
