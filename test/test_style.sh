@@ -70,8 +70,14 @@ do
 
     else
 
-        tput setaf 1 2> /dev/null; echo $f" failed the check:"
-        tput setaf 1 2> /dev/null; cat $f | tail -n5
+        if [ "$TRAVIS" = "true" ]    # For travis test, dump the output directly
+        then
+            tput sgr0 2> /dev/null
+            cat $f
+        else                         # Otherwise, show score and tell user to look
+            tput setaf 1 2> /dev/null; cat $f | tail -n5
+            tput setaf 1 2> /dev/null; echo "Check full file for more details."
+        fi
 
         ERRORSFOUND=`expr $ERRORSFOUND + 1`
 
