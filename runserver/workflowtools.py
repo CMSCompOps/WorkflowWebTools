@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Script to by run by a Python instance with cherrypy and mako installed
 
@@ -12,10 +14,21 @@ import json
 import cherrypy
 from mako.lookup import TemplateLookup
 
-from WorkflowWebTools import *
+from WorkflowWebTools import showlog
+from WorkflowWebTools import globalerrors
+from WorkflowWebTools import reasonsmanip
+from WorkflowWebTools import manageusers
 
-templates = TemplateLookup(directories=['templates'], module_directory='templates/mako_modules')
-get_template = templates.get_template
+
+GET_TEMPLATE = TemplateLookup(directories=['templates'],
+                              module_directory='templates/mako_modules').get_template
+
+
+def validate_password(_, username, password):
+
+    if username == 'test' and password == 'test':
+        return True
+    return False
 
 
 class WorkflowTools(object):
@@ -24,14 +37,14 @@ class WorkflowTools(object):
     @cherrypy.expose
     def index(self):
         """Returns the index page"""
-        return get_template('welcome.html').render()
+        return GET_TEMPLATE('welcome.html').render()
 
     @cherrypy.expose
     def showlog(self, search=''):
         """Returns the logs from elastic search"""
         logdata = showlog.give_logs(search)
         if type(logdata) == dict:
-            return get_template('showlog.html').render(logdata=logdata)
+            return GET_TEMPLATE('showlog.html').render(logdata=logdata)
         else:
             return logdata
 
@@ -39,35 +52,37 @@ class WorkflowTools(object):
     def globalerror(self, pievar='errorcode'):
         """Shows the global views of errors"""
         # This can use a lot of reworking
-        return get_template('globalerror.html').render(errordata=globalerrors.return_page(pievar, cherrypy.session))
+        return GET_TEMPLATE('globalerror.html').\
+            render(errordata=globalerrors.return_page(pievar, cherrypy.session))
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
         """Shows the errors for a given workflow
 
         :param workflow: is the name of the workflow to look at
-        :param issuggested: is a string to tell if the page has been linked from another workflow page
+        :param issuggested: is a string to tell if the page
+                            has been linked from another workflow page
         """
         # This can use a lot of reworking
         if workflow == '':
             return 'Did not select a workflow! <br> \
                     You can do that from the <a href="../globalerror">Global Errors Page</a>'
 
-        return get_template('workflowtables.html').render(
-            workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
-                                                   workflow=workflow, issuggested=issuggested)
+        return GET_TEMPLATE('workflowtables.html').\
+            render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
+                   workflow=workflow, issuggested=issuggested)
 
     @cherrypy.expose
     def submitaction(self, workflow='', action='', **kwargs):
         """Submits the action to Unified and notifies the user that this happened
-        
+
         :param workflow: is the original workflow name
         :param action: is the suggested action for Unified to take
         :param kwargs: can include various reasons and additional datasets
         """
 
         if action == '':
-            return get_template('scolduser.html').render(workflow=workflow)
+            return GET_TEMPLATE('scolduser.html').render(workflow=workflow)
 
         workflows = [workflow]
         old_reasons = reasonsmanip.reasons_list()
@@ -133,13 +148,13 @@ class WorkflowTools(object):
             add_to_json[wf] = {
                 'Action': action,
                 'Parameters': params,
-                'Reasons': [reason['long'] for reason in (reasons + notupdate)]
+                'Reasons': [reason['long'] for reason in reasons + notupdate]
                 }
 
         with open(output_file_name, 'w') as outputfile:
             json.dump(add_to_json, outputfile)
 
-        return get_template('actionsubmitted.html').render(workflows=workflows, 
+        return GET_TEMPLATE('actionsubmitted.html').render(workflows=workflows,
                                                            action=action,
                                                            reasons=(reasons+notupdate),
                                                            params=params)
@@ -160,21 +175,44 @@ class WorkflowTools(object):
     def explainerror(self, errorcode="0", workflowstep="/"):
         """Returns an explaination of the error code, along with a link returning to table"""
 
-        if errorcode=="0":
+        if errorcode == "0":
             return 'Need to specify error. Follow link from workflow tables.'
 
-        return get_template('explainerror.html').render(error=errorcode,
-                                                        explanation=globalerrors.\
-                                                            check_session(cherrypy.session).\
-                                                            get_errors_explained().\
-                                                            get(errorcode, ['No info for this error code']),
-                                                        source=workflowstep)
+        return GET_TEMPLATE('explainerror.html').\
+            render(error=errorcode,
+                   explanation=globalerrors.check_session(cherrypy.session).\
+                       get_errors_explained().\
+                       get(errorcode, ['No info for this error code']),
+                   source=workflowstep)
+
+    @cherrypy.expose
+    def newuser(self):
+        """Returns a page to generate a new user"""
+        return GET_TEMPLATE('newuser.html').render()
+
+    @cherrypy.expose
+    def registeruser(self, email, username, password):
+        """Returns a page to generate a new user"""
+        manageusers.add_user(email, username, password)
+        return GET_TEMPLATE('newuser.html').render()
+
+
+def secureheaders():
+    headers = cherrypy.response.headers
+    headers['Strict-Transport-Security'] = 'max-age=31536000'
+    headers['X-Frame-Options'] = 'DENY'
+    headers['X-XSS-Protection'] = '1; mode=block'
+    headers['Content-Security-Policy'] = "default-src='self'"
+
 
 if __name__ == '__main__':
     conf = {
         '/': {
+            'error_page.401': 'templates/401.html',
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.sessions.on': True,
+            'tools.sessions.secure': True,
+            'tools.sessions.httponly': True
             },
         '/static': {
             'tools.staticdir.on': True,
@@ -183,6 +221,11 @@ if __name__ == '__main__':
         '/actions': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': './actions'
+            },
+        '/submitaction': {
+            'tools.auth_basic.on': True,
+            'tools.auth_basic.realm': 'localhost',
+            'tools.auth_basic.checkpassword': validate_password
             }
         }
 
@@ -193,6 +236,19 @@ if __name__ == '__main__':
     if 'vocms' in this_host:
         cherrypy.config.update({'server.socket_host': this_host + '.cern.ch',
                                 'server.socket_port': 80,
-                                })
+                               })
+
+    if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
+        cherrypy.tools.secureheaders = \
+            cherrypy.Tool('before_finalize', secureheaders, priority=60)
+        cherrypy.config.update({
+            'server.ssl_certificate': 'keys/cert.pem',
+            'server.ssl_private_key': 'keys/privkey.pem'
+            })
+
+    # Refuse to open if the salt.txt file is not there.
+    with open('keys/salt.txt', 'r') as saltfile:
+        if len(saltfile.readlines()) != 2:
+            exit(1)
 
     cherrypy.quickstart(WorkflowTools(), '/', conf)

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,user-scalable=yes"/>
+    <script src="/static/js/checkuser.js"></script>
+  </head>
+
+  <body>
+    <form name="actionform" method="POST" action="/registeruser" onsubmit="return validateForm()">
+      E-mail: <br>
+      <input type="text" name="email"> <br>
+      Username: <br>
+      <input type="text" name="username"> <br>
+      Password: <br>
+      <input id="firstword" type="password" name="password"> <br>
+      Confirm Password: <br>
+      <input id="secondword" type="password" onkeyup="checkPassword()">
+      <span id="confirmresult"></span> <br>
+      <input type="submit" value="Submit">
+    </form>
+
+    <p>
+      The email must end with @cern.ch or @fnal.gov.
+    </p>
+
+    <div id="error"></div>
+
+  </body>
+</html>

@@ -2,6 +2,14 @@
 <html>
   <head>
     <title>4D Errors</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script>
+      $(document).tooltip({
+        content: function () {
+          return $(this).prop('title')
+        }
+      })
+    </script>
     <%include file="rotation_tables.html"/>
     <script type="text/javascript" src="static/js/piechart.js"></script>
   </head>
