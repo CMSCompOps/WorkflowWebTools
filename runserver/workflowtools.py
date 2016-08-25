@@ -193,9 +193,13 @@ class WorkflowTools(object):
     @cherrypy.expose
     def registeruser(self, email, username, password):
         """Returns a page to generate a new user"""
-        manageusers.add_user(email, username, password)
-        return GET_TEMPLATE('newuser.html').render()
+        manageusers.add_user(email, username, password,
+                             cherrypy.url().strip('/registeruser'))
+        return GET_TEMPLATE('welcome.html').render()
 
+    @cherrypy.expose
+    def confirmuser(self, code):
+        return GET_TEMPLATE('welcome.html').render()
 
 def secureheaders():
     headers = cherrypy.response.headers
@@ -209,6 +213,7 @@ if __name__ == '__main__':
     conf = {
         '/': {
             'error_page.401': 'templates/401.html',
+            'error_page.404': 'templates/404.html',
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.sessions.on': True,
             'tools.sessions.secure': True,
@@ -245,10 +250,5 @@ if __name__ == '__main__':
             'server.ssl_certificate': 'keys/cert.pem',
             'server.ssl_private_key': 'keys/privkey.pem'
             })
-
-    # Refuse to open if the salt.txt file is not there.
-    with open('keys/salt.txt', 'r') as saltfile:
-        if len(saltfile.readlines()) == 0:
-            exit(1)
 
     cherrypy.quickstart(WorkflowTools(), '/', conf)

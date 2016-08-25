@@ -5,7 +5,7 @@
     <script src="/static/js/checkuser.js"></script>
   </head>
 
-  <body>
+  <body style="margin-left:5em; margin-top:2em;">
     <form name="actionform" method="POST" action="/registeruser" onsubmit="return validateForm()">
       E-mail: <br>
       <input type="text" name="email"> <br>
@@ -20,7 +20,7 @@
     </form>
 
     <p>
-      The email must end with @cern.ch or @fnal.gov.
+      The email must end with <span id="validEmails"></span>
     </p>
 
     <div id="error"></div>

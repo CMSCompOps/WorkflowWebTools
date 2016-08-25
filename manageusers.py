@@ -5,7 +5,10 @@ Module to manage users of WorkflowWebTools.
 """
 
 import sqlite3
+import random
+import uuid
 
+from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
 
 
@@ -30,20 +33,91 @@ def get_user_db():
     return conn, curs
 
 
-def add_user(email, username, password):
+def add_user(email, username, password, url=''):
     """Adds the user to the users database and sends a verification email, 
        if the parameters are valid.
 
+    .. todo::
+
+      setup some webmaster configuration
+
     :param str email: The user email to send verification to.
                       Make sure to check for valid domains.
-    :param str username: The username of the account to add.
-    :param str password: The password to be stored.
+    :param str username: The username of the account to add
+    :param str password: The password to be stored
+    :param str url: The base url to redirect the user to for validating their account
+    :returns: Success code. 0 for adding user, 1 for not adding
     """
 
     # Need to check parameters again so that some sneaky guy doesn't pass the javascript
-    if ((email.endswith('@cern.ch') or email.endswith('@fnal.gov')) 
-        and len(username) != 0 and len(password) != 0):
 
-        conn, curs = get_user_db()
+    good_email = False
 
-        conn.close()
+    with open('keys/valid_email.txt', 'r') as email_file:
+        for valid_email in email_file.readlines():
+            valid_email = valid_email.strip()
+
+            if valid_email[0] == '@':
+                if email.endswith(valid_email):
+                    good_email = True
+                    break
+
+            elif email == valid_email:
+                good_email == True
+                break
+
+    print good_email
+
+    if not good_email or username == '' or password == '':
+        return 1
+
+    password = do_salt_hash(password)
+
+    validation_string = uuid.uuid4().hex
+    stored_string = do_salt_hash(str(validation_string))
+
+    confirm_link = url + '/confirmuser?code=' + str(validation_string)
+
+    message_text = (
+        'Hello ' + username +',\n\n'
+        'An account using this email has been registered on an instance of WorkflowWebTools. '
+        'If this request was created by you, please follow the following link: \n\n' +
+        confirm_link +
+        '\n\nThank you, \n'
+        'Some machine'
+        )
+
+    send_email('daniel.abercrombie@cern.ch', email, 'Verify Account on WorkflowWebTools Instance',
+               message_text) #, message_html)
+
+    email = do_salt_hash(email)
+
+    conn, curs = get_user_db()
+
+    curs.execute('INSERT INTO users VALUES (?,?,?,?,?)', (username, email, password, stored_string, 0))
+
+    conn.commit()
+    conn.close()
+
+
+def do_salt_hash(to_hash):
+    """Salt and hash an object into a storable form.
+
+    :param str to_hash: Alternate salt and hashing to get stored variable
+    :returns: A salty hash
+    :rtype str:
+    """
+
+    random.seed(to_hash)
+
+    with open('keys/salt.txt', 'r') as salt_file:
+        salts = [line.strip() for line in salt_file.readlines()]
+
+    salt_len = len(salts)
+
+    for yo in range(random.randint(10, 30)):
+
+        to_hash = bcrypt.encrypt(to_hash, rounds = random.randint(5, 10), salt = salts[random.randint(0, 200) % salt_len])
+        random.seed(to_hash)
+
+    return to_hash

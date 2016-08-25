@@ -24,7 +24,7 @@ function validateForm () {
     var password = form['firstword'].value;
     var checkword = form['secondword'].value;
 
-    if (!(email.endsWith('@cern.ch') || email.endsWith('@fnal.gov'))) {
+    if (!(email.endsWith('@gmail.com'))) {
         errorDir.innerHTML += 'Email does not end in valid domain. <br>';
     }
 
