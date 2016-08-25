@@ -70,6 +70,8 @@ do
 
     else
 
+        tput setaf 1 2> /dev/null; echo $f" failed the check:"
+
         if [ "$TRAVIS" = "true" ]    # For travis test, dump the output directly
         then
             tput sgr0 2> /dev/null
