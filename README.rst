@@ -43,6 +43,12 @@ The webtools are operated behind a cherrypy server.
 Maintaining the Web Tools
 -------------------------
 
+Script to Run Cherrypy Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: workflowtools
+   :members:
+
 Show Log
 ~~~~~~~~
 
@@ -55,10 +61,22 @@ Global Errors
 .. automodule:: WorkflowWebTools.globalerrors
    :members:
 
+Manage Users
+~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.manageusers
+   :members:
+
 Reasons Manipulation
 ~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: WorkflowWebTools.reasonsmanip
+   :members:
+
+Manage Actions
+~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.manageactions
    :members:
 
 WorkflowWebTools Forks' Build Statuses

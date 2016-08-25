@@ -7,6 +7,7 @@ Module to manage users of WorkflowWebTools.
 import sqlite3
 import random
 import uuid
+import urllib
 
 from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
@@ -38,6 +39,7 @@ def validate_password(_, username, password):
     This is called automatically by cherrypy,
     hence the unused parameter.
 
+    :param str _: The hostname
     :param str username: The attempted username
     :param str password: The attempted password
     :returns: Whether or not the loging attempt succeeds
@@ -50,6 +52,8 @@ def validate_password(_, username, password):
                  (username,))
 
     passwords = list(curs.fetchall())
+    conn.close()
+
     if len(passwords) != 1:
         return False
 
@@ -58,18 +62,49 @@ def validate_password(_, username, password):
     return False
 
 
+def confirmation(code):
+    """Determine the user from the confirmation code and activate the account
+
+    :param str code: the confirmation code for the user
+    :returns: the user name if valid code, or '' if not
+    :rtype: str
+    """
+
+    check_code = do_salt_hash(code)
+    conn, curs = get_user_db()
+    curs.execute('SELECT username FROM users WHERE validator=?', (check_code,))
+
+    users = list(curs.fetchall())
+
+    if len(users) != 1:
+        conn.close()
+        return ''
+
+    user = users[0][0]
+
+    curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
+                 ('0', 1, user))
+    conn.commit()
+    conn.close()
+
+    return user
+
+
 def get_valid_emails():
     """Get iterator for valid email patterns for this instance.
     This is configurable by the webmaster.
 
-    :returns: Valid email patterns
-    :rtype: generator
+    :returns: List of valid email patterns
+    :rtype: list
     """
+
+    emails = []
 
     with open('keys/valid_email.txt', 'r') as email_file:
         for valid_email in email_file.readlines():
-            valid_email = valid_email.strip()
-            yield valid_email
+            emails.append(valid_email.strip())
+
+    return emails
 
 
 def add_user(email, username, password, url=''):
@@ -113,7 +148,8 @@ def add_user(email, username, password, url=''):
     validation_string = uuid.uuid4().hex
     stored_string = do_salt_hash(str(validation_string))
 
-    confirm_link = url + '/confirmuser?code=' + str(validation_string)
+    confirm_link = (url + '/confirmuser?' +
+                    urllib.urlencode({'code': str(validation_string)}))
 
     message_text = (
         'Hello ' + username +',\n\n'
@@ -124,8 +160,9 @@ def add_user(email, username, password, url=''):
         'Some machine'
         )
 
-    send_email('daniel.abercrombie@cern.ch', email, 'Verify Account on WorkflowWebTools Instance',
-               message_text) #, message_html)
+    send_email('daniel.abercrombie@cern.ch', email,
+               'Verify Account on WorkflowWebTools Instance',
+               message_text)
 
     email = do_salt_hash(email)
 

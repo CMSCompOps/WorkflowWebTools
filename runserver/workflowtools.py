@@ -9,15 +9,14 @@ Script to by run by a Python instance with cherrypy and mako installed
 import os
 import glob
 import socket
-import json
 
 import cherrypy
 from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import showlog
 from WorkflowWebTools import globalerrors
-from WorkflowWebTools import reasonsmanip
 from WorkflowWebTools import manageusers
+from WorkflowWebTools import manageactions
 
 
 GET_TEMPLATE = TemplateLookup(directories=['templates'],
@@ -29,22 +28,39 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def index(self):
-        """Returns the index page"""
+        """
+        :returns: The welcome page
+        :rtype: str
+        """
         return GET_TEMPLATE('welcome.html').render()
 
     @cherrypy.expose
     def showlog(self, search=''):
-        """Returns the logs from elastic search"""
+        """Generates the :ref:`show-ref` page.
+
+        :param str search: The search string
+        :returns: the logs from elastic search
+        :rtype: str
+        """
         logdata = showlog.give_logs(search)
-        if type(logdata) == dict:
+        if isinstance(logdata, dict):
             return GET_TEMPLATE('showlog.html').render(logdata=logdata)
         else:
             return logdata
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
-        """Shows the global views of errors"""
-        # This can use a lot of reworking
+        """Generates the :ref:`global-view-ref` page.
+
+        :param str pievar: The variable that the pie charts are split into.
+                           Valid values are:
+                           - errorcode
+                           - sitename
+                           - stepname
+        :returns: the global views of errors
+        :rtype: str
+        """
+
         return GET_TEMPLATE('globalerror.html').\
             render(errordata=globalerrors.return_page(pievar, cherrypy.session))
 
@@ -52,14 +68,17 @@ class WorkflowTools(object):
     def seeworkflow(self, workflow='', issuggested=''):
         """Shows the errors for a given workflow
 
-        :param workflow: is the name of the workflow to look at
-        :param issuggested: is a string to tell if the page
-                            has been linked from another workflow page
+        :param str workflow: is the name of the workflow to look at
+        :param str issuggested: is a string to tell if the page
+                                has been linked from another workflow page
+        :returns: the error tables page for a given workflow
+        :rtype: str
+        :raises: cherrypy.HTTPRedirect to :ref:`global-view-ref` if a workflow
+                 is not selected.
         """
-        # This can use a lot of reworking
+
         if workflow == '':
-            return 'Did not select a workflow! <br> \
-                    You can do that from the <a href="../globalerror">Global Errors Page</a>'
+            raise cherrypy.HTTPRedirect('/globalerror')
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
@@ -69,92 +88,30 @@ class WorkflowTools(object):
     def submitaction(self, workflow='', action='', **kwargs):
         """Submits the action to Unified and notifies the user that this happened
 
-        :param workflow: is the original workflow name
-        :param action: is the suggested action for Unified to take
+        :param str workflow: is the original workflow name
+        :param str action: is the suggested action for Unified to take
         :param kwargs: can include various reasons and additional datasets
+        :returns: a confirmation page
+        :rtype: str
         """
 
         if action == '':
             return GET_TEMPLATE('scolduser.html').render(workflow=workflow)
 
-        workflows = [workflow]
-        old_reasons = reasonsmanip.reasons_list()
+        workflows, action, reasons, params = manageactions.\
+            submitaction(workflow, action, **kwargs)
 
-        reasons = []
-        notupdate = []
-        params = {}
-
-        for key, item in kwargs.iteritems():
-
-            if 'shortreason' in key:
-                long = kwargs[key.replace('short', 'long')].strip().replace('\n', '<br>')
-
-                if len(long) == 0:
-                    continue
-
-                if item != '':
-                    reasons.append({
-                        'short': item,
-                        'long': long,
-                    })
-                else:
-                    notupdate.append({
-                        'short': '---- No Short Reason Given, Not Saved to Database! ----',
-                        'long': long,
-                    })
-
-            elif 'selectedreason' in key:
-
-                if type(item) is list:
-
-                    for short in item:
-
-                        if short == "none":
-                            continue
-                        notupdate.append({
-                            'short': short,
-                            'long': old_reasons[short],
-                        })
-
-                else:
-                    if item == "none":
-                        continue
-                    notupdate.append({
-                        'short': item,
-                        'long': old_reasons[item],
-                    })
-
-            elif 'param_' in key:
-                parameter = '_'.join(key.split('_')[1:])
-                params[parameter] = item
-
-        reasonsmanip.update_reasons(reasons)
-
-        output_file_name = 'actions/new_action.json'
-
-        add_to_json = {}
-        if os.path.isfile(output_file_name):
-            with open(output_file_name, 'r') as outputfile:
-                add_to_json = json.load(outputfile)
-
-        for wf in workflows:
-            add_to_json[wf] = {
-                'Action': action,
-                'Parameters': params,
-                'Reasons': [reason['long'] for reason in reasons + notupdate]
-                }
-
-        with open(output_file_name, 'w') as outputfile:
-            json.dump(add_to_json, outputfile)
-
-        return GET_TEMPLATE('actionsubmitted.html').render(workflows=workflows,
-                                                           action=action,
-                                                           reasons=(reasons+notupdate),
-                                                           params=params)
+        return GET_TEMPLATE('actionsubmitted.html').\
+            render(workflows=workflows, action=action,
+                   reasons=reasons, params=params)
 
     @cherrypy.expose
     def getaction(self, test=False):
-        """Returns the latest action json that has not been adressed yet."""
+        """Returns the latest action json that has not been adressed yet.
+
+        :param bool test: Used to determine whether or not to return the test file.
+        :raises: A redirect to the relevant JSON.
+        """
 
         # This will also need to somehow note that an action has been gotten by Unified
 
@@ -166,7 +123,13 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):
-        """Returns an explaination of the error code, along with a link returning to table"""
+        """Returns an explaination of the error code, along with a link returning to table
+
+        :param str errorcode: The error code to display.
+        :param str workflowstep: The workflow to return to from the error page.
+        :returns: a page dumping the error logs
+        :rtype: str
+        """
 
         if errorcode == "0":
             return 'Need to specify error. Follow link from workflow tables.'
@@ -180,22 +143,42 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def newuser(self):
-        """Returns a page to generate a new user"""
+        """
+        :returns: a page to generate a new user
+        :rtype: str
+        """
+
         return GET_TEMPLATE('newuser.html').\
-            render(emails=list(manageusers.get_valid_emails()))
+            render(emails=manageusers.get_valid_emails())
 
     @cherrypy.expose
     def registeruser(self, email, username, password):
-        """Returns a page to generate a new user"""
+        """Attempts the registration and notifies the user of the result
+
+        :returns: a results page
+        :rtype: str
+        """
         manageusers.add_user(email, username, password,
                              cherrypy.url().strip('/registeruser'))
         return GET_TEMPLATE('welcome.html').render()
 
     @cherrypy.expose
     def confirmuser(self, code):
-        return GET_TEMPLATE('welcome.html').render()
+        """Confirms and activates an account
+
+        :param str code: confirmation code to activate the account
+        :returns: confirmation screen for the user
+        :rtype: str
+        """
+
+        user = manageusers.confirmation(code)
+        if user != '':
+            return GET_TEMPLATE('activated.html').render(user=user)
+        return self.index()
+
 
 def secureheaders():
+    """Generates secure headers for cherrypy Tool"""
     headers = cherrypy.response.headers
     headers['Strict-Transport-Security'] = 'max-age=31536000'
     headers['X-Frame-Options'] = 'DENY'
@@ -204,7 +187,7 @@ def secureheaders():
 
 
 if __name__ == '__main__':
-    conf = {
+    CONF = {
         '/': {
             'error_page.401': 'templates/401.html',
             'error_page.404': 'templates/404.html',
@@ -229,11 +212,11 @@ if __name__ == '__main__':
         }
 
     # Set the host of the webpage
-    this_host = socket.gethostname().split('.')[0]
+    THIS_HOST = socket.gethostname().split('.')[0]
 
     # If on vocms machine, serve there, otherwise just show page on localhost:8080
-    if 'vocms' in this_host:
-        cherrypy.config.update({'server.socket_host': this_host + '.cern.ch',
+    if 'vocms' in THIS_HOST:
+        cherrypy.config.update({'server.socket_host': THIS_HOST + '.cern.ch',
                                 'server.socket_port': 80,
                                })
 
@@ -245,4 +228,4 @@ if __name__ == '__main__':
             'server.ssl_private_key': 'keys/privkey.pem'
             })
 
-    cherrypy.quickstart(WorkflowTools(), '/', conf)
+    cherrypy.quickstart(WorkflowTools(), '/', CONF)
