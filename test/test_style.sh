@@ -7,7 +7,7 @@ if [ "`which pylint 2> /dev/null`" = "" ]
 then
 
     # Full test is in virtualenv that needs pylint
-    if [ "$install" = "install" -o "$OPSFULLTEST" = "true" ]
+    if [ "$install" = "install" -o "$TRAVIS" = "true" ]
     then
 
         pip install pylint

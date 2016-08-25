@@ -23,3 +23,10 @@ then
 fi
 
 openssl req -new -x509 -days 365 -key keys/privkey.pem -out keys/cert.pem
+
+touch keys/valid_email.txt
+
+echo "Do not forget to add valid email domains to your file:"
+echo ""
+echo " keys/valid_email.txt"
+echo ""
