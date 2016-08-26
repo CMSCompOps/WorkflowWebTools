@@ -110,13 +110,6 @@ class ErrorInfo(object):
             'sitename':  self.info[3]
             }
 
-    def return_info(self):
-        """
-        :returns: the 5-tuple of data from make_sql()
-        :rtype: (sqlite3.Cursor, list, list, list, dict)
-        """
-        return self.info
-
     def return_workflows(self):
         """
         :returns: the set of all workflow names
@@ -175,6 +168,38 @@ def get_step_list(workflow, session):
     return steplist
 
 
+def get_step_table(step, session):
+    """Gathers the errors for a step into a 2-D table of ints
+
+    :param str step: name of the step to get the table for
+    :param cherrypy.Session session: Stores the information for a session
+    :returns: A table of errors for the step
+    :rtype: list of lists of ints
+    """
+    curs = check_session(session).curs
+    allmap = check_session(session).get_allmap()
+
+    steptable = []
+
+    for error in allmap['errorcode']:
+        steprow = []
+
+        for site in allmap['sitename']:
+            curs.execute('SELECT numbererrors FROM workflows '
+                         'WHERE sitename=? AND errorcode=? AND stepname=?',
+                         (site, error, step))
+            numbererrors = curs.fetchall()
+
+            if len(numbererrors) == 0:
+                steprow.append(0)
+            else:
+                steprow.append(numbererrors[0][0])
+
+        steptable.append(steprow)
+
+    return steptable
+
+
 def see_workflow(workflow, session):
     """Gathers the error information for a single workflow
 
@@ -184,30 +209,13 @@ def see_workflow(workflow, session):
     :rtype: dict
     """
 
-    curs, _, allerrors, allsites, _ = check_session(session).info
+    _, _, allerrors, allsites, _ = check_session(session).info
     steplist = get_step_list(workflow, session)
 
     tables = []
 
     for step in steplist:
-        steptable = []
-
-        for error in allerrors:
-            steprow = []
-
-            for site in allsites:
-                curs.execute('SELECT numbererrors FROM workflows '
-                             'WHERE sitename=? AND errorcode=? AND stepname=?',
-                             (site, error, step))
-                numbererrors = curs.fetchall()
-
-                if len(numbererrors) == 0:
-                    steprow.append(0)
-                else:
-                    steprow.append(numbererrors[0][0])
-
-            steptable.append(steprow)
-
+        steptable = get_step_table(step, session)
         tables.append(zip(steptable, allerrors))
 
     return {
