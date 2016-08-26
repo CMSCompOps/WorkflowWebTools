@@ -181,6 +181,38 @@ class WorkflowTools(object):
             return GET_TEMPLATE('activated.html').render(user=user)
         return self.index()
 
+    @cherrypy.expose
+    def resetpassword(self, email='', code='', password=''):
+        """Resets the password for a user.
+
+        Accessing with no parameters allows you to submit an email for
+        password reset. Submitting an email sends a reset code.
+        Submitting with a code allows you to reset the password.
+        :param str email: The email linked to the account
+        :param str code: confirmation code to activate the account
+        :param str password: the new password for a given code
+        :returns: a webview depending on the inputs
+        :rtype: str
+        :raises: 404 if both email and code are filled
+        """
+
+        if not(email or code or password):
+            return GET_TEMPLATE('requestreset.html').render()
+
+        elif not (code or password):
+            manageusers.send_reset_email(
+                email, cherrypy.url().strip('/registeruser'))
+            return GET_TEMPLATE('sentemail.html').render(email=email)
+
+        elif not email and code:
+            if not password:
+                GET_TEMPLATE('newpassword.html').render(code=code)
+            else:
+                user = manageusers.resetpassword(code, password)
+                GET_TEMPLATE('resetpassword.html').render(user=user)
+        else:
+            raise cherrypy.HTTPError(404)
+
 
 def secureheaders():
     """Generates secure headers for cherrypy Tool"""

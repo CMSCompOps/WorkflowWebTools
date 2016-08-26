@@ -18,7 +18,7 @@ def get_user_db():
     """Gets the users database in the local directory.
 
     :returns: the users connection, cursor
-    :rtype: (sqlite3.Connection, sqlite3.Cursor)
+    :rtype: sqlite3.Connection, sqlite3.Cursor
     """
 
     conn = sqlite3.connect('users.db')
@@ -63,17 +63,20 @@ def validate_password(_, username, password):
     return False
 
 
-def confirmation(code):
+def confirmation(code, lookup='validator', return_curs=False):
     """Determine the user from the confirmation code and activate the account
 
     :param str code: the confirmation code for the user
-    :returns: the user name if valid code, or '' if not
-    :rtype: str
+    :param str lookup: The field to look up the username with
+    :param bool return_curs: If false, closes the connection
+    :returns: the user name if valid code, or '' if not.
+              Followed by conn, curs if return_curs is True
+    :rtype: str [, sqlite3.Connection, sqlite3.Cursor]
     """
 
     check_code = do_salt_hash(code)
     conn, curs = get_user_db()
-    curs.execute('SELECT username FROM users WHERE validator=?', (check_code,))
+    curs.execute('SELECT username FROM users WHERE ?=?', (lookup, check_code))
 
     users = list(curs.fetchall())
 
@@ -83,11 +86,79 @@ def confirmation(code):
 
     user = users[0][0]
 
-    curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
-                 ('0', 1, user))
-    conn.commit()
+    if lookup == 'validator':
+        curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
+                     ('0', 1, user))
+        conn.commit()
+
+    if return_curs:
+        return user, conn, curs
+
+    else:
+        conn.close()
+        return user
+
+
+def send_reset_email(email, url):
+    """Generates a confirmation code for a given account and sends a reset email.
+
+    :param str email: the email linked to the account
+    :param str url: the url of the running instance
+    """
+    user, conn, curs = confirmation(email, 'email', True)
+
+    if user:
+
+        validation_string = uuid.uuid4().hex
+        stored_string = do_salt_hash(str(validation_string))
+
+        confirm_link = (url + '/confirmuser?' +
+                        urllib.urlencode({'code': str(validation_string)}))
+
+        reset_link = (url + '/resetpassword?' +
+                      urllib.urlencode({'code': str(validation_string)}))
+
+        message_text = (
+            'Hello ' + user +',\n\n'
+            'A request to reset your password for this account has been submitted. '
+            'If this request was created by you, please follow the following link: \n\n' +
+            reset_link +
+            '\n\nIf this request was not made by you, the previous link can be deactivated '
+            'by folling the following: \n\n' +
+            confirm_link +
+            '\n\nand please report the incident to your local webmaster.'
+            '\n\nThank you, \n'
+            'Some machine'
+            )
+
+        send_email('daniel.abercrombie@cern.ch', email,
+                   'Reset account on WorkflowWebTools Instance',
+                   message_text)
+
+        curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
+                     (stored_string, 0, user))
+        conn.commit()
+
     conn.close()
 
+
+def resetpassword(code, password):
+    """Resets the password for a user.
+
+    :param str code: is the validation code for the account
+    :param str password: is the new password
+    :returns: user from the password reset
+    :rtype: str
+    """
+
+    user, conn, curs = confirmation(code, return_curs=True)
+
+    if user:
+        curs.execute('UPDATE users SET password=? WHERE username=?',
+                     (do_salt_hash(password), user))
+        conn.commit()
+
+    conn.close()
     return user
 
 

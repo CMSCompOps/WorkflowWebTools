@@ -15,7 +15,7 @@ function checkPassword () {
 }
 
 function validateForm () {
-    var form = document.forms['actionform'];
+    var form = document.forms['infoform'];
     var errorDir = document.getElementById('error');
     errorDir.innerHTML = '';
 
