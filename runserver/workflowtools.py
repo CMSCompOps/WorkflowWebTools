@@ -161,7 +161,7 @@ class WorkflowTools(object):
                 render(emails=manageusers.get_valid_emails())
 
         add = manageusers.add_user(email, username, password,
-                                   cherrypy.url().strip('/registeruser'))
+                                   cherrypy.url().split('/newuser')[0])
         if add == 0:
             return GET_TEMPLATE('checkemail.html').render(email=email)
         else:
@@ -201,15 +201,15 @@ class WorkflowTools(object):
 
         elif not (code or password):
             manageusers.send_reset_email(
-                email, cherrypy.url().strip('/registeruser'))
+                email, cherrypy.url().split('/resetpass')[0])
             return GET_TEMPLATE('sentemail.html').render(email=email)
 
         elif not email and code:
             if not password:
-                GET_TEMPLATE('newpassword.html').render(code=code)
+                return GET_TEMPLATE('newpassword.html').render(code=code)
             else:
                 user = manageusers.resetpassword(code, password)
-                GET_TEMPLATE('resetpassword.html').render(user=user)
+                return GET_TEMPLATE('resetpassword.html').render(user=user)
         else:
             raise cherrypy.HTTPError(404)
 

@@ -29,8 +29,8 @@ def get_user_db():
         # Note that the only un-encrypted value will be the username
         # Email is kept (but hashed and salted) for password reset of a user
         curs.execute('CREATE TABLE users (username varchar(31) PRIMARY KEY, '
-                     'email varchar(255) UNIQUE, password varchar(1023), '
-                     'validator varchar(1023), isvalid integer)')
+                     'email varchar(255) UNIQUE, password varchar(255), '
+                     'validator varchar(255), isvalid integer)')
 
     return conn, curs
 
@@ -47,9 +47,13 @@ def validate_password(_, username, password):
     :rtype: bool
     """
 
+    # We have to lookup password by username instead of using
+    # confirmation because people are likely to have the same
+    # 'password'
+
     conn, curs = get_user_db()
 
-    curs.execute('SELECT password FROM users WHERE username=?',
+    curs.execute('SELECT password, isvalid FROM users WHERE username=?',
                  (username,))
 
     passwords = list(curs.fetchall())
@@ -58,9 +62,7 @@ def validate_password(_, username, password):
     if len(passwords) != 1:
         return False
 
-    if do_salt_hash(password) == passwords[0][0]:
-        return True
-    return False
+    return do_salt_hash(password) == passwords[0][0] and bool(passwords[0][1])
 
 
 def confirmation(code, lookup='validator', return_curs=False):
@@ -74,22 +76,24 @@ def confirmation(code, lookup='validator', return_curs=False):
     :rtype: str [, sqlite3.Connection, sqlite3.Cursor]
     """
 
-    check_code = do_salt_hash(code)
     conn, curs = get_user_db()
-    curs.execute('SELECT username FROM users WHERE ?=?', (lookup, check_code))
+
+    # Note that the sqlite ? doesn't seem to work for these hashes for some reason
+    curs.execute('SELECT username FROM users WHERE {0}=\'{1}\''.\
+                     format(lookup, do_salt_hash(code)))
 
     users = list(curs.fetchall())
 
     if len(users) != 1:
-        conn.close()
-        return ''
+        user = ''
 
-    user = users[0][0]
+    else:
+        user = users[0][0]
 
-    if lookup == 'validator':
-        curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
-                     ('0', 1, user))
-        conn.commit()
+        if lookup == 'validator':
+            curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
+                         ('0', 1, user))
+            conn.commit()
 
     if return_curs:
         return user, conn, curs
