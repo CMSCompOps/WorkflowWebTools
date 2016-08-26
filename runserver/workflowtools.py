@@ -14,6 +14,7 @@ import cherrypy
 from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import showlog
+from WorkflowWebTools import serverconfig
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
@@ -158,7 +159,7 @@ class WorkflowTools(object):
 
         if '' in [email, username, password]:
             return GET_TEMPLATE('newuser.html').\
-                render(emails=manageusers.get_valid_emails())
+                render(emails=serverconfig.get_valid_emails())
 
         add = manageusers.add_user(email, username, password,
                                    cherrypy.url().split('/newuser')[0])
