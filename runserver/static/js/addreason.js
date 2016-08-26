@@ -135,18 +135,22 @@ function makeParamTable(action) {
 
         paramDiv.appendChild(paramTable);
 
-        var checklist = '<h4> Site List: </h4>';
-        for (var iSite = 0; iSite < sitelist.length; iSite++)
-            checklist += '<input type="checkbox" name="param_sites" value="'+sitelist[iSite]+'">'+sitelist[iSite]+'</input> <br>';
-
         var checkDiv = document.createElement('DIV');
         checkDiv.id = 'siteslistcheck';
-        checkDiv.style.display = 'None';
-        checkDiv.innerHTML = checklist;
+        checkDiv.innerHTML = '<h4> Site List: </h4>';
+
+        for (var iSite = 0; iSite < sitelist.length; iSite++) {
+            var paramdiv = document.createElement('DIV');
+            paramdiv.className = 'sitecheck'
+            paramdiv.innerHTML = '<input type="checkbox" name="param_sites" value="'+sitelist[iSite]+'">'+sitelist[iSite]+'</input>';
+            checkDiv.appendChild(paramdiv);
+        }
+
+        checkDiv.innerHTML += '<br style="clear:both;">'
 
         var checkShow = document.createElement('BUTTON');
         checkShow.type = 'button';
-        checkShow.innerHTML = 'Show/Hide Sites';
+        checkShow.innerHTML = 'Hide/Show Sites';
         checkShow.onclick = function() {
             $('#siteslistcheck').toggle();
         };

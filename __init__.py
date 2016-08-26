@@ -4,4 +4,4 @@
 """
 
 
-__all__ = ['globalerrors', 'showlog', 'reasonsmanip']
+__all__ = ['globalerrors', 'manageactions', 'manageusers', 'showlog', 'reasonsmanip']

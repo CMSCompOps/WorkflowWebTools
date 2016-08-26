@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=yes"/>
     <title>Workflow Errors</title>
     <%include file="rotation_tables.html"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/workflow.css">
     <script type="text/javascript">
       var shortlist = [
       % if len(workflowdata['reasonslist'].keys()) != 0:
@@ -24,59 +25,97 @@
       ];
     </script>
     <script src="/static/js/addreason.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <style type="text/css">
       td { text-align: center; }
     </style>
   </head>
   <body>
-    <center>
-    <h1 id="top">${workflow}</h2>
-    <a href="../globalerror">Global Errors</a> <br>
-    <a href="../showlog?search=${workflow}">Workflow logs</a>
-    </center>
+    <%
+       sendtotop = '<p><a href="#top">To top</a></p>'
+    %>
+    <div id="top">
 
-    <form name="actionform" method="POST" action="/submitaction">
-      <input type="hidden" name="workflow" value="${workflow}"></input>
-      <input type="radio" name="action" onclick="makeParamTable(this);" value="clone"> Kill and Clone
-      <input type="radio" name="action" onclick="makeParamTable(this);" value="recover"> Recover (ACDC)
-      <input type="radio" name="action" onclick="makeParamTable(this);" value="investigate"> Other action <br>
+      <center>
+        <h1>${workflow}</h1>
+        <a href="/globalerror">Global Errors</a> <br>
+        <a href="/showlog?search=${workflow}">Workflow logs</a>
+      </center>
 
-      <div id="actionparams"></div>
-
-      <%doc>
-      <button id="showmulti" type="button">Apply to multiple?</button> <br>
-      <div id="multiwfs" style="display:none;">
-        <button id="addfilter" type="button">Add Filter</button> <br>
-        <div id="filter" style="display:none;">
-          <input type="text" name="wffilter"></input>
-          <select name="wffiltertype">
-            <option value="none">Filter Type</option>
-            <option value="campaign">Campaign</option>
-            <option value="type">Type of Workflow</option>
-            <option value="whitelise">Site Whitelist</option>
-            <option value="agent">Agent</option>
-            <option value="wfname">Workflow Name</option>
-          </select> <br>
-          <button type="button">Apply filter</button> <br>
-        </div>
-        % for wf in workflowdata['allsteps']:
-          <input type="checkbox" name="multiworkflow" value="${wf}"><a href="?workflow=${wf}">${wf}</a></input> <br>
-        % endfor
-      </div>
-      </%doc>
-      <button id="addreason" type="button" onClick="addReason('reasons');">Add Reason</button> <br>
-      <div id="reasons"></div>
-      <br style="clear:both">
-      <input type="submit" value="Submit">
-    </form>
+    </div>
 
     <hr>
+
+    <div>
+
+      <div>
+        <span style="font-weight:bold;">Steps with errors:</span> <br>
+        % for step, _ in workflowdata['steplist']:
+        <a href="#${step}">${step}</a> <br>
+        % endfor
+      </div>
+
+      <br style="clear:both;">
+      <hr>
+
+      <div>
+        <span style="font-weight:bold;">Actions:</span> <br>
+        <form name="actionform" method="POST" action="/submitaction">
+          <input type="hidden" name="workflow" value="${workflow}">
+          <%
+             actions = {
+                 'clone' : 'Kill and Clone',
+                 'recover' : 'Recover (ACDC)',
+                 'investigate' : 'Other action'
+             }
+          %>
+          % for val, text in actions.iteritems():
+          <input type="radio" name="action" onclick="makeParamTable(this);" value="${val}">${text}
+          % endfor
+          <br>
+          
+          <div id="actionparams"></div>
+
+          <!--
+              <%doc>
+              <button id="showmulti" type="button">Apply to multiple?</button> <br>
+              <div id="multiwfs" style="display:none;">
+                <button id="addfilter" type="button">Add Filter</button> <br>
+                <div id="filter" style="display:none;">
+                  <input type="text" name="wffilter">
+                  <select name="wffiltertype">
+                    <option value="none">Filter Type</option>
+                    <option value="campaign">Campaign</option>
+                    <option value="type">Type of Workflow</option>
+                    <option value="whitelise">Site Whitelist</option>
+                    <option value="agent">Agent</option>
+                    <option value="wfname">Workflow Name</option>
+                  </select> <br>
+                  <button type="button">Apply filter</button> <br>
+                </div>
+                % for wf in workflowdata['allsteps']:
+                <input type="checkbox" name="multiworkflow" value="${wf}"><a href="?workflow=${wf}">${wf}</a> <br>
+                % endfor
+              </div>
+              </%doc>
+            -->
+
+          <button id="addreason" type="button" onClick="addReason('reasons');">Add Reason</button> <br>
+          <div id="reasons"></div>
+          <br style="clear:both">
+          <input type="submit" value="Submit">
+        </form>
+      </div>
+
+    </div>
+
+    <br style="clear:both;">
+    <hr>
+
     <center>
-    % for step,table in workflowdata['steplist']:
+    % for step, table in workflowdata['steplist']:
 
-    <h2>${step}</h2>
-
+    <h2 id="${step}">${step}</h2>
+    ${sendtotop}
     <table border="3" style="border-collapse: collapse;">
       <tr>
         <th>
@@ -88,7 +127,9 @@
       
       % for tablerow, error in table:
       <tr>
-        <th><a href="#${error}">${error}</a></th>
+        <th><a href="/explainerror?errorcode=${error}&workflowstep=${step}">
+            ${error}
+        </a></th>
         % for entry in tablerow:
         % if entry == 0:
         <td>${entry}</td>
@@ -103,19 +144,6 @@
     % endfor
 
     </center>
-    <hr>
-    
-    % for error in workflowdata['allerrors']:
-    <h2 id="${error}">${error}</h2>
-    <p><a href="#top">Back to top</a></p>
-    <% 
-       toprint = '\n --- \n'.join(workflowdata['errors_explained'][error]).replace('\n','<br>')
-    %>
-    <div style="max-width:100%; word-wrap:break-word">
-      ${toprint}
-    <div>
-    % endfor
-    <p><a href="#top">Back to top</a></p>
 
   </body>
 </html>

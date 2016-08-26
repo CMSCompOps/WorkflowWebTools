@@ -2,6 +2,14 @@
 <html>
   <head>
     <title>4D Errors</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script>
+      $(document).tooltip({
+        content: function () {
+          return $(this).prop('title')
+        }
+      })
+    </script>
     <%include file="rotation_tables.html"/>
     <script type="text/javascript" src="static/js/piechart.js"></script>
   </head>
@@ -16,9 +24,16 @@
         <th style="font-size:125%; text-align:left; padding:15px;">
           <span style="color:#0000ff;">Select a variable for the pie chart <br>(the other two make up the axes):</span>
           <form>
-            <input type="radio" name="pievar" value="stepname"> Step Name <br>
-            <input type="radio" name="pievar" value="sitename"> Site Name <br>
-            <input type="radio" name="pievar" value="errorcode"> Error Code <br>
+            <%
+               pievars = {
+                   'stepname' : 'Step Name',
+                   'sitename' : 'Site Name',
+                   'errorcode' : 'Error Code'
+               }
+            %>
+            % for val, text in pievars.iteritems():
+              <input type="radio" name="pievar" value="${val}">${text}<br>
+            % endfor
             <input type="submit" value="Submit">
           </form>
         </td>
@@ -29,16 +44,26 @@
 
       </tr>
 
-      % for row,title_list in errordata['rowzip']:
-      <tr>
+      % for row, title_list in errordata['rowzip']:
+      <tr bgcolor="${loop.cycle('#e0e0e0', '#ffffff')}">
         % if errordata['pievar'] == "stepname":
           <th title="${row['title'] | h}">${row['name']}</th>
         % else:
-          <th title="${row['title'] | h}"><a href="../seeworkflow/?workflow=${row['name']}">${row['name']}</a></th>
+          <th title="${row['title'] | h}">
+            <%
+               workflowstep = '/' + '/'.join(row['name'].split('<br>'))
+               workflowpd = workflowstep.split('/')[1]
+            %>
+            <a href="/seeworkflow/?workflow=${workflowpd}#${workflowstep}">
+              ${row['name']}
+            </a>
+          </th>
         % endif
 
         % for title in title_list:
-          <th title="${title}"><canvas id="canvas" width="20" height="20" class="piechart"></canvas></th>
+          <th title="${title}">
+            <canvas id="canvas" width="20" height="20" class="piechart">
+          </canvas></th>
         % endfor
       </tr>
       % endfor

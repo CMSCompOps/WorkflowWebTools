@@ -54,8 +54,8 @@ def short_reasons_list():
 
     curs.execute('SELECT shortreason FROM reasons')
     short_list = []
-    for item in curs.fetchall():
-        short_list.append(item[0])
+    for item, in curs.fetchall():
+        short_list.append(item)
 
     conn.close()
 
