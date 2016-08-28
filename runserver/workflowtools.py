@@ -9,6 +9,7 @@ Script to by run by a Python instance with cherrypy and mako installed
 import os
 import glob
 import socket
+import logging
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -225,6 +226,7 @@ def secureheaders():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='server.log', level=logging.DEBUG)
     CONF = {
         '/': {
             'error_page.401': 'templates/401.html',
