@@ -47,7 +47,7 @@ def get_clusterer():
     fake_session = {
         'info': globalerrors.ErrorInfo(
             os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), 
+                os.path.dirname(os.path.realpath(__file__)),
                 'data', 'history.json'))
         }
 
@@ -68,4 +68,3 @@ def get_clusterer():
     clusterer.fit(numpy.array(data))
 
     return clusterer
-

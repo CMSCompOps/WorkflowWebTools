@@ -1,10 +1,6 @@
 """
 Generates the content for the errors pages
 
-.. todo::
-
-  Add support for having a global session in the module if not running under cherrypy
-
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
@@ -14,7 +10,6 @@ import json
 import sqlite3
 import time
 import logging
-from urlparse import urlparse
 
 from .reasonsmanip import reasons_list
 
@@ -28,7 +23,7 @@ EXPLAIN_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/explanations.
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
 
-    def __init__(self, data_location = ALL_ERRORS_LOCATION):
+    def __init__(self, data_location=ALL_ERRORS_LOCATION):
         """Initialization with a setup.
         :param str data_location: Set the location of the data to read in the info
         """
@@ -56,7 +51,7 @@ class ErrorInfo(object):
         siteset = set()
 
         # Store everything into an SQL database for fast retrival
-        
+
         if os.path.isfile(self.data_location):
             res = open(self.data_location, 'r')
 
@@ -97,7 +92,7 @@ class ErrorInfo(object):
 
     def connection_log(self, action):
         """Logs actions on the sqlite3 connection
-        
+
         :param str action: is the action on the connection
         """
         logging.info('Connection %s with timestamp %s', action, self.timestamp)
@@ -135,7 +130,7 @@ class ErrorInfo(object):
         return wfs
 
 
-global_info = ErrorInfo()
+GLOBAL_INFO = ErrorInfo()
 
 
 def check_session(session, can_refresh=False):
@@ -149,7 +144,7 @@ def check_session(session, can_refresh=False):
     """
 
     if not session:
-        theinfo = global_info
+        theinfo = GLOBAL_INFO
     else:
         if session.get('info') is None:
             session['info'] = ErrorInfo()
