@@ -54,6 +54,9 @@
         % endfor
       </div>
 
+    % if issuggested:
+    </div>
+    % else:
       <br style="clear:both;">
       <hr>
 
@@ -75,29 +78,28 @@
           
           <div id="actionparams"></div>
 
-          <!--
-              <%doc>
-              <button id="showmulti" type="button">Apply to multiple?</button> <br>
-              <div id="multiwfs" style="display:none;">
-                <button id="addfilter" type="button">Add Filter</button> <br>
-                <div id="filter" style="display:none;">
-                  <input type="text" name="wffilter">
-                  <select name="wffiltertype">
-                    <option value="none">Filter Type</option>
-                    <option value="campaign">Campaign</option>
-                    <option value="type">Type of Workflow</option>
-                    <option value="whitelise">Site Whitelist</option>
-                    <option value="agent">Agent</option>
-                    <option value="wfname">Workflow Name</option>
-                  </select> <br>
-                  <button type="button">Apply filter</button> <br>
-                </div>
-                % for wf in workflowdata['allsteps']:
-                <input type="checkbox" name="multiworkflow" value="${wf}"><a href="?workflow=${wf}">${wf}</a> <br>
-                % endfor
+
+          % if len(similar_wfs) != 0:
+            <button id="showmulti" type="button">Apply to multiple?</button> <br>
+            <div id="multiwfs" style="display:none;">
+              <button id="addfilter" type="button">Add Filter</button> <br>
+              <div id="filter" style="display:none;">
+                <input type="text" name="wffilter">
+                <select name="wffiltertype">
+                  <option value="none">Filter Type</option>
+                  <option value="campaign">Campaign</option>
+                  <option value="type">Type of Workflow</option>
+                  <option value="whitelise">Site Whitelist</option>
+                  <option value="agent">Agent</option>
+                  <option value="wfname">Workflow Name</option>
+                </select> <br>
+                <button type="button">Apply filter</button> <br>
               </div>
-              </%doc>
-            -->
+              % for wf in similar_wfs:
+              <input type="checkbox" name="multiworkflow" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
+              % endfor
+            </div>
+          % endif
 
           <button id="addreason" type="button" onClick="addReason('reasons');">Add Reason</button> <br>
           <div id="reasons"></div>
@@ -107,6 +109,8 @@
       </div>
 
     </div>
+
+    % endif
 
     <br style="clear:both;">
     <hr>
@@ -146,4 +150,11 @@
     </center>
 
   </body>
+
+  <script>
+    $("#showmulti").click(function () {
+      $("#multiwfs").toggle();
+    })
+  </script>
+
 </html>

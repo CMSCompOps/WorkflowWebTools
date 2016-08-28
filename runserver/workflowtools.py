@@ -87,11 +87,16 @@ class WorkflowTools(object):
         if workflow == '':
             raise cherrypy.HTTPRedirect('/globalerror')
 
+        if issuggested:
+            similar_wfs = set()
+        else:
+            similar_wfs = clusterworkflows.\
+                get_clustered_group(workflow, CLUSTERER, cherrypy.session)
+
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
                    workflow=workflow, issuggested=issuggested,
-                   similar_wfs=clusterworkflows.\
-                       get_clustered_group(workflow, CLUSTERER, cherrypy.session)
+                   similar_wfs=similar_wfs
                   )
 
     @cherrypy.expose
@@ -234,7 +239,7 @@ def secureheaders():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='server.log', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     CONF = {
         'global': {
             'server.socket_host': serverconfig.host_name(),
