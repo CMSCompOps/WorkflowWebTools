@@ -111,7 +111,7 @@ class WorkflowTools(object):
         """
 
         if action == '':
-            return GET_TEMPLATE('scolduser.html').render(workflow=workflow)
+            return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
 
         workflows, action, reasons, params = manageactions.\
             submitaction(cherrypy.request.login, workflows, action, **kwargs)
