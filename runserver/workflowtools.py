@@ -103,7 +103,7 @@ class WorkflowTools(object):
     def submitaction(self, workflows='', action='', **kwargs):
         """Submits the action to Unified and notifies the user that this happened
 
-        :param str workflow: is a list of workflows to apply the action to
+        :param str workflows: is a list of workflows to apply the action to
         :param str action: is the suggested action for Unified to take
         :param kwargs: can include various reasons and additional datasets
         :returns: a confirmation page
