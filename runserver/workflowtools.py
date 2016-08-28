@@ -100,10 +100,10 @@ class WorkflowTools(object):
                   )
 
     @cherrypy.expose
-    def submitaction(self, workflow='', action='', **kwargs):
+    def submitaction(self, workflows='', action='', **kwargs):
         """Submits the action to Unified and notifies the user that this happened
 
-        :param str workflow: is the original workflow name
+        :param str workflow: is a list of workflows to apply the action to
         :param str action: is the suggested action for Unified to take
         :param kwargs: can include various reasons and additional datasets
         :returns: a confirmation page
@@ -114,7 +114,7 @@ class WorkflowTools(object):
             return GET_TEMPLATE('scolduser.html').render(workflow=workflow)
 
         workflows, action, reasons, params = manageactions.\
-            submitaction(cherrypy.request.login, workflow, action, **kwargs)
+            submitaction(cherrypy.request.login, workflows, action, **kwargs)
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,

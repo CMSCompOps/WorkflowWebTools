@@ -63,7 +63,7 @@
       <div>
         <span style="font-weight:bold;">Actions:</span> <br>
         <form name="actionform" method="POST" action="/submitaction">
-          <input type="hidden" name="workflow" value="${workflow}">
+          <input type="hidden" name="workflows" value="${workflow}">
           <%
              actions = {
                  'clone' : 'Kill and Clone',
@@ -96,7 +96,7 @@
                 <button type="button">Apply filter</button> <br>
               </div>
               % for wf in similar_wfs:
-              <input type="checkbox" name="multiworkflow" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
+              <input type="checkbox" name="workflows" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
               % endfor
             </div>
           % endif
