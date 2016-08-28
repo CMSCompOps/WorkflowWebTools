@@ -25,7 +25,9 @@ GET_TEMPLATE = TemplateLookup(directories=['templates'],
                               module_directory='templates/mako_modules').get_template
 """Function to get templates from the relative ``templates`` directory"""
 CLUSTERER = clusterworkflows.get_clusterer(serverconfig.workflow_history_path())
-"""Clusterer trained with the workflow history in server configuration"""
+"""Clusterer trained with the workflow history in server configuration,
+with the appropriate allmap
+"""
 
 
 class WorkflowTools(object):

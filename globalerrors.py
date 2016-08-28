@@ -182,16 +182,19 @@ def get_step_list(workflow, session=None):
     return steplist
 
 
-def get_step_table(step, session=None):
+def get_step_table(step, session=None, allmap=None):
     """Gathers the errors for a step into a 2-D table of ints
 
     :param str step: name of the step to get the table for
     :param cherrypy.Session session: Stores the information for a session
+    :param dict allmap: a globalerrors.ErrorInfo allmap to override the
+                        session's allmap
     :returns: A table of errors for the step
     :rtype: list of lists of ints
     """
     curs = check_session(session).curs
-    allmap = check_session(session).get_allmap()
+    if not allmap:
+        allmap = check_session(session).get_allmap()
 
     steptable = []
 

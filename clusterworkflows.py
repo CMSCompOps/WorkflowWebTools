@@ -11,12 +11,14 @@ import sklearn.cluster
 from . import globalerrors
 
 
-def get_workflow_vector(workflow, session=None):
+def get_workflow_vector(workflow, session=None, allmap=None):
     """
     Gets the errors for a workflow in a numpy array, vector form
 
     :param str workflow: is the workflow the vector is returned for
     :param cherrypy.Session session: Stores the information for a session
+    :param dict allmap: a globalerrors.ErrorInfo allmap to override the
+                        session's allmap
     :return: a 1-d vector of errors for the workflow
     :rtype: numpy.array
     """
@@ -26,7 +28,7 @@ def get_workflow_vector(workflow, session=None):
         step_array = []
 
         # Convert the 2-D table into a 1-D array
-        for row in globalerrors.get_step_table(step, session):
+        for row in globalerrors.get_step_table(step, session, allmap):
             step_array += row
 
         # Add together the different steps in the workflow
@@ -40,8 +42,9 @@ def get_clusterer(data_path):
 
     :param str data_path: Path to the workflow historical data.
                           This can be a local file path or a URL.
-    :return: A clusterer that is fitted to historical data
-    :rtype: sklearn.cluster.KMeans
+    :return: A dict of a clusterer that is fitted to historical data
+             with its allmap
+    :rtype: dict
     """
 
     # This will be the location of our training data
@@ -66,7 +69,7 @@ def get_clusterer(data_path):
 
     clusterer.fit(numpy.array(data))
 
-    return clusterer
+    return {'clusterer': clusterer, 'allmap': fake_session['info'].get_allmap()}
 
 
 def get_workflow_groups(clusterer, session=None):
@@ -86,11 +89,12 @@ def get_workflow_groups(clusterer, session=None):
     workflows = globalerrors.check_session(session).return_workflows()
     vectors = []
     for workflow in workflows:
-        vectors.append(get_workflow_vector(workflow, session))
+        vectors.append(
+            get_workflow_vector(workflow, session, clusterer['allmap']))
 
-    predictions = clusterer.predict(numpy.array(vectors))
+    predictions = clusterer['clusterer'].predict(numpy.array(vectors))
 
-    output = [set() for _ in range(clusterer.n_clusters)]
+    output = [set() for _ in range(clusterer['clusterer'].n_clusters)]
     for index, workflow in enumerate(workflows):
         output[predictions[index]].add(workflow)
 
