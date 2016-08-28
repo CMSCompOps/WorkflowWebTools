@@ -4,7 +4,7 @@ Tools for clustering workflows based on their errors
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
-import os
+
 import numpy
 import sklearn.cluster
 
@@ -35,20 +35,18 @@ def get_workflow_vector(workflow, session=None):
     return workflow_array
 
 
-def get_clusterer():
-    """
-    Use this function to get the clusterer of workflows
+def get_clusterer(data_path):
+    """Use this function to get the clusterer of workflows
 
+    :param str data_path: Path to the workflow historical data.
+                          This can be a local file path or a URL.
     :return: A clusterer that is fitted to historical data
-    :rtype: sklearn.cluster
+    :rtype: sklearn.cluster.KMeans
     """
 
     # This will be the location of our training data
     fake_session = {
-        'info': globalerrors.ErrorInfo(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'data', 'history.json'))
+        'info': globalerrors.ErrorInfo(data_path)
         }
 
     # Get the data by getting table for each workflow
@@ -59,6 +57,7 @@ def get_clusterer():
 
     for workflow in workflows:
         workflow_array = get_workflow_vector(workflow, fake_session)
+
         # Bad training data returns int(0)
         if not isinstance(workflow_array, int):
             data.append(workflow_array)
@@ -68,3 +67,58 @@ def get_clusterer():
     clusterer.fit(numpy.array(data))
 
     return clusterer
+
+
+def get_workflow_groups(clusterer, session=None):
+    """Groups workflows together based on a fitted clusterer
+
+    :param sklearn.cluster.KMeans clusterer: is the clusterer fit with
+                                             historic data.
+    :param cherrypy.Session session: Stores the information for a session
+    :returns: Lists of workflows grouped together
+    :rtype: List of sets
+    """
+
+    if session:
+        if session.get('wf_groups'):
+            return session['wf_groups']
+
+    workflows = globalerrors.check_session(session).return_workflows()
+    vectors = []
+    for workflow in workflows:
+        vectors.append(get_workflow_vector(workflow, session))
+
+    predictions = clusterer.predict(numpy.array(vectors))
+
+    output = [set() for _ in range(clusterer.n_clusters)]
+    for index, workflow in enumerate(workflows):
+        output[predictions[index]].add(workflow)
+
+    if session:
+        session['wf_groups'] = output
+
+    return output
+
+
+def get_clustered_group(workflow, clusterer, session=None):
+    """Get the group for a given workflow in this session
+
+    :param str workflow: The workflow to get the group for.
+    :param sklearn.cluster.KMeans clusterer: is the clusterer fit with
+                                             historic data.
+    :param cherrypy.Session session: Stores the information for a session
+    :returns: List of other workflows in the same group
+    :rtype: set
+    """
+    groups = get_workflow_groups(clusterer, session)
+
+    output = set()
+
+    for group in groups:
+        if workflow in group:
+            # Copy the existing set to the output variable
+            output = set(group)
+
+    output.discard(workflow)
+
+    return output

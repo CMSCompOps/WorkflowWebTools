@@ -143,15 +143,15 @@ def check_session(session, can_refresh=False):
     :rtype: ErrorInfo
     """
 
-    if not session:
-        theinfo = GLOBAL_INFO
-    else:
+    if session:
         if session.get('info') is None:
             session['info'] = ErrorInfo()
         theinfo = session.get('info')
+    else:
+        theinfo = GLOBAL_INFO
 
     # If session ErrorInfo is old, set up another connection
-    if can_refresh and session.get('info').timestamp < time.time() - 60*30:
+    if can_refresh and theinfo.timestamp < time.time() - 60*30:
         theinfo.teardown()
         theinfo.setup()
 

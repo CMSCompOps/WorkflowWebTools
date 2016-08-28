@@ -6,4 +6,4 @@ nohup.out
 runserver/actions/*.json
 runserver/keys/*
 test/pylint_output/*
-data/*
+runserver/data/*

@@ -8,7 +8,6 @@ Script to by run by a Python instance with cherrypy and mako installed
 
 import os
 import glob
-import socket
 import logging
 
 import cherrypy
@@ -19,10 +18,14 @@ from WorkflowWebTools import serverconfig
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
+from WorkflowWebTools import clusterworkflows
 
 
 GET_TEMPLATE = TemplateLookup(directories=['templates'],
                               module_directory='templates/mako_modules').get_template
+"""Function to get templates from the relative ``templates`` directory"""
+CLUSTERER = clusterworkflows.get_clusterer(serverconfig.workflow_history_path())
+"""Clusterer trained with the workflow history in server configuration"""
 
 
 class WorkflowTools(object):
@@ -84,7 +87,10 @@ class WorkflowTools(object):
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
-                   workflow=workflow, issuggested=issuggested)
+                   workflow=workflow, issuggested=issuggested,
+                   similar_wfs=clusterworkflows.\
+                       get_clustered_group(workflow, CLUSTERER, cherrypy.session)
+                  )
 
     @cherrypy.expose
     def submitaction(self, workflow='', action='', **kwargs):
@@ -228,13 +234,17 @@ def secureheaders():
 if __name__ == '__main__':
     logging.basicConfig(filename='server.log', level=logging.DEBUG)
     CONF = {
+        'global': {
+            'server.socket_host': serverconfig.host_name(),
+            'server.socket_port': serverconfig.host_port()
+            },
         '/': {
             'error_page.401': 'templates/401.html',
             'error_page.404': 'templates/404.html',
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.sessions.on': True,
             'tools.sessions.secure': True,
-            'tools.sessions.httponly': True
+            'tools.sessions.httponly': True,
             },
         '/static': {
             'tools.staticdir.on': True,
@@ -250,15 +260,6 @@ if __name__ == '__main__':
             'tools.auth_basic.checkpassword': manageusers.validate_password
             }
         }
-
-    # Set the host of the webpage
-    THIS_HOST = socket.gethostname().split('.')[0]
-
-    # If on vocms machine, serve there, otherwise just show page on localhost:8080
-    if 'vocms' in THIS_HOST:
-        cherrypy.config.update({'server.socket_host': THIS_HOST + '.cern.ch',
-                                'server.socket_port': 80,
-                               })
 
     if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
         cherrypy.tools.secureheaders = \

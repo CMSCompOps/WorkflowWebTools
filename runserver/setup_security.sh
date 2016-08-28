@@ -26,7 +26,16 @@ openssl req -new -x509 -days 365 -key keys/privkey.pem -out keys/cert.pem
 
 touch keys/valid_email.txt
 
+if [ ! -f keys/config.yml ]
+then
+    cp ../docs/config.yml keys/.
+fi
+
 echo "Do not forget to add valid email domains to your file:"
 echo ""
 echo " keys/valid_email.txt"
+echo ""
+echo "and edit the configuration file:"
+echo ""
+echo " keys/config.yml"
 echo ""

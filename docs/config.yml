@@ -1,0 +1,8 @@
+webmaster:
+  name: Daniel Abercrombie
+  email: dabercro@mit.edu
+host:
+  name: 127.0.0.1
+  port: 8080
+data:
+  workflow_history: data/data.json
