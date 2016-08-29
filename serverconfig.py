@@ -92,3 +92,11 @@ def workflow_history_path():
     """
 
     return CONFIG_DICT['data']['workflow_history']
+
+def all_errors_path():
+    """
+    :returns: the path to all errors for recent workflows
+    :rtype: str
+    """
+
+    return CONFIG_DICT['data']['all_errors']

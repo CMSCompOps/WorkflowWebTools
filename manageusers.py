@@ -208,6 +208,21 @@ def add_user(email, username, password, url):
     confirm_link = (url + '/confirmuser?' +
                     urllib.urlencode({'code': str(validation_string)}))
 
+    wm_email = serverconfig.wm_email()
+
+    store_email = do_salt_hash(email)
+
+    conn, curs = get_user_db()
+
+    try:
+        curs.execute('INSERT INTO users VALUES (?,?,?,?,?)',
+                     (username, store_email, password, stored_string, 0))
+    except sqlite3.IntegrityError:
+        return 1
+
+    conn.commit()
+    conn.close()
+
     message_text = (
         'Hello ' + username +',\n\n'
         'An account using this email has been registered on an instance of WorkflowWebTools. '
@@ -217,21 +232,9 @@ def add_user(email, username, password, url):
         serverconfig.wm_name()
         )
 
-    wm_email = serverconfig.wm_email()
-
     send_email(wm_email, [email, wm_email],
                'Verify Account on WorkflowWebTools Instance',
                message_text)
-
-    email = do_salt_hash(email)
-
-    conn, curs = get_user_db()
-
-    curs.execute('INSERT INTO users VALUES (?,?,?,?,?)',
-                 (username, email, password, stored_string, 0))
-
-    conn.commit()
-    conn.close()
 
     return 0
 

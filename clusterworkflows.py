@@ -23,19 +23,32 @@ def get_workflow_vector(workflow, session=None, allmap=None):
     :return: a 1-d vector of errors for the workflow
     :rtype: numpy.array
     """
-    workflow_array = 0
+    workflow_array = []
 
-    for step in globalerrors.get_step_list(workflow, session):
-        step_array = []
+    curs = globalerrors.check_session(session).curs
+    if not allmap:
+        allmap = globalerrors.check_session(session).get_allmap()
 
-        # Convert the 2-D table into a 1-D array
-        for row in globalerrors.get_step_table(step, session, allmap):
-            step_array += row
+    def get_column_sum_list(column):
+        """
+        :param str column: is the column type to sum over
+        :returns: a list of sums for each column in the column type
+        :rtype: list
+        """
+        output = []
+        for value in allmap[column]:
+            curs.execute("SELECT COALESCE(SUM(numbererrors), 0) FROM workflows "
+                         "WHERE stepname LIKE '/{0}/%' and {1}='{2}'".\
+                             format(workflow, column, value))
+            out = curs.fetchall()
+            output.append(out[0][0])
 
-        # Add together the different steps in the workflow
-        workflow_array += numpy.array(step_array)
+        return output
 
-    return workflow_array
+    workflow_array += get_column_sum_list('errorcode')
+    workflow_array += get_column_sum_list('sitename')
+
+    return numpy.array(workflow_array)
 
 
 def get_clusterer(data_path):
@@ -48,6 +61,8 @@ def get_clusterer(data_path):
     :rtype: dict
     """
 
+    print 'Initializing cluster session'
+
     # This will be the location of our training data
     fake_session = {
         'info': globalerrors.ErrorInfo(data_path)
@@ -59,16 +74,27 @@ def get_clusterer(data_path):
     # Fill the data
     data = []
 
-    for workflow in workflows:
+    print 'Getting workflow vectors'
+
+    total = len(workflows)
+
+    for iwf, workflow in enumerate(workflows):
+        if iwf % 20 == 0:
+            print str(iwf) + '/' + str(total)
+
         workflow_array = get_workflow_vector(workflow, fake_session)
 
         # Bad training data returns int(0)
         if not isinstance(workflow_array, int):
             data.append(workflow_array)
 
+    print 'Fitting workflows...'
+
     clusterer = sklearn.cluster.KMeans()
 
     clusterer.fit(numpy.array(data))
+
+    print 'Done'
 
     return {'clusterer': clusterer, 'allmap': fake_session['info'].get_allmap()}
 
@@ -88,6 +114,8 @@ def get_workflow_groups(clusterer, session=None):
     if errorinfo.clusters:
         return errorinfo.clusters
 
+    print 'Fitting existing workflows.'
+
     workflows = globalerrors.check_session(session).return_workflows()
     vectors = []
     for workflow in workflows:
@@ -95,6 +123,8 @@ def get_workflow_groups(clusterer, session=None):
             get_workflow_vector(workflow, session, clusterer['allmap']))
 
     predictions = clusterer['clusterer'].predict(numpy.array(vectors))
+
+    print predictions
 
     conn = sqlite3.connect(':memory:', check_same_thread=False)
     curs = conn.cursor()
@@ -126,13 +156,13 @@ def get_clustered_group(workflow, clusterer, session=None):
     """
     curs = get_workflow_groups(clusterer, session)['curs']
 
-    curs.execute('SELECT cluster FROM groups WHERE workflow=?',
+    curs.execute('SELECT cluster, ROWID FROM groups WHERE workflow=?',
                  (workflow,))
 
     group = curs.fetchall()
 
-    curs.execute('SELECT workflow FROM groups WHERE workflow!=? AND cluster=?',
-                 (workflow, group[0][0]))
+    curs.execute('SELECT workflow FROM groups WHERE cluster=? AND ROWID!=?',
+                 (group[0][0], group[0][1]))
 
     workflows = curs.fetchall()
 

@@ -8,7 +8,6 @@ Script to by run by a Python instance with cherrypy and mako installed
 
 import os
 import glob
-import logging
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -88,7 +87,7 @@ class WorkflowTools(object):
             raise cherrypy.HTTPRedirect('/globalerror')
 
         if issuggested:
-            similar_wfs = set()
+            similar_wfs = []
         else:
             similar_wfs = clusterworkflows.\
                 get_clustered_group(workflow, CLUSTERER, cherrypy.session)
@@ -239,7 +238,6 @@ def secureheaders():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
     CONF = {
         'global': {
             'server.socket_host': serverconfig.host_name(),
