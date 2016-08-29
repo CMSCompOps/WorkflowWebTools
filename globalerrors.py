@@ -1,17 +1,15 @@
 """
 Generates the content for the errors pages
 
-.. todo::
-
-  Add support for having a global session in the module if not running under cherrypy
-
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+import os
 import urllib2
 import json
 import sqlite3
 import time
+import logging
 
 from .reasonsmanip import reasons_list
 
@@ -25,8 +23,12 @@ EXPLAIN_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/explanations.
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
 
-    def __init__(self):
-        """Initialization with a setup."""
+    def __init__(self, data_location=ALL_ERRORS_LOCATION):
+        """Initialization with a setup.
+        :param str data_location: Set the location of the data to read in the info
+        """
+
+        self.data_location = data_location
         self.setup()
 
     def __del__(self):
@@ -50,7 +52,13 @@ class ErrorInfo(object):
 
         # Store everything into an SQL database for fast retrival
 
-        res = urllib2.urlopen(ALL_ERRORS_LOCATION)
+        if os.path.isfile(self.data_location):
+            res = open(self.data_location, 'r')
+
+        else:
+            res = urllib2.urlopen(self.data_location)
+
+
         for stepname, errorcodes in json.load(res).items():
             stepset.add(stepname)
             for errorcode, sitenames in errorcodes.items():
@@ -75,20 +83,19 @@ class ErrorInfo(object):
         self.curs = curs
         self.allsteps = allsteps
 
-        print '##################'
-        print 'Connection opened!'
-        print 'Timestamp:'
-        print self.timestamp
-        print '##################'
+        self.connection_log('opened')
 
     def teardown(self):
         """Close the database when cache expires"""
         self.conn.close()
-        print '##################'
-        print 'Connection closed!'
-        print 'Timestamp:'
-        print self.timestamp
-        print '##################'
+        self.connection_log('closed')
+
+    def connection_log(self, action):
+        """Logs actions on the sqlite3 connection
+
+        :param str action: is the action on the connection
+        """
+        logging.info('Connection %s with timestamp %s', action, self.timestamp)
 
     def get_errors_explained(self):
         """
@@ -110,13 +117,6 @@ class ErrorInfo(object):
             'sitename':  self.info[3]
             }
 
-    def return_info(self):
-        """
-        :returns: the 5-tuple of data from make_sql()
-        :rtype: (sqlite3.Cursor, list, list, list, dict)
-        """
-        return self.info
-
     def return_workflows(self):
         """
         :returns: the set of all workflow names
@@ -130,6 +130,9 @@ class ErrorInfo(object):
         return wfs
 
 
+GLOBAL_INFO = ErrorInfo()
+
+
 def check_session(session, can_refresh=False):
     """If session is None, fills it.
 
@@ -140,18 +143,22 @@ def check_session(session, can_refresh=False):
     :rtype: ErrorInfo
     """
 
-    if session.get('info') is None:
-        session['info'] = ErrorInfo()
+    if session:
+        if session.get('info') is None:
+            session['info'] = ErrorInfo()
+        theinfo = session.get('info')
+    else:
+        theinfo = GLOBAL_INFO
 
     # If session ErrorInfo is old, set up another connection
-    if can_refresh and session.get('info').timestamp < time.time() - 60*30:
-        session.get('info').teardown()
-        session.get('info').setup()
+    if can_refresh and theinfo.timestamp < time.time() - 60*30:
+        theinfo.teardown()
+        theinfo.setup()
 
-    return session.get('info')
+    return theinfo
 
 
-def get_step_list(workflow, session):
+def get_step_list(workflow, session=None):
     """Gets the list of steps within a workflow
 
     :param str workflow: Name of the workflow to gather information for
@@ -175,7 +182,42 @@ def get_step_list(workflow, session):
     return steplist
 
 
-def see_workflow(workflow, session):
+def get_step_table(step, session=None, allmap=None):
+    """Gathers the errors for a step into a 2-D table of ints
+
+    :param str step: name of the step to get the table for
+    :param cherrypy.Session session: Stores the information for a session
+    :param dict allmap: a globalerrors.ErrorInfo allmap to override the
+                        session's allmap
+    :returns: A table of errors for the step
+    :rtype: list of lists of ints
+    """
+    curs = check_session(session).curs
+    if not allmap:
+        allmap = check_session(session).get_allmap()
+
+    steptable = []
+
+    for error in allmap['errorcode']:
+        steprow = []
+
+        for site in allmap['sitename']:
+            curs.execute('SELECT numbererrors FROM workflows '
+                         'WHERE sitename=? AND errorcode=? AND stepname=?',
+                         (site, error, step))
+            numbererrors = curs.fetchall()
+
+            if len(numbererrors) == 0:
+                steprow.append(0)
+            else:
+                steprow.append(numbererrors[0][0])
+
+        steptable.append(steprow)
+
+    return steptable
+
+
+def see_workflow(workflow, session=None):
     """Gathers the error information for a single workflow
 
     :param str workflow: Name of the workflow to gather information for
@@ -184,30 +226,13 @@ def see_workflow(workflow, session):
     :rtype: dict
     """
 
-    curs, _, allerrors, allsites, _ = check_session(session).info
+    _, _, allerrors, allsites, _ = check_session(session).info
     steplist = get_step_list(workflow, session)
 
     tables = []
 
     for step in steplist:
-        steptable = []
-
-        for error in allerrors:
-            steprow = []
-
-            for site in allsites:
-                curs.execute('SELECT numbererrors FROM workflows '
-                             'WHERE sitename=? AND errorcode=? AND stepname=?',
-                             (site, error, step))
-                numbererrors = curs.fetchall()
-
-                if len(numbererrors) == 0:
-                    steprow.append(0)
-                else:
-                    steprow.append(numbererrors[0][0])
-
-            steptable.append(steprow)
-
+        steptable = get_step_table(step, session)
         tables.append(zip(steptable, allerrors))
 
     return {
@@ -247,7 +272,7 @@ TITLEMAP = {
 """Dictionary that determines how a chosen pievar shows up in the pie chart titles"""
 
 
-def get_errors_and_pietitles(pievar, session):
+def get_errors_and_pietitles(pievar, session=None):
     """Gets the number of errors for the global table.
 
     .. todo::
@@ -319,7 +344,7 @@ def get_errors_and_pietitles(pievar, session):
     return total_errors, pieinfo, pietitles
 
 
-def get_header_titles(varname, errors, session):
+def get_header_titles(varname, errors, session=None):
     """Gets the titles that will end up being the <th> tooltips for the global view
 
     :param str varname: Name of the column or row variable
@@ -356,7 +381,7 @@ def get_header_titles(varname, errors, session):
     return output
 
 
-def return_page(pievar, session):
+def return_page(pievar, session=None):
     """Get the information for the global views webpage
 
     :param str pievar: The variable to divide the piecharts by.

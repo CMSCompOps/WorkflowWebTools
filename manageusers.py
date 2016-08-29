@@ -13,6 +13,8 @@ import re
 from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
 
+from . import serverconfig
+
 
 def get_user_db():
     """Gets the users database in the local directory.
@@ -135,7 +137,7 @@ def send_reset_email(email, url):
             'Some machine'
             )
 
-        send_email('daniel.abercrombie@cern.ch', email,
+        send_email(serverconfig.wm_email(), email,
                    'Reset account on WorkflowWebTools Instance',
                    message_text)
 
@@ -166,30 +168,9 @@ def resetpassword(code, password):
     return user
 
 
-def get_valid_emails():
-    """Get iterator for valid email patterns for this instance.
-    This is configurable by the webmaster.
-
-    :returns: List of valid email patterns
-    :rtype: list
-    """
-
-    emails = []
-
-    with open('keys/valid_email.txt', 'r') as email_file:
-        for valid_email in email_file.readlines():
-            emails.append(valid_email.strip())
-
-    return emails
-
-
 def add_user(email, username, password, url):
     """Adds the user to the users database and sends a verification email,
        if the parameters are valid.
-
-    .. todo::
-
-      setup some webmaster configuration
 
     :param str email: The user email to send verification to.
                       Make sure to check for valid domains.
@@ -204,7 +185,7 @@ def add_user(email, username, password, url):
 
     good_email = False
 
-    for valid_email in get_valid_emails():
+    for valid_email in serverconfig.get_valid_emails():
         if valid_email[0] == '@':
             if email.endswith(valid_email):
                 good_email = True
@@ -232,11 +213,13 @@ def add_user(email, username, password, url):
         'An account using this email has been registered on an instance of WorkflowWebTools. '
         'If this request was created by you, please follow the following link: \n\n' +
         confirm_link +
-        '\n\nThank you, \n'
-        'Some machine'
+        '\n\nThank you, \n' +
+        serverconfig.wm_name()
         )
 
-    send_email('daniel.abercrombie@cern.ch', email,
+    wm_email = serverconfig.wm_email()
+
+    send_email(wm_email, [email, wm_email],
                'Verify Account on WorkflowWebTools Instance',
                message_text)
 

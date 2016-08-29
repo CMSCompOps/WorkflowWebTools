@@ -22,11 +22,14 @@ then
     python -mgeneratesalt > keys/salt.txt
 fi
 
+if [ ! -f keys/config.yml ]
+then
+    cp ../docs/config.yml keys/.
+fi
+
 openssl req -new -x509 -days 365 -key keys/privkey.pem -out keys/cert.pem
 
-touch keys/valid_email.txt
-
-echo "Do not forget to add valid email domains to your file:"
+echo "Do not forget to edit the configuration file:"
 echo ""
-echo " keys/valid_email.txt"
+echo " keys/config.yml"
 echo ""
