@@ -28,6 +28,7 @@ class ErrorInfo(object):
         :param str data_location: Set the location of the data to read in the info
         """
 
+        self.clusters = None
         self.data_location = data_location
         self.setup()
 
@@ -84,6 +85,10 @@ class ErrorInfo(object):
         self.allsteps = allsteps
 
         self.connection_log('opened')
+
+        if self.clusters:
+            self.clusters['conn'].close()
+            self.clusters = None
 
     def teardown(self):
         """Close the database when cache expires"""

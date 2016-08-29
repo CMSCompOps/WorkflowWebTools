@@ -4,6 +4,7 @@ Tools for clustering workflows based on their errors
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+import sqlite3
 
 import numpy
 import sklearn.cluster
@@ -82,9 +83,10 @@ def get_workflow_groups(clusterer, session=None):
     :rtype: List of sets
     """
 
-    if session:
-        if session.get('wf_groups'):
-            return session['wf_groups']
+    errorinfo = globalerrors.check_session(session)
+
+    if errorinfo.clusters:
+        return errorinfo.clusters
 
     workflows = globalerrors.check_session(session).return_workflows()
     vectors = []
@@ -94,14 +96,22 @@ def get_workflow_groups(clusterer, session=None):
 
     predictions = clusterer['clusterer'].predict(numpy.array(vectors))
 
-    output = [set() for _ in range(clusterer['clusterer'].n_clusters)]
+    conn = sqlite3.connect(':memory:', check_same_thread=False)
+    curs = conn.cursor()
+
+    curs.execute(
+        'CREATE TABLE groups (workflow varchar(255), cluster int)')
+
     for index, workflow in enumerate(workflows):
-        output[predictions[index]].add(workflow)
+        curs.execute('INSERT INTO groups VALUES (\'{0}\',{1})'.\
+                         format(workflow, predictions[index]))
 
-    if session:
-        session['wf_groups'] = output
+    errorinfo.clusters = {
+        'conn': conn,
+        'curs': curs
+        }
 
-    return output
+    return errorinfo.clusters
 
 
 def get_clustered_group(workflow, clusterer, session=None):
@@ -114,15 +124,20 @@ def get_clustered_group(workflow, clusterer, session=None):
     :returns: List of other workflows in the same group
     :rtype: set
     """
-    groups = get_workflow_groups(clusterer, session)
+    curs = get_workflow_groups(clusterer, session)['curs']
 
-    output = set()
+    curs.execute('SELECT cluster FROM groups WHERE workflow=?',
+                 (workflow,))
 
-    for group in groups:
-        if workflow in group:
-            # Copy the existing set to the output variable
-            output = set(group)
+    group = curs.fetchall()
 
-    output.discard(workflow)
+    curs.execute('SELECT workflow FROM groups WHERE workflow!=? AND cluster=?',
+                 (workflow, group[0][0]))
+
+    workflows = curs.fetchall()
+
+    output = []
+    for workflow in workflows:
+        output.append(workflow[0])
 
     return output
