@@ -40,8 +40,8 @@ def get_workflow_vector(workflow, session=None, allmap=None):
             curs.execute("SELECT COALESCE(SUM(numbererrors), 0) FROM workflows "
                          "WHERE stepname LIKE '/{0}/%' and {1}='{2}'".\
                              format(workflow, column, value))
-            out = curs.fetchall()
-            output.append(out[0][0])
+            out = curs.fetchall()[0][0]
+            output.append(float(out)/(20.0 + out))
 
         return output
 

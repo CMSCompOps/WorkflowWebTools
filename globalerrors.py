@@ -69,8 +69,11 @@ class ErrorInfo(object):
             return [entry[0] for entry in curs.fetchall()]
 
         allsteps = get_all('stepname')
+        allsteps.sort()
         allsites = get_all('sitename')
+        allsites.sort()
         allerrors = get_all('errorcode')
+        allerrors.sort(key=int)
 
         res = urllib2.urlopen(EXPLAIN_ERRORS_LOCATION)
         self.info = curs, allsteps, allerrors, allsites, json.load(res)
@@ -319,8 +322,8 @@ def get_errors_and_pietitles(pievar, session=None):
             toappend = []
             pietitle = ''
             if rowname != 'stepname':
-                pietitle += TITLEMAP[rowname] + ': ' + row + '\n'
-            pietitle += TITLEMAP[colname] + ': ' + col
+                pietitle += TITLEMAP[rowname] + ': ' + str(row) + '\n'
+            pietitle += TITLEMAP[colname] + ': ' + str(col)
             for piekey, errnum in curs.execute(('SELECT {0}, numbererrors FROM workflows '
                                                 'WHERE {1}=? AND {2}=?'.
                                                 format(pievar, rowname, colname)),
@@ -366,7 +369,7 @@ def get_header_titles(varname, errors, session=None):
 
         elif varname == 'errorcode':
             output.append({'title': str('\n --- \n'.join(
-                check_session(session).get_errors_explained()[name]
+                check_session(session).get_errors_explained().get('name', [])
                 )
                                        ).rstrip('\n'),
                            'name': name})
