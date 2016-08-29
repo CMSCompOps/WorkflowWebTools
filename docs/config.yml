@@ -6,6 +6,7 @@ host:
   port: 8080
 data:
   workflow_history: data/data.json
+  all_errors: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
 valid_emails:
   domains:
     - cern.ch
