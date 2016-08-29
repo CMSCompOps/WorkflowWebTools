@@ -40,14 +40,11 @@ def get_valid_emails():
     """
 
     emails = []
+    for domain in CONFIG_DICT['valid_emails'].get('domains', []):
+        emails.append('@' + domain)
 
-    location = 'keys/valid_email.txt'
-    if os.path.exists(location):
-        with open(location, 'r') as email_file:
-            for valid_email in email_file.readlines():
-                emails.append(valid_email.strip())
-    else:
-        logging.error('Could not load config at %s', location)
+    for email in  CONFIG_DICT['valid_emails'].get('whitelist', []):
+        emails.append(email)
 
     return emails
 

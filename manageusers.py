@@ -172,10 +172,6 @@ def add_user(email, username, password, url):
     """Adds the user to the users database and sends a verification email,
        if the parameters are valid.
 
-    .. todo::
-
-      setup some webmaster configuration
-
     :param str email: The user email to send verification to.
                       Make sure to check for valid domains.
     :param str username: The username of the account to add
@@ -217,11 +213,13 @@ def add_user(email, username, password, url):
         'An account using this email has been registered on an instance of WorkflowWebTools. '
         'If this request was created by you, please follow the following link: \n\n' +
         confirm_link +
-        '\n\nThank you, \n'
-        'Some machine'
+        '\n\nThank you, \n' +
+        serverconfig.wm_name()
         )
 
-    send_email(serverconfig.wm_email(), email,
+    wm_email = serverconfig.wm_email()
+
+    send_email(wm_email, [email, wm_email],
                'Verify Account on WorkflowWebTools Instance',
                message_text)
 

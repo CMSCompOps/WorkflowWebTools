@@ -6,3 +6,8 @@ host:
   port: 8080
 data:
   workflow_history: data/data.json
+valid_emails:
+  domains:
+    - cern.ch
+  whitelist:
+    - dabercro@mit.edu
