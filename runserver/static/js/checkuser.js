@@ -18,6 +18,7 @@ function validateForm () {
     var form = document.forms['infoform'];
     var errorDir = document.getElementById('error');
     errorDir.innerHTML = '';
+    errorDir.style.color = '#ff0000';
 
     var email = form['email'].value;
     var username = form['username'].value;
@@ -50,5 +51,7 @@ function validateForm () {
 
     if (errorDir.innerHTML.length != 0) {
         return false;
+    } else {
+        return true;
     }
 }
