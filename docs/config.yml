@@ -7,6 +7,7 @@ host:
 data:
   workflow_history: data/data.json
   all_errors: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
+  explain_errors: https://cmst2.web.cern.ch/cmst2/unified/explanations.json
 valid_emails:
   domains:
     - cern.ch

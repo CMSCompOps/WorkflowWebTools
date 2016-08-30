@@ -15,12 +15,6 @@ from . import serverconfig
 from .reasonsmanip import reasons_list
 
 
-ALL_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/all_errors.json'
-"""Location of the errors file loaded into globalerrors"""
-EXPLAIN_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/explanations.json'
-"""Location of errors explanations"""
-
-
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
 
@@ -75,7 +69,7 @@ class ErrorInfo(object):
         allerrors = get_all('errorcode')
         allerrors.sort(key=int)
 
-        res = urllib2.urlopen(EXPLAIN_ERRORS_LOCATION)
+        res = urllib2.urlopen(serverconfig.explain_errors_path())
         self.info = curs, allsteps, allerrors, allsites, json.load(res)
         res.close()
 

@@ -100,3 +100,11 @@ def all_errors_path():
     """
 
     return CONFIG_DICT['data']['all_errors']
+
+def explain_errors_path():
+    """
+    :returns: the path to errors explanation for recent workflows
+    :rtype: str
+    """
+
+    return CONFIG_DICT['data']['explain_errors']

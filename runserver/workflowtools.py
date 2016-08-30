@@ -23,14 +23,14 @@ from WorkflowWebTools import clusterworkflows
 GET_TEMPLATE = TemplateLookup(directories=['templates'],
                               module_directory='templates/mako_modules').get_template
 """Function to get templates from the relative ``templates`` directory"""
-CLUSTERER = clusterworkflows.get_clusterer(serverconfig.workflow_history_path())
-"""Clusterer trained with the workflow history in server configuration,
-with the appropriate allmap
-"""
 
 
 class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
+
+    def __init__(self):
+        """Initializes the service."""
+        confirm = self.cluster()
 
     @cherrypy.expose
     def index(self):
@@ -39,6 +39,13 @@ class WorkflowTools(object):
         :rtype: str
         """
         return GET_TEMPLATE('welcome.html').render()
+
+    @cherrypy.expose
+    def cluster(self):
+        """Does the clustering for this instance"""
+        self.clusterer = clusterworkflows.get_clusterer(
+            serverconfig.workflow_history_path())
+        return 'Done!'
 
     @cherrypy.expose
     def showlog(self, search=''):
@@ -90,7 +97,7 @@ class WorkflowTools(object):
             similar_wfs = []
         else:
             similar_wfs = clusterworkflows.\
-                get_clustered_group(workflow, CLUSTERER, cherrypy.session)
+                get_clustered_group(workflow, self.clusterer, cherrypy.session)
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),

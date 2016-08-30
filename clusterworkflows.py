@@ -29,9 +29,12 @@ def get_workflow_vector(workflow, session=None, allmap=None):
     if not allmap:
         allmap = globalerrors.check_session(session).get_allmap()
 
-    def get_column_sum_list(column):
+    def get_column_sum_list(column, factor=1.0):
         """
         :param str column: is the column type to sum over
+        :param float factor: is a factor to multiply the normalized vector by.
+                             This can give more weight to one column than the
+                             other when determining distances.
         :returns: a list of sums for each column in the column type
         :rtype: list
         """
@@ -45,7 +48,7 @@ def get_workflow_vector(workflow, session=None, allmap=None):
 
         return output
 
-    workflow_array += get_column_sum_list('errorcode')
+    workflow_array += get_column_sum_list('errorcode', 5.0)
     workflow_array += get_column_sum_list('sitename')
 
     return numpy.array(workflow_array)
@@ -90,7 +93,7 @@ def get_clusterer(data_path):
 
     print 'Fitting workflows...'
 
-    clusterer = sklearn.cluster.KMeans()
+    clusterer = sklearn.cluster.KMeans(n_clusters=10, n_init=30, n_jobs=-1)
 
     clusterer.fit(numpy.array(data))
 
