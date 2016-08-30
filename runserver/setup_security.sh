@@ -24,7 +24,7 @@ fi
 
 if [ ! -f keys/config.yml ]
 then
-    cp ../docs/config.yml keys/.
+    cp ../docs/config.yml .
 fi
 
 openssl req -new -x509 -days 365 -key keys/privkey.pem -out keys/cert.pem

@@ -5,7 +5,6 @@
 
 
 import os
-import logging
 
 import yaml
 
@@ -15,20 +14,20 @@ def config_dict():
     :returns: the configuration in a dict
     :rtype: str
     """
-    logging.info('Attempting to load configuration')
-    location = 'keys/config.yml'
+    print 'Attempting to load configuration'
+    location = 'config.yml'
     output = {}
+    if not os.path.exists(location):
+        location = os.path.join(os.path.dirname(__file__),
+                                'runserver', location)
+
     if os.path.exists(location):
         with open(location, 'r') as config:
             output = yaml.load(config)
     else:
-        logging.critical('Could not load config at %s', location)
+        print 'Could not load config at %s', location
 
     return output
-
-
-CONFIG_DICT = config_dict()
-"""Config loaded on the first import"""
 
 
 def get_valid_emails():
@@ -40,10 +39,10 @@ def get_valid_emails():
     """
 
     emails = []
-    for domain in CONFIG_DICT['valid_emails'].get('domains', []):
+    for domain in config_dict()['valid_emails'].get('domains', []):
         emails.append('@' + domain)
 
-    for email in  CONFIG_DICT['valid_emails'].get('whitelist', []):
+    for email in  config_dict()['valid_emails'].get('whitelist', []):
         emails.append(email)
 
     return emails
@@ -55,7 +54,7 @@ def wm_email():
     :rtype: str
     """
 
-    return CONFIG_DICT['webmaster']['email']
+    return config_dict()['webmaster']['email']
 
 
 def wm_name():
@@ -64,7 +63,7 @@ def wm_name():
     :rtype: str
     """
 
-    return CONFIG_DICT['webmaster']['name']
+    return config_dict()['webmaster']['name']
 
 
 def host_name():
@@ -73,7 +72,7 @@ def host_name():
     :rtype: str
     """
 
-    return CONFIG_DICT['host']['name']
+    return config_dict()['host']['name']
 
 
 def host_port():
@@ -82,7 +81,7 @@ def host_port():
     :rtype: str
     """
 
-    return CONFIG_DICT['host']['port']
+    return config_dict()['host']['port']
 
 
 def workflow_history_path():
@@ -91,7 +90,7 @@ def workflow_history_path():
     :rtype: str
     """
 
-    return CONFIG_DICT['data']['workflow_history']
+    return config_dict()['data']['workflow_history']
 
 def all_errors_path():
     """
@@ -99,7 +98,7 @@ def all_errors_path():
     :rtype: str
     """
 
-    return CONFIG_DICT['data']['all_errors']
+    return config_dict()['data']['all_errors']
 
 def explain_errors_path():
     """
@@ -107,4 +106,4 @@ def explain_errors_path():
     :rtype: str
     """
 
-    return CONFIG_DICT['data']['explain_errors']
+    return config_dict()['data']['explain_errors']

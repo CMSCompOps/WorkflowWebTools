@@ -29,7 +29,7 @@ class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
 
     def __init__(self):
-        """Initializes the service."""
+        """Initializes the service by creating clusters"""
         self.cluster()
 
     @cherrypy.expose
@@ -42,10 +42,20 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def cluster(self):
-        """Does the clustering for this instance"""
+        """
+        The function is only accessible to someone with a verfied account.
+        Navigating to ``https://localhost:8080/cluster``
+        causes the server to regenerate the clusters that it has stored.
+        This is useful when the history database of past errors has been
+        updated with relevant errors since the server has been started or
+        this function has been called.
+
+        :returns: a confirmation page
+        :rtype: str
+        """
         self.clusterer = clusterworkflows.get_clusterer(
             serverconfig.workflow_history_path())
-        return 'Done!'
+        return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
     def showlog(self, search=''):
@@ -63,13 +73,39 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
-        """Generates the :ref:`global-view-ref` page.
+        """
+        This page, located at ``https://localhost:8080/globalerror``,
+        attempts to give an overall view of the errors that occurred
+        in each workflow at different sites.
+        The resulting view is a tabel of piecharts.
+        The rows and columns can be adjusted to contain two of the following:
+
+        - Workflow step name
+        - Site where error occurred
+        - Exit code of the error
+
+        The third variable is used to split the pie charts.
+        This variable can be quickly changed by submitting the form in the
+        upper left corner of the page.
+        The piecharts' size depend on the total number of errors in a given cell.
+
+        Each cell also has a tooltip, containing more information.
+        The piecharts show the exact splitting based on the extra variable.
+        Error codes in the columns give a tooltip with part of their error message
+        from multiple jobs appended.
+
+        If the steps make up the rows, you can follow the link of the step name to view
+        the :ref:`workflow-view-ref`.
+        Following that link will also cause your browser to jump to the corresponding
+        step table on that page.
 
         :param str pievar: The variable that the pie charts are split into.
                            Valid values are:
+
                            - errorcode
                            - sitename
                            - stepname
+
         :returns: the global views of errors
         :rtype: str
         """
@@ -79,7 +115,43 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
-        """Shows the errors for a given workflow
+        """
+        Located at ``https://localhost:8080/seeworkflow``,
+        this shows detailed tables of errors for each step in a workflow.
+
+        For the exit codes in each row, there is a link to view some of the output
+        of the error message for jobs having the given exit code.
+        This should help operators understand what the error means.
+
+        At the top of the page, there is also a form to submit actions.
+        Note that you will need to register in order to actually submit actions.
+        See :ref:`new-user-ref` for more details.
+        Depending on which action is selected, a menu will appear below to
+        pick how to adjust parameters for the workflows.
+
+        .. todo::
+          Document the different actions and parameters.
+          Try to centralize this list in some nice way.
+
+        Under the selection of the action and parameters, there is a button
+        to show other workflows that are similar to the selected workflow,
+        if there are other workflows in the same cluster.
+        There will be a link to open a similar workflow view page in a new tab.
+        The option to submit actions will not be on this page though
+        (so that you can focus on the first workflow).
+        If you think that a workflow in the cluster should have the same actions
+        applied to it as the parent workflow,
+        then check the box next to the workflow name.
+        Any action submitted will be applied to all checked workflows,
+        in addition to the workflow on the page where the action is submitted from.
+
+        Finally, before submitting, you can submit reasons for your action selection.
+        Clicking the Add Reason button will give you an additional reason field.
+        Reasons submitted are stored based on the short reason you give.
+        You can then select past reasons from the drop down menu in the future,
+        to save some time.
+        If you do not want to store your reason, do not fill in the Short Reason field.
+        The long reason will be used automatically for logging reasons.
 
         :param str workflow: is the name of the workflow to look at
         :param str issuggested: is a string to tell if the page
@@ -130,17 +202,29 @@ class WorkflowTools(object):
                    reasons=reasons, params=params, user=cherrypy.request.login)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def getaction(self, test=False):
         """Returns the latest action json that has not been adressed yet.
 
         :param bool test: Used to determine whether or not to return the test file.
+        :returns: a JSON file containing actions to act on
+        :rtype: JSON
         :raises: A redirect to the relevant JSON.
         """
 
         # This will also need to somehow note that an action has been gotten by Unified
 
         if test:
-            raise cherrypy.HTTPRedirect('/actions/test.json')
+            return {
+                'test' : {
+                    'Actions': 'test',
+                    'Parameters': {
+                        'test': 'True',
+                        'what': 'test'
+                        },
+                    'Reasons': 'I needed a test'
+                    }
+                }
 
         newest_json = max(glob.iglob('actions/*.json'), key=os.path.getmtime)
         raise cherrypy.HTTPRedirect('/' + newest_json)
@@ -167,10 +251,20 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def newuser(self, email='', username='', password=''):
-        """The page for registering a new user.
+        """
+        New users can register at ``https://localhost:8080/newuser``.
+        From this page, users can enter a username, email, and password.
+        The username cannot be empty, and must not already exist in the system.
+        The email must match the domain names listed on the page or can
+        be a specific whitelisted email.
+        See :ref:`server-config-ref` for more information on setting valid emails.
+        Finally, the password must also be empty.
 
-        If accessing the page without filling one of the parameters,
-        you will get a form to submit back to this page via POST.
+        If the registration process is successful, the user will recieve a confirmation
+        page directing them to check their email for a verification link.
+        The user account will not be active until that link is followed,
+        in order to ensure that the user possesses a valid email.
+
         :param str email: The email of the new user
         :param str username: The username of the new user
         :param str password: The password of the new user
@@ -212,6 +306,7 @@ class WorkflowTools(object):
         Accessing with no parameters allows you to submit an email for
         password reset. Submitting an email sends a reset code.
         Submitting with a code allows you to reset the password.
+
         :param str email: The email linked to the account
         :param str code: confirmation code to activate the account
         :param str password: the new password for a given code
@@ -237,6 +332,20 @@ class WorkflowTools(object):
         else:
             raise cherrypy.HTTPError(404)
 
+    @cherrypy.expose
+    def resetcache(self):
+        """
+        The function is only accessible to someone with a verfied account.
+        Navigating to ``https://localhost:8080/resetcache``
+        resets the error info for the user's session.
+
+        :returns: a confirmation page
+        :rtype: str
+        """
+        if cherrypy.session.get('info'):
+            cherrypy.session.get('info').teardown()
+            cherrypy.session.get('info').setup()
+        return GET_TEMPLATE('complete.html').render()
 
 def secureheaders():
     """Generates secure headers for cherrypy Tool"""
@@ -275,6 +384,8 @@ if __name__ == '__main__':
             'tools.auth_basic.checkpassword': manageusers.validate_password
             }
         }
+    for key in ['/cluster', '/resetcache']:
+        CONF[key] = CONF['/submitaction']
 
     if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
         cherrypy.tools.secureheaders = \

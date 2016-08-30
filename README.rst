@@ -10,55 +10,85 @@ Using the Web Tools
 
 Once you are pointed to a proper URL to access the webtools, you will
 come to the home page, with links to different views.
-To view logs from our elastic search service,
-look at :ref:`show-ref`.
-To get an overall picture of the errors occurring at sites,
-look at :ref:`global-view-ref`.
-To get the JSON file containing the actions that will be done by Unified,
-look at :ref:`actions-ref`.
-
-For each of the examples below, I will use the base URL of ``localhost:8080``,
+For each of the examples below, I will use the base URL of ``https://localhost:8080/``,
 since that is the URL you can see if you run the server on your machine.
+If you are looking at a production server, the URL will of course be different.
 
-.. _show-ref:
+Each page is a function of a ``WorkflowTools`` instance.
+To pass parameters to the function, the usual urlencoding of the parameters
+can be appended to the URL to call each function.
+Most users should be able to interact with the website through their browser though.
+From the URL root index, users will be able to directly access the following:
 
-Show Logs
-~~~~~~~~~
+- :ref:`global-view-ref`
+- :ref:`new-user-ref`
+- :ref:`reset-pass-ref`
+- :ref:`show-logs-ref`
 
 .. _global-view-ref:
-
 Global Error View
 ~~~~~~~~~~~~~~~~~
 
-.. _actions-ref:
+.. autosimple:: workflowtools.WorkflowTools.globalerror
 
-Get Latest Actions
-~~~~~~~~~~~~~~~~~~~
+.. _workflow-view-ref:
+Detailed Workflow View
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.seeworkflow
+
+.. _new-user-ref:
+Creating a New Account
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.newuser
+
+.. _reset-pass-ref:
+Reseting Account Password
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.resetpassword
+
+.. _show-logs-ref:
+Viewing Workflow Logs
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.showlog
 
 Running the Web Tools
 ---------------------
 
 The webtools are operated behind a cherrypy server.
 
-Maintaining the Web Tools
--------------------------
+Running the Cherrypy Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Script to Run Cherrypy Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. todo::
+   Document a bash script!!
 
 .. automodule:: workflowtools
-   :members:
 
-Show Log
-~~~~~~~~
+.. automodule:: update_history
 
-.. automodule:: WorkflowWebTools.showlog
-   :members:
+.. _server-config-ref:
+Server Configuration
+~~~~~~~~~~~~~~~~~~~~
+
+The configuration file for the server is in ``YAML`` format.
+
+Maintaining the Web Tools
+-------------------------
 
 Global Errors
 ~~~~~~~~~~~~~
 
 .. automodule:: WorkflowWebTools.globalerrors
+   :members:
+
+Workflow Clustering
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.clusterworkflows
    :members:
 
 Manage Users
@@ -74,9 +104,15 @@ Reasons Manipulation
    :members:
 
 Manage Actions
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. automodule:: WorkflowWebTools.manageactions
+   :members:
+
+Show Log
+~~~~~~~~
+
+.. automodule:: WorkflowWebTools.showlog
    :members:
 
 WorkflowWebTools Forks' Build Statuses
