@@ -17,7 +17,7 @@ def give_logs(query):
     :rtype: dict
     """
 
-    formtext = ('Submit query: <form><input type="text" name="search"> '
+    formtext = ('<form>Submit query: <input type="text" name="search"> '
                 '<input type="submit" value="Submit"></form>')
 
     if query == '':

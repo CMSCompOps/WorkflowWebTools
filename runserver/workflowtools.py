@@ -116,6 +116,9 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        if workflows == '':
+            return GET_TEMPLATE('scolduser.html').render(workflow='')
+
         if action == '':
             return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
 
@@ -251,8 +254,8 @@ if __name__ == '__main__':
             'server.socket_port': serverconfig.host_port()
             },
         '/': {
-            'error_page.401': 'templates/401.html',
-            'error_page.404': 'templates/404.html',
+            'error_page.401': GET_TEMPLATE('401.html').render,
+            'error_page.404': GET_TEMPLATE('404.html').render,
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.sessions.on': True,
             'tools.sessions.secure': True,

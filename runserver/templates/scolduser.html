@@ -1,2 +1,10 @@
+<%inherit file="simple.html"/>
+
+<%block name="title">No Action</%block>
+
 You must choose an action to do that! <br>
-<a href="../seeworkflow?workflow=${workflow}">Go Back!</a> (and start over...)
+% if workflow:
+<a href="/seeworkflow?workflow=${workflow}">Go Back!</a> (and start over...)
+% else:
+<a href="/">Go Back!</a>
+% endif
