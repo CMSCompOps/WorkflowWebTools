@@ -30,7 +30,7 @@ class WorkflowTools(object):
 
     def __init__(self):
         """Initializes the service."""
-        confirm = self.cluster()
+        self.cluster()
 
     @cherrypy.expose
     def index(self):

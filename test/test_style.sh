@@ -53,6 +53,7 @@ pylintCall="pylint --rcfile test/pylint.cfg"
 
 # Cherrypy requires some things to be ignored for the class and cherrypy object
 $pylintCall --disable=no-self-use,no-member WorkflowWebTools/runserver/workflowtools.py > $outputdir/workflowtools.txt
+$pylintCall --disable=invalid-name WorkflowWebTools/runserver/update_history.py > $outputdir/update_history.txt
 
 # Check the output
 cd $testdir

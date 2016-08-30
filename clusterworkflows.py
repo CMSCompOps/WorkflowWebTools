@@ -44,7 +44,7 @@ def get_workflow_vector(workflow, session=None, allmap=None):
                          "WHERE stepname LIKE '/{0}/%' and {1}='{2}'".\
                              format(workflow, column, value))
             out = curs.fetchall()[0][0]
-            output.append(float(out)/(20.0 + out))
+            output.append(float(out)/(20.0 + out) * factor)
 
         return output
 
