@@ -15,23 +15,25 @@ def config_dict():
     :rtype: str
     """
 
-    location = 'config.yml'
+    file_name = 'config.yml'
+    location = file_name
     output = {}
+
     # If not local, check the runserver directory
     if not os.path.exists(location):
         location = os.path.join(os.path.dirname(__file__),
-                                'runserver', location)
+                                'runserver', file_name)
 
     # If not there, fall back to the test directory
     if not os.path.exists(location):
         location = os.path.join(os.path.dirname(__file__),
-                                'test', location)
+                                'test', file_name)
 
     if os.path.exists(location):
         with open(location, 'r') as config:
             output = yaml.load(config)
     else:
-        print 'Could not load config at %s', location
+        print 'Could not load config at ' + location
 
     return output
 
