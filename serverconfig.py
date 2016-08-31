@@ -17,9 +17,15 @@ def config_dict():
 
     location = 'config.yml'
     output = {}
+    # If not local, check the runserver directory
     if not os.path.exists(location):
         location = os.path.join(os.path.dirname(__file__),
                                 'runserver', location)
+
+    # If not there, fall back to the test directory
+    if not os.path.exists(location):
+        location = os.path.join(os.path.dirname(__file__),
+                                'test', location)
 
     if os.path.exists(location):
         with open(location, 'r') as config:
