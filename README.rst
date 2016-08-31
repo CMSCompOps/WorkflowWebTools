@@ -5,6 +5,8 @@ Workflow Team Web Tools
 
 Welcome to the documentation for the new Workflow Team Web Tools.
 
+.. contents:: :local:
+
 Using the Web Tools
 -------------------
 
@@ -78,26 +80,74 @@ Running the Web Tools
 ---------------------
 
 The webtools are operated behind a cherrypy server.
+Before running the script ``runserver/workflowtools.py``,
+there are a few other things that you should set up first.
 
-Running the Cherrypy Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setting Up Server Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo::
-   Document a bash script!!
+The first script you should run is ``setup_server.sh``.
+Run this from inside the ``runserver`` directory::
 
-.. automodule:: workflowtools
+    cd runserver
+    ./setup_server.sh
 
-.. automodule:: update_history
-
-.. _server-config-ref:
+.. autoanysrc:: dummy
+   :src: ../WorkflowWebTools/runserver/setup_server.sh
+   :analyzer: shell-script
 
 Server Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
-The configuration file for the server is in ``YAML`` format.
+.. autoanysrc:: dummy
+   :src: ../WorkflowWebTools/test/config.yml
+   :analyzer: shell-script
+
+Updating the Error History
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: update_history
+
+Starting the Server
+~~~~~~~~~~~~~~~~~~~
+
+Finally, the service can be launched by running::
+
+    ./workflowtools.py
+
+.. automodule:: workflowtools
+
+If you need sudo privileges, to access a certain port for example,
+you can use the script::
+
+    ./run.sh
+
+.. autoanysrc:: dummy
+   :src: ../WorkflowWebTools/test/config.yml
+   :analyzer: shell-script
 
 Maintaining the Web Tools
 -------------------------
+
+For developers wishing to make adjustments to the modules or
+anyone else who wants to understand some of the backend of the server,
+all of the Python modules for this system are documented below.
+
+.. todo::
+
+   Add JavaScript documentation for people who want to change the front end.
+
+Server Configuration
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.serverconfig
+   :members:
+
+Functions for Error Tracking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.errorutils
+   :members:
 
 Global Errors
 ~~~~~~~~~~~~~

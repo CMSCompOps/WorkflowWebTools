@@ -1,5 +1,35 @@
 """
-Tools for clustering workflows based on their errors
+Tools for clustering workflows based on their errors.
+
+The errors are clustered based on a generated vector.
+The vector can be thought as lying on two different hyper-sphere shells.
+One sphere is for the error codes that occur and
+the other sphere is the sites where those errors occur.
+The overall distance between two workflow will be the sum in quadrature
+of the distances on these two hyper-spheres.
+
+These distances are configurable in the server ``config.yml``.
+Each sphere has a center radius, thickness, and number of errors to
+be at the midpoint.
+The equation to determine distance from the origin for a vector
+of errors is the following.
+
+.. math::
+
+  \\mathrm{distance} = \\frac{d}{\\sqrt{2} |\\vec{v}|} +
+      2.0 w \\left(\\frac{|\\vec{v}|}{|\\vec{v}| + m} - 0.5\\right)
+
+*d* is the 'distance' parameter, *w* is the 'width' parameter,
+and *m* is the 'midpoint' parameter set in the ``config.yml``.
+The direction is determined by the error code or site name distribution.
+Note that this always points in the upper quadrant for a given coordinate.
+
+The equation is chosen so that two workflows that have completely different
+errors at the same site, and the error width is 0,
+will end up with a distance that is equal to the error distance when clustering.
+This way, site and errors can have different distance weights, and there
+can be some separation for the number of errors in a workflow
+(for non-zero width).
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
@@ -10,6 +40,7 @@ import numpy
 import sklearn.cluster
 
 from . import globalerrors
+from . import serverconfig
 
 
 def get_workflow_vector(workflow, session=None, allmap=None):
@@ -29,26 +60,36 @@ def get_workflow_vector(workflow, session=None, allmap=None):
     if not allmap:
         allmap = globalerrors.check_session(session).get_allmap()
 
-    def get_column_sum_list(column, factor=1.0):
+    cluster_settings = serverconfig.get_cluster_settings()
+
+    def get_column_sum_list(column):
         """
         :param str column: is the column type to sum over
-        :param float factor: is a factor to multiply the normalized vector by.
-                             This can give more weight to one column than the
-                             other when determining distances.
         :returns: a list of sums for each column in the column type
         :rtype: list
         """
+
+        settings = cluster_settings[column]
+
         output = []
         for value in allmap[column]:
             curs.execute("SELECT COALESCE(SUM(numbererrors), 0) FROM workflows "
                          "WHERE stepname LIKE '/{0}/%' and {1}='{2}'".\
                              format(workflow, column, value))
+
             out = curs.fetchall()[0][0]
-            output.append(float(out)/(20.0 + out) * factor)
+            output.append(out)
+
+        # Preprocessing here
+        output = numpy.array(output)
+        length = numpy.linalg.norm(output)
+        output = float(settings['distance'])/length/1.4142 + \
+            2.0 * float(settings['width']) * \
+            (length/(length + float(settings['midpoint'])) - 0.5)
 
         return output
 
-    workflow_array += get_column_sum_list('errorcode', 5.0)
+    workflow_array += get_column_sum_list('errorcode')
     workflow_array += get_column_sum_list('sitename')
 
     return numpy.array(workflow_array)

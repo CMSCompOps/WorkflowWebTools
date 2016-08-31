@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 """
-Script to by run by a Python instance with cherrypy and mako installed
+.. describe:: workflowtools.py
+
+Script to by run the WorkflowWebTools server.
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """

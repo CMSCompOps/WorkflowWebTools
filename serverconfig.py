@@ -107,3 +107,11 @@ def explain_errors_path():
     """
 
     return config_dict()['data']['explain_errors']
+
+def get_cluster_settings():
+    """
+    :returns: dictionary containing the settings for clustering
+    :rtype: dict:
+    """
+
+    return config_dict()['cluster']
