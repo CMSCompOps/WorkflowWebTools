@@ -31,6 +31,8 @@ valid_emails:
   whitelist:
     - dabercro@mit.edu
 cluster:
+  n_clusters: 20
+  n_init: 30
   sitename:
     distance: 1.0
     width: 0.2

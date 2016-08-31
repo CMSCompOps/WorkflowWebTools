@@ -106,7 +106,7 @@ def get_clusterer(data_path):
     :param str data_path: Path to the workflow historical data.
                           This can be a local file path or a URL.
     :return: A dict of a clusterer that is fitted to historical data
-             with its allmap
+             with its allmap. The keys are 'clusterer' and 'allmap'.
     :rtype: dict
     """
 
@@ -139,7 +139,10 @@ def get_clusterer(data_path):
 
     print 'Fitting workflows...'
 
-    clusterer = sklearn.cluster.KMeans(n_clusters=10, n_init=30, n_jobs=-1)
+    settings = serverconfig.get_cluster_settings()
+    clusterer = sklearn.cluster.KMeans(n_clusters=settings['n_clusters'],
+                                       n_init=settings['n_init'],
+                                       n_jobs=-1)
 
     clusterer.fit(numpy.array(data))
 
@@ -151,8 +154,9 @@ def get_clusterer(data_path):
 def get_workflow_groups(clusterer, session=None):
     """Groups workflows together based on a fitted clusterer
 
-    :param sklearn.cluster.KMeans clusterer: is the clusterer fit with
-                                             historic data.
+    :param dict clusterer: is a dictionary with the clusterer fit with
+                           historic data and the allmap to generate it.
+                           This matches the output of :func:`get_clusterer`.
     :param cherrypy.Session session: Stores the information for a session
     :returns: Lists of workflows grouped together
     :rtype: List of sets
