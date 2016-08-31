@@ -78,16 +78,21 @@ def get_workflow_vector(workflow, session=None, allmap=None):
                              format(workflow, column, value))
 
             out = curs.fetchall()[0][0]
-            output.append(out)
+            output.append(float(out))
+
+        if len(output) == 0:
+            return output
 
         # Preprocessing here
         output = numpy.array(output)
         length = numpy.linalg.norm(output)
-        output = float(settings['distance'])/length/1.4142 + \
-            2.0 * float(settings['width']) * \
-            (length/(length + float(settings['midpoint'])) - 0.5)
+        norm = (float(settings['distance'])/1.4142 +
+                2.0 * float(settings['width']) *
+                (length/(length + float(settings['midpoint'])) - 0.5))/length
 
-        return output
+        output *= float(norm)
+
+        return list(output)
 
     workflow_array += get_column_sum_list('errorcode')
     workflow_array += get_column_sum_list('sitename')
@@ -128,8 +133,8 @@ def get_clusterer(data_path):
 
         workflow_array = get_workflow_vector(workflow, fake_session)
 
-        # Bad training data returns int(0)
-        if not isinstance(workflow_array, int):
+        # Bad training data returns empty list
+        if len(workflow_array) != 0:
             data.append(workflow_array)
 
     print 'Fitting workflows...'

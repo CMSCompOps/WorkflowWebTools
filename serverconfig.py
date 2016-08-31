@@ -14,7 +14,7 @@ def config_dict():
     :returns: the configuration in a dict
     :rtype: str
     """
-    print 'Attempting to load configuration'
+
     location = 'config.yml'
     output = {}
     if not os.path.exists(location):
