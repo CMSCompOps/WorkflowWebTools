@@ -26,34 +26,53 @@ From the URL root index, users will be able to directly access the following:
 - :ref:`show-logs-ref`
 
 .. _global-view-ref:
-Global Error View
-~~~~~~~~~~~~~~~~~
+
+The Global Error View
+~~~~~~~~~~~~~~~~~~~~~
 
 .. autosimple:: workflowtools.WorkflowTools.globalerror
 
 .. _workflow-view-ref:
+
 Detailed Workflow View
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosimple:: workflowtools.WorkflowTools.seeworkflow
 
+.. _show-logs-ref:
+
+Viewing Workflow Logs
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.showlog
+
 .. _new-user-ref:
+
 Creating a New Account
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosimple:: workflowtools.WorkflowTools.newuser
 
 .. _reset-pass-ref:
+
 Reseting Account Password
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosimple:: workflowtools.WorkflowTools.resetpassword
 
-.. _show-logs-ref:
-Viewing Workflow Logs
-~~~~~~~~~~~~~~~~~~~~~
+.. _manually-reset-cache-ref:
 
-.. autosimple:: workflowtools.WorkflowTools.showlog
+Manually Reseting Your Workflow Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.resetcache
+
+.. _redo-cluster-ref:
+
+Redoing the Workflow Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.cluster
 
 Running the Web Tools
 ---------------------
@@ -71,6 +90,7 @@ Running the Cherrypy Server
 .. automodule:: update_history
 
 .. _server-config-ref:
+
 Server Configuration
 ~~~~~~~~~~~~~~~~~~~~
 

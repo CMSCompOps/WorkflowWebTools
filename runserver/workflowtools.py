@@ -44,6 +44,7 @@ class WorkflowTools(object):
     def cluster(self):
         """
         The function is only accessible to someone with a verfied account.
+
         Navigating to ``https://localhost:8080/cluster``
         causes the server to regenerate the clusters that it has stored.
         This is useful when the history database of past errors has been
@@ -59,7 +60,12 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def showlog(self, search=''):
-        """Generates the :ref:`show-ref` page.
+        """
+        This page, located at ``https://localhost:8080/showlog``,
+        returns logs that are stored in an elastic search server.
+        More details can be found at :ref:`elastic-search-ref`.
+        If directed here from :ref:`workflow-view-ref`, then
+        the search will be for the relevant workflow.
 
         :param str search: The search string
         :returns: the logs from elastic search
@@ -123,7 +129,9 @@ class WorkflowTools(object):
         of the error message for jobs having the given exit code.
         This should help operators understand what the error means.
 
-        At the top of the page, there is also a form to submit actions.
+        At the top of the page, there are links back for :ref:`global-view-ref`
+        and :ref:`show-logs-ref`.
+        There is also a form to submit actions.
         Note that you will need to register in order to actually submit actions.
         See :ref:`new-user-ref` for more details.
         Depending on which action is selected, a menu will appear below to
@@ -254,16 +262,19 @@ class WorkflowTools(object):
         """
         New users can register at ``https://localhost:8080/newuser``.
         From this page, users can enter a username, email, and password.
-        The username cannot be empty, and must not already exist in the system.
+        The username cannot be empty, must contain only alphanumeric characters,
+        and must not already exist in the system.
         The email must match the domain names listed on the page or can
         be a specific whitelisted email.
         See :ref:`server-config-ref` for more information on setting valid emails.
-        Finally, the password must also be empty.
+        Finally, the password must also be not empty.
 
         If the registration process is successful, the user will recieve a confirmation
-        page directing them to check their email for a verification link.
-        The user account will not be active until that link is followed,
+        page instructing them to check their email for a verification link.
+        The user account will be activated when that link is followed,
         in order to ensure that the user possesses a valid email.
+
+        The following parameters are sent via POST from the registration page.
 
         :param str email: The email of the new user
         :param str username: The username of the new user
@@ -301,11 +312,16 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     def resetpassword(self, email='', code='', password=''):
-        """Resets the password for a user.
+        """
+        If a user forgets his or her username or password,
+        navigating to ``https://localhost:8080/resetpassword`` will
+        allow them to enter their email to reset their password.
+        The email will contain the username and a link to reset the password.
 
-        Accessing with no parameters allows you to submit an email for
-        password reset. Submitting an email sends a reset code.
-        Submitting with a code allows you to reset the password.
+        This page is multifunctional, depending on which parameters are sent.
+        The link actually redirects to this webpage with a secret code
+        that will then allow you to submit a new password.
+        The password is then submitted back here via POST.
 
         :param str email: The email linked to the account
         :param str code: confirmation code to activate the account
@@ -336,8 +352,10 @@ class WorkflowTools(object):
     def resetcache(self):
         """
         The function is only accessible to someone with a verfied account.
+
         Navigating to ``https://localhost:8080/resetcache``
         resets the error info for the user's session.
+        Under normal operation, this cache is only refreshed every half hour.
 
         :returns: a confirmation page
         :rtype: str
