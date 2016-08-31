@@ -1,0 +1,43 @@
+##!
+# The server configuration is set by a `YAML <http://yaml.org/>`_ file, ``config.yml``.
+# A number of parameters are set here, and read by the :mod:`WorkflowWebTools.serverconfig`:
+#
+# - The webmaster name and email determines who the registration emails are sent from.
+# - The host name and port tell where to serve the cherrypy application.
+# - The data locations are split up into
+#
+#   - Historic information
+#   - Location to fetch the current errors
+#   - Location to fetch the current errors' explanations
+#
+# - Valid email domains and specific whitelisted emails
+# - Clustering parameters 
+#
+# See :mod:`WorkflowWebTools.clusterworkflows` for more details on the clustering parameters.
+##!
+webmaster:
+  name: Daniel Abercrombie
+  email: dabercro@mit.edu
+host:
+  name: 127.0.0.1
+  port: 8080
+data:
+  workflow_history: data/data.json
+  all_errors: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
+  explain_errors: https://cmst2.web.cern.ch/cmst2/unified/explanations.json
+valid_emails:
+  domains:
+    - cern.ch
+  whitelist:
+    - dabercro@mit.edu
+cluster:
+  n_clusters: 20
+  n_init: 30
+  sitename:
+    distance: 1.0
+    width: 0.2
+    midpoint: 50
+  errorcode:
+    distance: 2.0
+    width: 0.4
+    midpoint: 50

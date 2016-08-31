@@ -6,9 +6,16 @@
       var validEmails = ["${'","'.join(emails)}"]
     </script>
     <script src="/static/js/checkuser.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css"></link>
   </head>
 
   <body style="margin-left:5em; margin-top:2em;">
+
+    <p>
+      On a successful submission,
+      you will get a confirmation page that an email was sent.
+    </p>
+
     <form name="infoform" method="POST" onsubmit="return validateForm()">
       E-mail: <br>
       <input type="text" name="email"> <br>

@@ -9,26 +9,24 @@ import urllib2
 import json
 import sqlite3
 import time
-import logging
 
+from . import errorutils
+from . import serverconfig
 from .reasonsmanip import reasons_list
-
-
-ALL_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/all_errors.json'
-"""Location of the errors file loaded into globalerrors"""
-EXPLAIN_ERRORS_LOCATION = 'https://cmst2.web.cern.ch/cmst2/unified/explanations.json'
-"""Location of errors explanations"""
 
 
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
 
-    def __init__(self, data_location=ALL_ERRORS_LOCATION):
+    def __init__(self, data_location=''):
         """Initialization with a setup.
         :param str data_location: Set the location of the data to read in the info
         """
 
+        self.clusters = None
         self.data_location = data_location
+        if not self.data_location:
+            self.data_location = serverconfig.all_errors_path()
         self.setup()
 
     def __del__(self):
@@ -40,43 +38,38 @@ class ErrorInfo(object):
 
         self.timestamp = time.time()
 
-        self.conn = sqlite3.connect(':memory:', check_same_thread=False)
-        curs = self.conn.cursor()
-        curs.execute(
-            'CREATE TABLE workflows (stepname varchar(255), errorcode int, '
-            'sitename varchar(255), numbererrors int)')
-
-        stepset = set()
-        errorset = set()
-        siteset = set()
-
         # Store everything into an SQL database for fast retrival
 
-        if os.path.isfile(self.data_location):
-            res = open(self.data_location, 'r')
+        if self.data_location.endswith('.db') and os.path.exists(self.data_location):
+            self.conn = sqlite3.connect(self.data_location, check_same_thread=False)
+            curs = self.conn.cursor()
 
         else:
-            res = urllib2.urlopen(self.data_location)
+            self.conn = sqlite3.connect(':memory:', check_same_thread=False)
+            curs = self.conn.cursor()
 
+            errorutils.create_table(curs)
+            errorutils.add_to_database(curs, self.data_location)
 
-        for stepname, errorcodes in json.load(res).items():
-            stepset.add(stepname)
-            for errorcode, sitenames in errorcodes.items():
-                errorset.add(errorcode)
-                for sitename, numbererrors in sitenames.items():
-                    siteset.add(sitename)
-                    curs.execute('INSERT INTO workflows VALUES (?,?,?,?)',
-                                 (stepname, errorcode, sitename, numbererrors))
-        res.close()
+        def get_all(column):
+            """Get list of all unique entries in the database
 
-        allsteps = list(stepset)
+            :param str column: is the name of the column
+            :returns: a list of unique column entries
+            :rtype: list
+            """
+
+            curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
+            return [entry[0] for entry in curs.fetchall()]
+
+        allsteps = get_all('stepname')
         allsteps.sort()
-        allerrors = list(errorset)
-        allerrors.sort(key=int)
-        allsites = list(siteset)
+        allsites = get_all('sitename')
         allsites.sort()
+        allerrors = get_all('errorcode')
+        allerrors.sort(key=int)
 
-        res = urllib2.urlopen(EXPLAIN_ERRORS_LOCATION)
+        res = urllib2.urlopen(serverconfig.explain_errors_path())
         self.info = curs, allsteps, allerrors, allsites, json.load(res)
         res.close()
 
@@ -90,12 +83,16 @@ class ErrorInfo(object):
         self.conn.close()
         self.connection_log('closed')
 
+        if self.clusters:
+            self.clusters['conn'].close()
+            self.clusters = None
+
     def connection_log(self, action):
         """Logs actions on the sqlite3 connection
 
         :param str action: is the action on the connection
         """
-        logging.info('Connection %s with timestamp %s', action, self.timestamp)
+        print 'Connection {0} with timestamp {1}'.format(action, self.timestamp)
 
     def get_errors_explained(self):
         """
@@ -319,8 +316,8 @@ def get_errors_and_pietitles(pievar, session=None):
             toappend = []
             pietitle = ''
             if rowname != 'stepname':
-                pietitle += TITLEMAP[rowname] + ': ' + row + '\n'
-            pietitle += TITLEMAP[colname] + ': ' + col
+                pietitle += TITLEMAP[rowname] + ': ' + str(row) + '\n'
+            pietitle += TITLEMAP[colname] + ': ' + str(col)
             for piekey, errnum in curs.execute(('SELECT {0}, numbererrors FROM workflows '
                                                 'WHERE {1}=? AND {2}=?'.
                                                 format(pievar, rowname, colname)),
@@ -366,7 +363,7 @@ def get_header_titles(varname, errors, session=None):
 
         elif varname == 'errorcode':
             output.append({'title': str('\n --- \n'.join(
-                check_session(session).get_errors_explained()[name]
+                check_session(session).get_errors_explained().get('name', [])
                 )
                                        ).rstrip('\n'),
                            'name': name})

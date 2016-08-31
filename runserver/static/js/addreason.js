@@ -13,7 +13,7 @@ function getDefaultReason(num) {
 
 }
 
-function addReason(divName) {
+function addReason() {
 
     var liststring = '';
     for (reason in shortlist) {
@@ -27,7 +27,7 @@ function addReason(divName) {
     newdiv.id = 'reason' + count;
     newdiv.style.padding = "1em";
     newdiv.innerHTML = ''
-        + '<button type="button" onClick="removeReason(\'' + divName + '\',\'' + newdiv.id + '\');">'
+        + '<button type="button" onClick="removeReason(\'' + newdiv.id + '\');">'
         + '&#10006;</button> <br>'
         + 'Select reason: '
         + '<select name= "selectedreason" id="select' + count + '" onchange="fillLongReason(' + count + ')">'
@@ -41,14 +41,14 @@ function addReason(divName) {
     reasontext.innerHTML = getDefaultReason(count);
 
     newdiv.appendChild(reasontext);
-    document.getElementById(divName).appendChild(newdiv);
+    document.getElementById('reasons').appendChild(newdiv);
     count++;
 
 }
 
-function removeReason(parentId,childId) {
+function removeReason(childId) {
 
-    var parent = document.getElementById(parentId);
+    var parent = document.getElementById('reasons');
     var child = document.getElementById(childId);
     parent.removeChild(child);
 

@@ -1,20 +1,13 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width,user-scalable=yes"/>
-  </head>
+<%inherit file="simple.html"/>
 
-  <body style="margin-left:5em; margin-top:2em;">
+<%block name="title">Request Password Reset</%block>
 
-    <p>
-      Enter the email for the account you would like to recover.
-    </p>
+<p>
+  Enter the email for the account you would like to recover.
+</p>
 
-    <form name="infoform" method="POST">
-      E-mail: <br>
-      <input type="text" name="email"> <br>
-      <input type="submit" value="Submit">
-    </form>
-
-  </body>
-</html>
+<form name="infoform" method="POST">
+  E-mail: <br>
+  <input type="text" name="email"> <br>
+  <input type="submit" value="Submit">
+</form>

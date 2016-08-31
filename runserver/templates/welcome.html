@@ -1,12 +1,40 @@
-<%
-   links = { 
-     'showlog' : 'Show Logs',
-     'globalerror' : 'Global Error View',
-     'getaction' : 'Get Latest Actions',
-     'newuser' : 'Create a New Account',
-     'resetpassword' : 'Reset a Forgotten Password'
-   }
-%>
-% for link, title in links.iteritems():
-<a href="${link}">${title}</a> <br>
-% endfor
+<%inherit file="simple.html"/>
+
+<%block name="title">Welcome</%block>
+
+<h1>Welcome to the Workflow Team Web Tools</h1>
+
+<p>
+  Get Started with one of the following tools:
+<p>
+
+<p>
+  <a href="/globalerror">Global Error View</a>: <br>
+  This view shows the errors occuring at sites in an
+  attempt to visualize 4-dimensional data.
+  From this page, you can look at more detailed reports
+  of a given workflow step.
+  From that reports page, you can submit actions to take
+  on the workflow, if you have a registered account.
+</p>
+
+<p>
+  <a href="/newuser">Create a New Account</a>: <br>
+  In order to submit actions, you must register a username.
+  This registration must be verified by a valid email address
+  (specified on the page).
+  The new user will not be registered if the same email is used twice.
+  You can still browse the website without a registered name.
+</p>
+
+<p>
+  <a href="/resetpassword">Reset a Forgotten Password</a>: <br>
+  If you forgot your username or password,
+  you can reset the password by email here.
+  Your username will be in the email in the event you forgot that too.
+</p>
+
+<p>
+  <a href="/showlog">Show Logs</a>: <br>
+  This view shows logs from the elastic search server.
+</p>

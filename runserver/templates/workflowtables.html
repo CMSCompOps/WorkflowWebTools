@@ -78,11 +78,15 @@
           
           <div id="actionparams"></div>
 
-
           % if len(similar_wfs) != 0:
             <button id="showmulti" type="button">Apply to multiple?</button> <br>
             <div id="multiwfs" style="display:none;">
-              <button id="addfilter" type="button">Add Filter</button> <br>
+              <!-- 
+
+               This is something we want to add, but we don't have the information yet!!!
+               This way, we can look at groups based on filters if the clustering doesn't look that good.
+
+              <button id="addfilter" type="button" onClick"addFilter()">Add Manual Filter</button> <br>
               <div id="filter" style="display:none;">
                 <input type="text" name="wffilter">
                 <select name="wffiltertype">
@@ -95,9 +99,13 @@
                 </select> <br>
                 <button type="button">Apply filter</button> <br>
               </div>
-              % for wf in similar_wfs:
-              <input type="checkbox" name="workflows" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
-              % endfor
+              -->
+
+              <div id="wflist">
+                % for wf in similar_wfs:
+                <input type="checkbox" name="workflows" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
+                % endfor
+              </div>
             </div>
           % endif
 

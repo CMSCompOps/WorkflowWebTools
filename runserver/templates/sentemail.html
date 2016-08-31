@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html>
+<%inherit file="simple.html"/>
 
-  <head>
-    <title>Sent Reset Password</title>
-  </head>
+<%block name="title">Sent Reset Password</%block>
 
-  <body>
-    <center>
-      <h1>Email Sent</h1>
+<h1>Email Sent</h1>
       
-      <!-- I should change returns based on this result -->
-      If ${email} was found in out records,
-      then a link should have been sent to allow you to reset your password.
-    </center>
-  </body>
-
-</html>
+<!-- I should change returns based on this result -->
+If ${email} was found in out records,
+then a link should have been sent to allow you to reset your password.

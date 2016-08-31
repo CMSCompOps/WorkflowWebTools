@@ -7,3 +7,4 @@ runserver/actions/*.json
 runserver/keys/*
 test/pylint_output/*
 runserver/data/*
+runserver/config.yml
