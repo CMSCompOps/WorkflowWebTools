@@ -186,7 +186,7 @@ function makeParamTable(action) {
             optionDiv.appendChild(opttext);
             var option = document.createElement("INPUT");
             option.setAttribute("type", "radio");
-            option.setAttribute("name", key);
+            option.setAttribute("name", "param_" + key);
             option.setAttribute("value", opts[key][opt]);
             optionDiv.appendChild(option);
 
@@ -200,7 +200,7 @@ function makeParamTable(action) {
         var text = document.createTextNode(texts[itext] + '  ');
         var inp = document.createElement("INPUT");
         inp.setAttribute("type", "text");
-        inp.setAttribute("name", texts[itext]);
+        inp.setAttribute("name", "param_" + texts[itext]);
         inpDiv.appendChild(text)
         inpDiv.appendChild(inp)
         paramDiv.appendChild(inpDiv)
