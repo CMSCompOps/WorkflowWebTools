@@ -49,11 +49,15 @@
         % if errordata['pievar'] == "stepname":
           <th title="${row['title'] | h}">${row['name']}</th>
         % else:
-          <th title="${row['title'] | h}">
-            <%
-               workflowstep = '/' + '/'.join(row['name'].split('<br>'))
-               workflowpd = workflowstep.split('/')[1]
-            %>
+          <%
+             workflowstep = '/' + '/'.join(row['name'].split('<br>'))
+             workflowpd = workflowstep.split('/')[1]
+             if workflowpd in acted_workflows:
+                 bg_type = 'done'
+             else:
+                 bg_type = 'todo'
+          %>
+          <th class="${bg_type}" title="${row['title'] | h}">
             <a href="/seeworkflow/?workflow=${workflowpd}#${workflowstep}">
               ${row['name']}
             </a>

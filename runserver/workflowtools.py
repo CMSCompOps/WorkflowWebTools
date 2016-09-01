@@ -118,7 +118,9 @@ class WorkflowTools(object):
         """
 
         return GET_TEMPLATE('globalerror.html').\
-            render(errordata=globalerrors.return_page(pievar, cherrypy.session))
+            render(errordata=globalerrors.return_page(pievar, cherrypy.session),
+                   acted_workflows=manageactions.get_acted_workflows(
+                      serverconfig.get_history_length()))
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):

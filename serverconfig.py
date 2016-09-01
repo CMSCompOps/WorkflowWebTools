@@ -123,3 +123,12 @@ def get_cluster_settings():
     """
 
     return config_dict()['cluster']
+
+def get_history_length():
+    """
+    :returns: the number of days of history to check for workflows
+              with an action submitted.
+    :rtype: int
+    """
+
+    return int(config_dict()['actions']['submithistory'])
