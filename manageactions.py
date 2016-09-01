@@ -129,6 +129,7 @@ def get_prev_actions(num_days):
             with open(match, 'r') as infile:
                 output = json.load(infile)
                 for key, value in output.iteritems():
+                    value['user'] = match.split('/')[-1].split('_')[0]
                     yield key, value
 
 

@@ -88,52 +88,104 @@ function checkReason(num) {
 
 }
 
+function makeTable(entries, header) {
+
+    header.unshift('Parameter');
+    var paramTable = document.createElement('TABLE');
+    var headerRow = paramTable.insertRow(0);
+        
+    for (var iData = 0; iData < header.length; iData++) {
+        var cell = headerRow.insertCell(iData);
+        cell.innerHTML = '<b>' + header[iData] + '</b>';
+    }
+        
+    for (var iParam = 0; iParam < entries.length; iParam++) {
+        var row = paramTable.insertRow(iParam + 1);
+        var cell = row.insertCell(0);
+        cell.innerHTML = entries[iParam];
+        for (var iOpt = 1; iOpt < header.length; iOpt++) {
+            cell = row.insertCell(iOpt);
+            if (header[iOpt] == 'Same' || header[iOpt] == 'False')
+                cell.innerHTML = '<input type="radio" name="param_'+entries[iParam]+'" value="'+header[iOpt]+'" checked="checked">';
+            else
+                cell.innerHTML = '<input type="radio" name="param_'+entries[iParam]+'" value="'+header[iOpt]+'">';
+        }
+    }
+
+    return paramTable
+}
+
 function makeParamTable(action) {
 
     var paramDiv = document.getElementById('actionparams');
     paramDiv.innerHTML = '';
     paramDiv.style.padding = "10px";
 
-    var paramTable = document.createElement('TABLE');
-    var header = ['Parameter', 'Decrease', 'Same', 'Increase'];
     var params = [];
+    var bools = [];
+    var texts = [];
+    var opts = {};
 
     if ( action.value == 'clone' ) {
         params = [
                   'splitting',
                   'memory',
                   'timeout',
-                  ]
+                  ];
+        bools = [
+                 'invalidate',
+                 ];
+        texts = [
+                 'group',
+                 'max_memory',
+                 ];
     } else if (action.value == 'recover') {
         params = [
                   'memory',
                   'timeouts',
-                  ]
-    }
-
-    var headerRow = paramTable.insertRow(0);
-
-    for (var iData = 0; iData < header.length; iData++) {
-        var cell = headerRow.insertCell(iData);
-        cell.innerHTML = header[iData];
-    }
-
-    for (var iParam = 0; iParam < params.length; iParam++) {
-        var row = paramTable.insertRow(iParam + 1);
-        var cell = row.insertCell(0);
-        cell.innerHTML = params[iParam];
-        for (var iOpt = 1; iOpt < header.length; iOpt++) {
-            cell = row.insertCell(iOpt);
-            if (header[iOpt] == 'Same')
-                cell.innerHTML = '<input type="radio" name="param_'+params[iParam]+'" value="'+header[iOpt]+'" checked="checked">';
-            else
-                cell.innerHTML = '<input type="radio" name="param_'+params[iParam]+'" value="'+header[iOpt]+'">';
-        }
+                  ];
+        bools = [
+                 'replica',
+                 'trustsite'
+                 ];
+        texts = [
+                 'LFN',
+                 'ERA',
+                 'procstring',
+                 'procversion',
+                 ];
+        opts = {
+            action: [
+                     'reprocessing',
+                     'production',
+                     'test',
+                     ]
+                };
     }
 
     if (params.length != 0) {
+        paramDiv.appendChild(makeTable(params, ['Decrease', 'Same', 'Increase']));
+    }
 
-        paramDiv.appendChild(paramTable);
+    console.log(bools.length)
+
+    if (bools.length != 0) {
+        paramDiv.appendChild(makeTable(bools, ['True', 'False']));
+    }
+
+    for (itext in texts) {
+        var inpDiv = document.createElement("DIV");
+        inpDiv.style.padding = '0.5em';
+        var text = document.createTextNode(texts[itext] + '  ');
+        var inp = document.createElement("INPUT");
+        inp.setAttribute("type", "text");
+        inp.setAttribute("name", texts[itext]);
+        inpDiv.appendChild(text)
+        inpDiv.appendChild(inp)
+        paramDiv.appendChild(inpDiv)
+    }
+
+    if (params.length != 0) {
 
         var checkDiv = document.createElement('DIV');
         checkDiv.id = 'siteslistcheck';
