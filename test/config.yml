@@ -34,7 +34,7 @@ valid_emails:
 actions:
   submithistory: 2
 cluster:
-  n_clusters: 20
+  n_clusters: 8
   n_init: 30
   sitename:
     distance: 1.0
