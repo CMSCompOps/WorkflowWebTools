@@ -6,11 +6,16 @@ Module to manage actions of WorkflowWebTools.
 
 import os
 import json
+import glob
 
 
 from datetime import datetime
+from datetime import timedelta
 from . import reasonsmanip
 
+
+ACTIONS_DIRECTORY = 'actions'
+"""The location to store the actions JSON files"""
 
 def extract_reasons_params(**kwargs):
     """Extracts the reasons and parameters for an action from kwargs
@@ -78,8 +83,13 @@ def submitaction(user, workflows, action, **kwargs):
 
     reasons, params = extract_reasons_params(**kwargs)
 
-    output_file_name = 'actions/{0}_{1}.json'.\
-        format(user, datetime.now().strftime('%Y%m%d'))
+    if not os.path.exists(ACTIONS_DIRECTORY):
+        os.makedirs(ACTIONS_DIRECTORY)
+
+    output_file_name = os.path.join(
+        ACTIONS_DIRECTORY, '{0}_{1}.json'.\
+            format(user, datetime.now().strftime('%Y%m%d'))
+        )
 
     add_to_json = {}
     if os.path.isfile(output_file_name):
@@ -100,3 +110,57 @@ def submitaction(user, workflows, action, **kwargs):
         json.dump(add_to_json, outputfile)
 
     return workflows, action, reasons, params
+
+
+def get_prev_actions(num_days):
+    """Get the keys and values of recent actions
+
+    :param int num_days: is the number of days to check for actions
+    :rtype: generator
+    """
+
+    date = datetime.now()
+    date_int = int(date.strftime('%Y%m%d'))
+    prev_int = int((date - timedelta(num_days)).strftime('%Y%m%d'))
+
+    for match in glob.iglob(os.path.join(ACTIONS_DIRECTORY, '*.json')):
+        check_int = int(match.split('_')[-1].rstrip('.json'))
+        if prev_int <= check_int <= date_int:
+            with open(match, 'r') as infile:
+                output = json.load(infile)
+                for key, value in output.iteritems():
+                    yield key, value
+
+
+def get_actions(num_days):
+    """Get the recent actions to be act on in dictionary form
+
+    :param int num_days: is the number of days to check for actions
+    :returns: A dictionary of actions, to be rendered as JSON
+    :rtype: dict
+    """
+
+    output = {}
+
+    for key, value in get_prev_actions(num_days):
+        output[key] = value
+
+    return output
+
+
+def get_acted_workflows(num_days):
+    """Get all of the workflows that have actions assigned
+
+    :param int num_days: is the number of past days to check for actions.
+                         This speeds up the check while not losing the
+                         ability to look farther back in time.
+    :returns: a list of workflows acted on
+    :rtype: list
+    """
+
+    workflows = []
+
+    for key, _ in get_prev_actions(num_days):
+        workflows.append(key)
+
+    return workflows

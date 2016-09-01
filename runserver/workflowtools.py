@@ -9,7 +9,6 @@ Script to by run the WorkflowWebTools server.
 """
 
 import os
-import glob
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -213,9 +212,11 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def getaction(self, test=False):
+    def getaction(self, days=0, test=False):
         """Returns the latest action json that has not been adressed yet.
 
+        :param int days: The number of past days to check.
+                         The default, 0, means to only check today.
         :param bool test: Used to determine whether or not to return the test file.
         :returns: a JSON file containing actions to act on
         :rtype: JSON
@@ -236,8 +237,7 @@ class WorkflowTools(object):
                     }
                 }
 
-        newest_json = max(glob.iglob('actions/*.json'), key=os.path.getmtime)
-        raise cherrypy.HTTPRedirect('/' + newest_json)
+        return manageactions.get_actions(days)
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):
@@ -393,10 +393,6 @@ if __name__ == '__main__':
         '/static': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': './static'
-            },
-        '/actions': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': './actions'
             },
         '/submitaction': {
             'tools.auth_basic.on': True,
