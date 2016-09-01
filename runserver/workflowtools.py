@@ -305,12 +305,13 @@ class WorkflowTools(object):
         :param str code: confirmation code to activate the account
         :returns: confirmation screen for the user
         :rtype: str
+        :raises: A redirect the the homepage if the code is invalid
         """
 
         user = manageusers.confirmation(code)
         if user != '':
             return GET_TEMPLATE('activated.html').render(user=user)
-        return self.index()
+        raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
     def resetpassword(self, email='', code='', password=''):
