@@ -155,22 +155,43 @@ function makeParamTable(action) {
                  'procversion',
                  ];
         opts = {
-            action: [
+            Activity: [
                      'reprocessing',
                      'production',
                      'test',
                      ]
                 };
+    } else if (action.value == 'investigate') {
+        texts = [
+                 'other',
+                 ]
     }
 
     if (params.length != 0) {
         paramDiv.appendChild(makeTable(params, ['Decrease', 'Same', 'Increase']));
     }
 
-    console.log(bools.length)
-
     if (bools.length != 0) {
         paramDiv.appendChild(makeTable(bools, ['True', 'False']));
+    }
+
+    for (key in opts) {
+        var optionDiv = document.createElement("DIV");
+        var keytext = document.createElement("b");
+        keytext.innerHTML = key + ': <br>';
+        optionDiv.appendChild(keytext);
+        for (opt in opts[key]) {
+
+            var opttext = document.createTextNode('    ' + opts[key][opt] + '  ');
+            optionDiv.appendChild(opttext);
+            var option = document.createElement("INPUT");
+            option.setAttribute("type", "radio");
+            option.setAttribute("name", key);
+            option.setAttribute("value", opts[key][opt]);
+            optionDiv.appendChild(option);
+
+        }
+        paramDiv.appendChild(optionDiv);
     }
 
     for (itext in texts) {
