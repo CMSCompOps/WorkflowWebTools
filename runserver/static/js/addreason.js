@@ -1,3 +1,19 @@
+/*"""
+.. describe:: addreason.js
+
+This file contains the functions used to add reasons to the :ref:`workflow-view-ref`
+as well as adding parameters to the page when different actions are selected.
+The fields added by this script are handled by the :py:mod:`WorkflowWebTools.reasonsmanip`
+and :py:mod:`WorkflowWebTools.manageactions` modules.
+
+.. todo::
+
+  This is some of the messiest code in the package.
+  Need to impliment some JSLint check.
+
+:author: Daniel Abercrombie <dabercro@mit.edu>
+*/
+
 var count = 0;
 
 function getDefaultReason(num) {

@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>4D Errors</title>
+    <%include file="rotation_tables.html"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <script>
       $(document).tooltip({
@@ -10,7 +11,6 @@
         }
       })
     </script>
-    <%include file="rotation_tables.html"/>
     <script type="text/javascript" src="static/js/piechart.js"></script>
   </head>
   <%
@@ -18,7 +18,7 @@
      for info in errordata['pieinfo']:
          stringpieinfo.append(str(info))
   %>
-  <body onload="drawpiecharts(${','.join(stringpieinfo)});">
+  <body onload="drawPieCharts(${','.join(stringpieinfo)});">
     <table border="3" style="border-collapse: collapse;">
       <tr>
         <th style="font-size:125%; text-align:left; padding:15px;">
