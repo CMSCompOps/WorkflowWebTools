@@ -44,7 +44,7 @@ class WorkflowTools(object):
     @cherrypy.expose
     def cluster(self):
         """
-        The function is only accessible to someone with a verfied account.
+        The function is only accessible to someone with a verified account.
 
         Navigating to ``https://localhost:8080/cluster``
         causes the server to regenerate the clusters that it has stored.
@@ -356,7 +356,7 @@ class WorkflowTools(object):
     @cherrypy.expose
     def resetcache(self):
         """
-        The function is only accessible to someone with a verfied account.
+        The function is only accessible to someone with a verified account.
 
         Navigating to ``https://localhost:8080/resetcache``
         resets the error info for the user's session.
