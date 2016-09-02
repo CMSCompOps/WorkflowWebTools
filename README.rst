@@ -126,8 +126,8 @@ you can use the script::
    :src: ../WorkflowWebTools/test/config.yml
    :analyzer: shell-script
 
-Maintaining the Web Tools
--------------------------
+Maintaining the Python Backend
+------------------------------
 
 For developers wishing to make adjustments to the modules or
 anyone else who wants to understand some of the backend of the server,
@@ -184,6 +184,15 @@ Show Log
 
 .. automodule:: WorkflowWebTools.showlog
    :members:
+
+JavaScript and Mako User Interface
+----------------------------------
+
+Some documentation of the JavaScript used on the webpages are given below.
+
+.. autoanysrc:: phony
+   :src: ../WorkflowWebTools/runserver/static/js/*.js
+   :analyzer: js
 
 WorkflowWebTools Forks' Build Statuses
 --------------------------------------

@@ -9,7 +9,6 @@ Script to by run the WorkflowWebTools server.
 """
 
 import os
-import glob
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -45,7 +44,7 @@ class WorkflowTools(object):
     @cherrypy.expose
     def cluster(self):
         """
-        The function is only accessible to someone with a verfied account.
+        The function is only accessible to someone with a verified account.
 
         Navigating to ``https://localhost:8080/cluster``
         causes the server to regenerate the clusters that it has stored.
@@ -119,7 +118,9 @@ class WorkflowTools(object):
         """
 
         return GET_TEMPLATE('globalerror.html').\
-            render(errordata=globalerrors.return_page(pievar, cherrypy.session))
+            render(errordata=globalerrors.return_page(pievar, cherrypy.session),
+                   acted_workflows=manageactions.get_acted_workflows(
+                       serverconfig.get_history_length()))
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
@@ -213,9 +214,11 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def getaction(self, test=False):
+    def getaction(self, days=0, test=False):
         """Returns the latest action json that has not been adressed yet.
 
+        :param int days: The number of past days to check.
+                         The default, 0, means to only check today.
         :param bool test: Used to determine whether or not to return the test file.
         :returns: a JSON file containing actions to act on
         :rtype: JSON
@@ -236,8 +239,7 @@ class WorkflowTools(object):
                     }
                 }
 
-        newest_json = max(glob.iglob('actions/*.json'), key=os.path.getmtime)
-        raise cherrypy.HTTPRedirect('/' + newest_json)
+        return manageactions.get_actions(days)
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):
@@ -305,12 +307,13 @@ class WorkflowTools(object):
         :param str code: confirmation code to activate the account
         :returns: confirmation screen for the user
         :rtype: str
+        :raises: A redirect the the homepage if the code is invalid
         """
 
         user = manageusers.confirmation(code)
         if user != '':
             return GET_TEMPLATE('activated.html').render(user=user)
-        return self.index()
+        raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
     def resetpassword(self, email='', code='', password=''):
@@ -353,7 +356,7 @@ class WorkflowTools(object):
     @cherrypy.expose
     def resetcache(self):
         """
-        The function is only accessible to someone with a verfied account.
+        The function is only accessible to someone with a verified account.
 
         Navigating to ``https://localhost:8080/resetcache``
         resets the error info for the user's session.
@@ -393,10 +396,6 @@ if __name__ == '__main__':
         '/static': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': './static'
-            },
-        '/actions': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': './actions'
             },
         '/submitaction': {
             'tools.auth_basic.on': True,

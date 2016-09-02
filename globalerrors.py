@@ -25,8 +25,6 @@ class ErrorInfo(object):
 
         self.clusters = None
         self.data_location = data_location
-        if not self.data_location:
-            self.data_location = serverconfig.all_errors_path()
         self.setup()
 
     def __del__(self):
@@ -38,10 +36,15 @@ class ErrorInfo(object):
 
         self.timestamp = time.time()
 
+        if self.data_location:
+            data_location = self.data_location
+        else:
+            data_location = serverconfig.all_errors_path()
+
         # Store everything into an SQL database for fast retrival
 
-        if self.data_location.endswith('.db') and os.path.exists(self.data_location):
-            self.conn = sqlite3.connect(self.data_location, check_same_thread=False)
+        if data_location.endswith('.db') and os.path.exists(data_location):
+            self.conn = sqlite3.connect(data_location, check_same_thread=False)
             curs = self.conn.cursor()
 
         else:
@@ -49,7 +52,7 @@ class ErrorInfo(object):
             curs = self.conn.cursor()
 
             errorutils.create_table(curs)
-            errorutils.add_to_database(curs, self.data_location)
+            errorutils.add_to_database(curs, data_location)
 
         def get_all(column):
             """Get list of all unique entries in the database

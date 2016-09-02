@@ -169,8 +169,9 @@ def resetpassword(code, password):
 
 
 def add_user(email, username, password, url):
-    """Adds the user to the users database and sends a verification email,
-       if the parameters are valid.
+    """
+    Adds the user to the users database and sends a verification email,
+    if the parameters are valid.
 
     :param str email: The user email to send verification to.
                       Make sure to check for valid domains.

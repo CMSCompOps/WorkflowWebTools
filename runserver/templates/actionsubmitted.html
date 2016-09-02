@@ -6,21 +6,21 @@
 
 <p>Submitted action to Unified with the following parameters:</p>
 
-<h2>User</h2>
+<h3>User</h3>
 ${user}
 
-<h2>Workflows</h2>
+<h3>Workflows</h3>
 % for wf in workflows:
 ${wf} <br>
 % endfor
 
-<h2>Action</h2>
+<h3>Action</h3>
 ${action}
 
-<h2>Parameters</h2>
+<h3>Parameters</h3>
 ${params}
 
-<h2>Reasons</h2>
+<h3>Reasons</h3>
 % for reason in reasons:
 <h4>${reason['short']}</h4>
 <p>${reason['long']}</p>

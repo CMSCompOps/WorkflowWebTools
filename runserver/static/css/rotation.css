@@ -22,3 +22,11 @@ th.rotate > div {
   font-size: 70%;
   word-wrap: break-word;
 }
+
+.done {
+  background-color:#4fef4f;
+}
+
+.todo {
+  background-color:#ef4f4f;
+}

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=yes"/>
     <title><%block name="title"/></title>
     <link rel="stylesheet" type="text/css" href="/static/css/style.css"></link>
+    <%block name="scripts"/>
   </head>
 
   <body>
@@ -13,6 +14,7 @@
 
   <footer>
     <center>
+      <a href="/">Return the Home page</a> <br>
       <a href="/resetcache">Manually reset user's session cache of global errors</a> <br>
       <a href="/cluster">Update server cluster definition</a>
     </center>

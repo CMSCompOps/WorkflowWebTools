@@ -17,7 +17,7 @@ of errors is the following.
 .. math::
 
   \\mathrm{distance} = \\frac{d}{\\sqrt{2} |\\vec{v}|} +
-      2.0 w \\left(\\frac{|\\vec{v}|}{|\\vec{v}| + m} - 0.5\\right)
+      2 w \\left(\\frac{|\\vec{v}|}{|\\vec{v}| + m} - 0.5\\right)
 
 *d* is the 'distance' parameter, *w* is the 'width' parameter,
 and *m* is the 'midpoint' parameter set in the ``config.yml``.

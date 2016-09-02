@@ -1,12 +1,28 @@
-// List the colors for the pie chart.
-// Will eventually want to link severity of errors to different colors
+/*"""
+.. describe:: piechart.js
+
+Contains the drawPieCharts function for the global errors page.
+
+:author: Daniel Abercrombie <dabercro@mit.edu>
+*/
 
 var colors = ["#ff0000", "#00ff00", "#0000ff", "#00ffff", "#ff00ff", "#ffff00",
               "#808080", "#808000", "#800080", "#008080", "#000000"];
 
-// This function finds multiple canvases and draws pie charts onto them
+function drawPieCharts() {
+    /*"""
+    .. function:: drawPieCharts()
 
-function drawpiecharts() {
+      This function finds multiple canvases and draws pie charts onto them.
+      The number of errors for each canvas are given as separate arguments.
+      The piecharts are split with the largest contributer always having the same color.
+      The radius of the piechart is a fraction of the canvas size,
+      determined by the following equation:
+
+      .. math::
+
+        \frac{r}{r_{canvas}} = \frac{n_{errors}}{n_{errors} + 10}
+    */
     var iChart;
     var canvases = document.getElementsByClassName("piechart");
     var ncanvases = Math.min(canvases.length, arguments.length);

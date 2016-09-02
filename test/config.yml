@@ -11,6 +11,7 @@
 #   - Location to fetch the current errors' explanations
 #
 # - Valid email domains and specific whitelisted emails
+# - Actions stores the number of days to check the submission history for actions requested
 # - Clustering parameters 
 #
 # See :mod:`WorkflowWebTools.clusterworkflows` for more details on the clustering parameters.
@@ -30,8 +31,10 @@ valid_emails:
     - cern.ch
   whitelist:
     - dabercro@mit.edu
+actions:
+  submithistory: 2
 cluster:
-  n_clusters: 20
+  n_clusters: 8
   n_init: 30
   sitename:
     distance: 1.0
