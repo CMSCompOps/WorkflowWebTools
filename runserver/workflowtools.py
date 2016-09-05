@@ -222,7 +222,6 @@ class WorkflowTools(object):
         :param bool test: Used to determine whether or not to return the test file.
         :returns: a JSON file containing actions to act on
         :rtype: JSON
-        :raises: A redirect to the relevant JSON.
         """
 
         # This will also need to somehow note that an action has been gotten by Unified
