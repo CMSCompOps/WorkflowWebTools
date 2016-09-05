@@ -238,7 +238,7 @@ class WorkflowTools(object):
                     }
                 }
 
-        return manageactions.get_actions(days)
+        return manageactions.get_actions(int(days))
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):
