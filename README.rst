@@ -83,6 +83,8 @@ The webtools are operated behind a cherrypy server.
 Before running the script ``runserver/workflowtools.py``,
 there are a few other things that you should set up first.
 
+.. _server-config-ref:
+
 Setting Up Server Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

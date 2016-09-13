@@ -9,6 +9,7 @@ Script to by run the WorkflowWebTools server.
 """
 
 import os
+import sys
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -410,6 +411,7 @@ if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
         })
 
 if __name__ == '__main__':
+
     CONF['/submitaction'] = {
         'tools.auth_basic.on': True,
         'tools.auth_basic.realm': 'localhost',
@@ -420,7 +422,7 @@ if __name__ == '__main__':
 
     cherrypy.quickstart(WorkflowTools(), '/', CONF)
 
-else:
+elif 'mod_wsgi' in sys.modules.keys():
 
     cherrypy.config.update({'environment': 'embedded'})
     application = cherrypy.Application(WorkflowTools(), script_name='/', config=CONF)
