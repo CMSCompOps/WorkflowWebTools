@@ -1,5 +1,8 @@
 /*"""
-.. describe:: piechart.js
+.. _piechart-ref:
+
+piechart.js
++++++++++++
 
 Contains the drawPieCharts function for the global errors page.
 
