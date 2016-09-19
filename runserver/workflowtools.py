@@ -9,20 +9,26 @@ Script to by run the WorkflowWebTools server.
 """
 
 import os
+import sys
 
 import cherrypy
 from mako.lookup import TemplateLookup
 
-from WorkflowWebTools import showlog
 from WorkflowWebTools import serverconfig
-from WorkflowWebTools import globalerrors
+serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
+
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
+from WorkflowWebTools import showlog
+from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 
+TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                             'templates')
 
-GET_TEMPLATE = TemplateLookup(directories=['templates'],
-                              module_directory='templates/mako_modules').get_template
+GET_TEMPLATE = TemplateLookup(directories=[TEMPLATES_DIR],
+                              module_directory=os.path.join(TEMPLATES_DIR, 'mako_modules')
+                             ).get_template
 """Function to get templates from the relative ``templates`` directory"""
 
 
@@ -222,7 +228,6 @@ class WorkflowTools(object):
         :param bool test: Used to determine whether or not to return the test file.
         :returns: a JSON file containing actions to act on
         :rtype: JSON
-        :raises: A redirect to the relevant JSON.
         """
 
         # This will also need to somehow note that an action has been gotten by Unified
@@ -239,7 +244,7 @@ class WorkflowTools(object):
                     }
                 }
 
-        return manageactions.get_actions(days)
+        return manageactions.get_actions(int(days))
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):
@@ -378,40 +383,46 @@ def secureheaders():
     headers['X-XSS-Protection'] = '1; mode=block'
     headers['Content-Security-Policy'] = "default-src='self'"
 
+CONF = {
+    'global': {
+        'server.socket_host': serverconfig.host_name(),
+        'server.socket_port': serverconfig.host_port()
+        },
+    '/': {
+        'error_page.401': GET_TEMPLATE('401.html').render,
+        'error_page.404': GET_TEMPLATE('404.html').render,
+        'tools.staticdir.root': os.path.abspath(os.getcwd()),
+        'tools.sessions.on': True,
+        'tools.sessions.secure': True,
+        'tools.sessions.httponly': True,
+        },
+    '/static': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': './static'
+        },
+    }
+
+if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
+    cherrypy.tools.secureheaders = \
+        cherrypy.Tool('before_finalize', secureheaders, priority=60)
+    cherrypy.config.update({
+        'server.ssl_certificate': 'keys/cert.pem',
+        'server.ssl_private_key': 'keys/privkey.pem'
+        })
 
 if __name__ == '__main__':
-    CONF = {
-        'global': {
-            'server.socket_host': serverconfig.host_name(),
-            'server.socket_port': serverconfig.host_port()
-            },
-        '/': {
-            'error_page.401': GET_TEMPLATE('401.html').render,
-            'error_page.404': GET_TEMPLATE('404.html').render,
-            'tools.staticdir.root': os.path.abspath(os.getcwd()),
-            'tools.sessions.on': True,
-            'tools.sessions.secure': True,
-            'tools.sessions.httponly': True,
-            },
-        '/static': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': './static'
-            },
-        '/submitaction': {
-            'tools.auth_basic.on': True,
-            'tools.auth_basic.realm': 'localhost',
-            'tools.auth_basic.checkpassword': manageusers.validate_password
-            }
+
+    CONF['/submitaction'] = {
+        'tools.auth_basic.on': True,
+        'tools.auth_basic.realm': 'localhost',
+        'tools.auth_basic.checkpassword': manageusers.validate_password
         }
     for key in ['/cluster', '/resetcache']:
         CONF[key] = CONF['/submitaction']
 
-    if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
-        cherrypy.tools.secureheaders = \
-            cherrypy.Tool('before_finalize', secureheaders, priority=60)
-        cherrypy.config.update({
-            'server.ssl_certificate': 'keys/cert.pem',
-            'server.ssl_private_key': 'keys/privkey.pem'
-            })
-
     cherrypy.quickstart(WorkflowTools(), '/', CONF)
+
+elif 'mod_wsgi' in sys.modules.keys():
+
+    cherrypy.config.update({'environment': 'embedded'})
+    application = cherrypy.Application(WorkflowTools(), script_name='/', config=CONF)

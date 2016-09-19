@@ -3,7 +3,10 @@
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+import os
 import sqlite3
+
+from .serverconfig import LOCATION
 
 
 def get_reasons():
@@ -13,7 +16,7 @@ def get_reasons():
     :rtype: (sqlite3.Connection, sqlite3.Cursor)
     """
 
-    conn = sqlite3.connect('reasons.db')
+    conn = sqlite3.connect(os.path.join(LOCATION, 'reasons.db'))
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="reasons"')
 

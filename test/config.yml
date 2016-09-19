@@ -23,7 +23,7 @@ host:
   name: 127.0.0.1
   port: 8080
 data:
-  workflow_history: data/data.json
+  workflow_history: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
   all_errors: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
   explain_errors: https://cmst2.web.cern.ch/cmst2/unified/explanations.json
 valid_emails:

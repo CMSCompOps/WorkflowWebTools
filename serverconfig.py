@@ -9,14 +9,18 @@ import os
 import yaml
 
 
+LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'runserver')
+"""The string giving the location that serverconfig looks first for the configuration"""
+
 def config_dict():
     """
     :returns: the configuration in a dict
     :rtype: str
+    :raises Exception: when it cannot find the configuration file
     """
 
     file_name = 'config.yml'
-    location = file_name
+    location = os.path.join(LOCATION, file_name)
     output = {}
 
     # If not local, check the runserver directory
@@ -33,7 +37,7 @@ def config_dict():
         with open(location, 'r') as config:
             output = yaml.load(config)
     else:
-        print 'Could not load config at ' + location
+        raise Exception('Could not load config at ' + os.path.join(LOCATION, file_name))
 
     return output
 

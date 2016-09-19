@@ -83,6 +83,8 @@ The webtools are operated behind a cherrypy server.
 Before running the script ``runserver/workflowtools.py``,
 there are a few other things that you should set up first.
 
+.. _server-config-ref:
+
 Setting Up Server Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -108,8 +110,8 @@ Updating the Error History
 
 .. automodule:: update_history
 
-Starting the Server
-~~~~~~~~~~~~~~~~~~~
+Starting the CherryPy Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Finally, the service can be launched by running::
 
@@ -125,6 +127,20 @@ you can use the script::
 .. autoanysrc:: dummy
    :src: ../WorkflowWebTools/test/config.yml
    :analyzer: shell-script
+
+Running the Server Behind WSGI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If running the site in a production environment,
+you will likely need to run behind WSGI to enable CERN's SSO.
+Install ``mod_wsgi`` with the following::
+
+    pip install mod_wsgi
+
+This is not listed as a strict requirement for the package.
+
+.. todo::
+   Place documentation on how to configure the httpd service...
 
 Maintaining the Python Backend
 ------------------------------
