@@ -209,35 +209,18 @@ function makeParamTable(action) {
     var opts = {};
 
     if ( action.value == 'clone' ) {
-        params = [
-                  'splitting',
-                  'memory',
-                  'timeout',
-                  ];
-        bools = [
-                 'invalidate',
-                 ];
         texts = [
+                 'splitting',
+                 'memory',
+                 'timeout',
                  'group',
                  'max_memory',
                  ];
     } else if (action.value == 'recover') {
-        params = [
-                  'memory',
-                  'timeouts',
-                  ];
-        bools = [
-                 'replica',
-                 'trustsite'
+        texts = [
+                 'memory',
+                 'timeouts',
                  ];
-        texts = [];   // ???
-        opts = {
-            Activity: [
-                     'reprocessing',
-                     'production',
-                     'test',
-                     ]
-                };
     } else if (action.value == 'investigate') {
         texts = [
                  'other',
@@ -257,6 +240,7 @@ function makeParamTable(action) {
         var keytext = document.createElement("b");
         keytext.innerHTML = key + ': <br>';
         optionDiv.appendChild(keytext);
+
         for (opt in opts[key]) {
 
             var opttext = document.createTextNode('    ' + opts[key][opt] + '  ');
@@ -268,19 +252,28 @@ function makeParamTable(action) {
             optionDiv.appendChild(option);
 
         }
+
         paramDiv.appendChild(optionDiv);
+
     }
 
     for (itext in texts) {
+
         var inpDiv = document.createElement("DIV");
         inpDiv.style.padding = '0.5em';
         var text = document.createTextNode(texts[itext] + '  ');
         var inp = document.createElement("INPUT");
         inp.setAttribute("type", "text");
         inp.setAttribute("name", "param_" + texts[itext]);
-        inpDiv.appendChild(text)
-        inpDiv.appendChild(inp)
-        paramDiv.appendChild(inpDiv)
+        
+        if (texts[itext] in param_defaults) {
+            inp.setAttribute("value", param_defaults[texts[itext]]);
+        }
+
+        inpDiv.appendChild(text);
+        inpDiv.appendChild(inp);
+        paramDiv.appendChild(inpDiv);
+
     }
 
     if (params.length != 0) {
