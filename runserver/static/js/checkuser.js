@@ -1,5 +1,8 @@
 /*"""
-.. describe:: checkuser.js
+.. _checkuser-ref:
+
+checkuser.js
+++++++++++++
 
 JavaScript functions that are used when registering
 a new user or reseting a password.

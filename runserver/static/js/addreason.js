@@ -1,5 +1,8 @@
 /*"""
-.. describe:: addreason.js
+.. _addreason-ref:
+
+addreason.js
+++++++++++++
 
 This file contains the functions used to add reasons to the :ref:`workflow-view-ref`
 as well as adding parameters to the page when different actions are selected.
@@ -15,8 +18,23 @@ and :py:mod:`WorkflowWebTools.manageactions` modules.
 */
 
 var count = 0;
+/*"""
+.. data:: count
+
+   Keeps track of the number of reasons on a given page.   
+*/  
 
 function getDefaultReason(num) {
+    /*"""
+    .. function:: getDefaultReason(num)
+
+      This function is used to generate a new reason on the :ref:`workflow-view-ref`.
+      Each name and ID is unique so that the short and long reasons can be matched.
+
+      :param int num: is a unique number for each reason submitted on the current page.
+      :returns: the innerHTML for a reason div when a new one is generated.
+      :rtype: str
+    */
 
     return ''
         + 'Short Reason: <br>'
@@ -30,6 +48,12 @@ function getDefaultReason(num) {
 }
 
 function addReason() {
+    /*"""
+    .. function:: addReason()
+
+      Creates a new reason division and fills it with the result from :js:func:`getDefaultReason`.
+      It increments :js:data:`count`. Finally, the division is appended to the "reasons" division.
+    */
 
     var liststring = '';
     for (reason in shortlist) {
@@ -63,6 +87,13 @@ function addReason() {
 }
 
 function removeReason(childId) {
+    /*"""
+    .. function:: removeReason(childId)
+
+      Removes a reason from the "reasons" division.
+
+      :param str childId: is the full ID of the child to remove.
+    */
 
     var parent = document.getElementById('reasons');
     var child = document.getElementById(childId);
@@ -71,6 +102,14 @@ function removeReason(childId) {
 }
 
 function fillLongReason(number) {
+    /*"""
+    .. function:: fillLongReason(number)
+
+      If a short reason is selected from the select field,
+      this function displays the long reason.
+
+      :param int number: is the ID number of the reason to fill.
+    */
 
     var fillthis = document.getElementById('reasontext' + number);
     var shortreason = document.getElementById('select' + number).value;
@@ -86,6 +125,13 @@ function fillLongReason(number) {
 }
 
 function checkReason(num) {
+    /*"""
+    .. function:: checkReason(num)
+
+      Checks if a short reason entered by the user is already taken or not.
+      If it is taken, the function gives a warning message and displays
+      the corresponding long reason.
+    */
 
     var value = document.getElementById('shortreason' + num).value;
     var theWarning = document.getElementById('reasonwarning' + num);
@@ -105,6 +151,18 @@ function checkReason(num) {
 }
 
 function makeTable(entries, header) {
+    /*"""
+    .. function:: makeTable(entries, header)
+
+      Creates a table element where each row is a radio select element
+
+      :param list entries: is the list of rows for the table.
+                           Each entry will have a different name for parameter submission.
+      :param list header: is the list of radio options for all the entries.
+      :returns: a table of radio buttons allowing parameters in entries to be submitted
+                as options in header.
+      :rtype: table
+    */
 
     header.unshift('Parameter');
     var paramTable = document.createElement('TABLE');
@@ -132,6 +190,14 @@ function makeTable(entries, header) {
 }
 
 function makeParamTable(action) {
+    /*"""
+    .. function:: makeParamTable(action)
+
+      Offers the various options that are available for a given action.
+
+      :param str action: is the action which is currently selected
+                         on the :ref:`workflow-view-ref`.
+    */
 
     var paramDiv = document.getElementById('actionparams');
     paramDiv.innerHTML = '';
@@ -143,40 +209,18 @@ function makeParamTable(action) {
     var opts = {};
 
     if ( action.value == 'clone' ) {
-        params = [
-                  'splitting',
-                  'memory',
-                  'timeout',
-                  ];
-        bools = [
-                 'invalidate',
-                 ];
         texts = [
+                 'splitting',
+                 'memory',
+                 'timeout',
                  'group',
                  'max_memory',
                  ];
     } else if (action.value == 'recover') {
-        params = [
-                  'memory',
-                  'timeouts',
-                  ];
-        bools = [
-                 'replica',
-                 'trustsite'
-                 ];
         texts = [
-                 'LFN',
-                 'ERA',
-                 'procstring',
-                 'procversion',
+                 'memory',
+                 'timeouts',
                  ];
-        opts = {
-            Activity: [
-                     'reprocessing',
-                     'production',
-                     'test',
-                     ]
-                };
     } else if (action.value == 'investigate') {
         texts = [
                  'other',
@@ -196,6 +240,7 @@ function makeParamTable(action) {
         var keytext = document.createElement("b");
         keytext.innerHTML = key + ': <br>';
         optionDiv.appendChild(keytext);
+
         for (opt in opts[key]) {
 
             var opttext = document.createTextNode('    ' + opts[key][opt] + '  ');
@@ -207,19 +252,28 @@ function makeParamTable(action) {
             optionDiv.appendChild(option);
 
         }
+
         paramDiv.appendChild(optionDiv);
+
     }
 
     for (itext in texts) {
+
         var inpDiv = document.createElement("DIV");
         inpDiv.style.padding = '0.5em';
         var text = document.createTextNode(texts[itext] + '  ');
         var inp = document.createElement("INPUT");
         inp.setAttribute("type", "text");
         inp.setAttribute("name", "param_" + texts[itext]);
-        inpDiv.appendChild(text)
-        inpDiv.appendChild(inp)
-        paramDiv.appendChild(inpDiv)
+        
+        if (texts[itext] in param_defaults) {
+            inp.setAttribute("value", param_defaults[texts[itext]]);
+        }
+
+        inpDiv.appendChild(text);
+        inpDiv.appendChild(inp);
+        paramDiv.appendChild(inpDiv);
+
     }
 
     if (params.length != 0) {
@@ -230,8 +284,12 @@ function makeParamTable(action) {
 
         for (var iSite = 0; iSite < sitelist.length; iSite++) {
             var paramdiv = document.createElement('DIV');
-            paramdiv.className = 'sitecheck'
-            paramdiv.innerHTML = '<input type="checkbox" name="param_sites" value="'+sitelist[iSite]+'">'+sitelist[iSite]+'</input>';
+            paramdiv.className = 'sitecheck';
+            var isChecked = '';
+            if (sitelist[iSite] == 'Auto')
+                isChecked = ' checked';
+            paramdiv.innerHTML = '<input type="checkbox" name="param_sites" value="' + 
+                sitelist[iSite] + '"' + isChecked + '>'+sitelist[iSite]+'</input>';
             checkDiv.appendChild(paramdiv);
         }
 

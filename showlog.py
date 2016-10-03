@@ -9,9 +9,10 @@ from CMSToolBox.elasticsearch import search_logs
 
 
 def give_logs(query):
-    """Takes output from :py:func:`search_logs` and organizes it to pass to a mako template
+    """Takes output from :py:func:`CMSToolBox.elasticsearch.search_logs`
+    and organizes it to pass to a mako template
 
-    :param str query: The query to pass to :py:func:`search_logs`
+    :param str query: The query to pass to :py:func:`CMSToolBox.elasticsearch.search_logs`
     :returns: dictionary with ['logs'], which is a list of logs, and ['meta'],
               which shows meta information of newest query result
     :rtype: dict
