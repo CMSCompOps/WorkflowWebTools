@@ -93,6 +93,12 @@ class ErrorInfo(object):
     def connection_log(self, action):
         """Logs actions on the sqlite3 connection
 
+        .. todo::
+
+           logging does not play nice with CherryPy at the moment,
+           but there is documentation to fix this.
+           I should get a decent logger working.
+
         :param str action: is the action on the connection
         """
         print 'Connection {0} with timestamp {1}'.format(action, self.timestamp)
