@@ -281,9 +281,7 @@ TITLEMAP = {
 def get_errors_and_pietitles(pievar, session=None):
     """Gets the number of errors for the global table.
 
-    .. todo::
-
-        Figure out how to document the javascript and link to that from here.
+    :ref:`piechart-ref` contains the function that actually draws the piecharts.
 
     :param str pievar: The variable to divide the piecharts by.
                        This is the variable that does not make up the axes of the page table
@@ -370,19 +368,15 @@ def get_header_titles(varname, errors, session=None):
             newname = newnamelist[0] + '<br>' + '/'.join(newnamelist[1:])
             output.append({'title': name, 'name': newname})
 
-        elif varname == 'errorcode':
-            output.append({'title': str('\n --- \n'.join(
-                check_session(session).get_errors_explained().get('name', [])
-                )
-                                       ).rstrip('\n'),
-                           'name': name})
-
         else:
             output.append({'title': name, 'name': name})
 
     for i, title in enumerate(output):
         title['title'] = ('Total errors: ' + str(errors[i]) + '\n' +
-                          title['title'])
+                          str(title['title']))
+
+        if varname == 'errorcode':
+            title['name'] = '<a href="/explainerror?errorcode={0}">{0}</a>'.format(title['name'])
 
     return output
 

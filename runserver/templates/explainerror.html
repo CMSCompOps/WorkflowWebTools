@@ -4,12 +4,22 @@
   <head>
     <meta name="viewport" content="width=device-width,user-scalable=yes"/>
     <title>Error Explained</title>
+    % if source == '/':
+    <script>
+      function goBack() {
+          window.history.back()
+      }
+    </script>
+    % endif
   </head>
 
   <body>
 
     <%
-       returnstring = '<a href="/seeworkflow/?workflow=' + source.split('/')[1] + '#' + source + '">Return to workflow table</a>'
+       if source == '/':
+           returnstring = '<button onclick="goBack()">Go Back</button>'
+       else:
+           returnstring = '<a href="/seeworkflow/?workflow=' + source.split('/')[1] + '#' + source + '">Return to workflow table</a>'
     %>
 
     ${returnstring}
