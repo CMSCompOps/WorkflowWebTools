@@ -33,6 +33,8 @@ def update_reasons(reasons):
     :param reasons: is a list of dictionaries of short and long reasons,
                     with keys 'short' and 'long'
     :type reasons: list of dicts
+    :raises TypeError: if the parameter is not a list
+    :raises KeyError: if the dictionaries in the list do not have the correct structure
     """
 
     conn, curs = get_reasons()

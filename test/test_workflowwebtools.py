@@ -111,6 +111,9 @@ class TestReasons(unittest.TestCase):
     rm.LOCATION = os.path.join(sc.LOCATION, 'test')
 
     def setUp(self):
+        if not os.path.exists(rm.LOCATION):
+            os.makedirs(rm.LOCATION)
+
         rm.update_reasons(self.reasons)
 
     def tearDown(self):
