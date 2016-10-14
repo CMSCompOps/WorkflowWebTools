@@ -7,7 +7,12 @@ import sys
 
 import WorkflowWebTools.serverconfig as sc
 sc.LOCATION = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(sc.LOCATION, '../runserver'))
+
+with open(os.path.join(sc.LOCATION, 'path.txt')) as path_file:
+    for directory in path_file.readlines():
+        sys.path.insert(0, os.path.abspath(
+                os.path.join(sc.LOCATION, '../{0}'.format(directory.strip('\n')))
+                ))
 
 import update_history as uh
 import WorkflowWebTools.reasonsmanip as rm
