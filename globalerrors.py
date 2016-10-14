@@ -72,7 +72,13 @@ class ErrorInfo(object):
         allerrors = get_all('errorcode')
         allerrors.sort(key=int)
 
-        res = urllib2.urlopen(serverconfig.explain_errors_path())
+        data_location = serverconfig.explain_errors_path()
+        if os.path.isfile(data_location):
+            res = open(data_location, 'r')
+
+        else:
+            res = urllib2.urlopen(data_location)
+
         self.info = curs, allsteps, allerrors, allsites, json.load(res)
         res.close()
 

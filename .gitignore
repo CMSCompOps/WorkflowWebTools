@@ -5,6 +5,6 @@ nohup.out
 *.db
 runserver/actions/*.json
 runserver/keys/*
-test/pylint_output/*
+test/*/*
 runserver/data/*
 runserver/config.yml
