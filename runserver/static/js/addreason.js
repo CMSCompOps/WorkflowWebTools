@@ -210,21 +210,22 @@ function makeParamTable(action) {
 
     if ( action.value == 'clone' ) {
         texts = [
-                 'splitting',
-                 'memory',
-                 'timeout',
-                 'group',
-                 'max_memory',
+                 'memory'
                  ];
+        opts = {
+            'splitting': ['2x', '3x', 'max']
+        };
     } else if (action.value == 'recover') {
         texts = [
-                 'memory',
-                 'timeouts',
+                 'memory'
                  ];
+        opts = {
+            'splitting': ['2x', '3x', 'max']
+        };
     } else if (action.value == 'investigate') {
         texts = [
                  'other',
-                 ]
+                 ];
     }
 
     if (params.length != 0) {
