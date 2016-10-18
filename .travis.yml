@@ -3,5 +3,7 @@ cache: pip
 python: 2.7
 sudo: required
 dist: trusty
-install: git clone https://github.com/CMSCompOps/OpsSpace.git
+install:
+  - pip install git+https://github.com/eliben/pycparser@release_v2.14
+  - git clone https://github.com/CMSCompOps/OpsSpace.git
 script: OpsSpace/test/package_test.sh
