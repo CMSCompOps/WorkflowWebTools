@@ -337,11 +337,8 @@ def get_errors_and_pietitles(pievar, session=None):
                                                (row, col)):
                 if errnum != 0:
                     toappend.append(errnum)
-                    if pievar != 'stepname':
-                        pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
-                    else:
-                        pietitle += '\n' + TITLEMAP[pievar] + str(piekey).split('/')[1] + \
-                            ': ' + str(errnum)
+                    pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
+
             pieinfo.append(toappend)
             sum_errors = sum(toappend)
             pietitlerow.append('Total Errors: ' + str(sum_errors) + '\n' + pietitle)
