@@ -36,7 +36,7 @@ def main(*args):
     """
     Updates the history database.
 
-    :param args: list of error files to add to the history.
+    :param list args: list of error files to add to the history.
     """
     conn = sqlite3.connect(workflow_history_path())
     curs = conn.cursor()
@@ -54,4 +54,4 @@ def main(*args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main(*(sys.argv[1:]))
