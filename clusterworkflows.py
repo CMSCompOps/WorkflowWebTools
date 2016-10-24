@@ -16,11 +16,20 @@ of errors is the following.
 
 .. math::
 
-  \\mathrm{distance} = \\frac{d}{\\sqrt{2} |\\vec{v}|} +
+  \\mathrm{distance} = \\frac{d}{\\sqrt{2}} +
       2 w \\left(\\frac{|\\vec{v}|}{|\\vec{v}| + m} - 0.5\\right)
 
-*d* is the 'distance' parameter, *w* is the 'width' parameter,
-and *m* is the 'midpoint' parameter set in the ``config.yml``.
+The following parameters are set in ``config.yml`` for the
+site name and the error code hyperspheres separately.
+
+- *m* is the 'midpoint' parameter is the number of errors at a given site
+  or given error code that will place the workflow at the midpoint of the
+  hypersphere shell.
+- *d* is the 'distance' parameter is the cartesian distance between the midpoints
+  of two different sites or error codes.
+- *w* is the 'width' parameter which defines the total shell width that the workflow
+  could possibly land on.
+
 The direction is determined by the error code or site name distribution.
 Note that this always points in the upper quadrant for a given coordinate.
 

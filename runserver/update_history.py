@@ -31,7 +31,13 @@ import sqlite3
 from WorkflowWebTools import errorutils
 from WorkflowWebTools.serverconfig import workflow_history_path
 
-if __name__ == '__main__':
+
+def main(*args):
+    """
+    Updates the history database.
+
+    :param list args: list of error files to add to the history.
+    """
     conn = sqlite3.connect(workflow_history_path())
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="workflows"')
@@ -39,9 +45,13 @@ if __name__ == '__main__':
     if not curs.fetchone():
         errorutils.create_table(curs)
 
-    for arg in sys.argv[1:]:
+    for arg in args:
         print "Adding " + arg
         errorutils.add_to_database(curs, arg)
 
     conn.commit()
     conn.close()
+
+
+if __name__ == '__main__':
+    main(*(sys.argv[1:]))

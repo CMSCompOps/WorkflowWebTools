@@ -72,7 +72,13 @@ class ErrorInfo(object):
         allerrors = get_all('errorcode')
         allerrors.sort(key=int)
 
-        res = urllib2.urlopen(serverconfig.explain_errors_path())
+        data_location = serverconfig.explain_errors_path()
+        if os.path.isfile(data_location):
+            res = open(data_location, 'r')
+
+        else:
+            res = urllib2.urlopen(data_location)
+
         self.info = curs, allsteps, allerrors, allsites, json.load(res)
         res.close()
 
@@ -92,6 +98,12 @@ class ErrorInfo(object):
 
     def connection_log(self, action):
         """Logs actions on the sqlite3 connection
+
+        .. todo::
+
+           logging does not play nice with CherryPy at the moment,
+           but there is documentation to fix this.
+           I should get a decent logger working.
 
         :param str action: is the action on the connection
         """
@@ -275,9 +287,7 @@ TITLEMAP = {
 def get_errors_and_pietitles(pievar, session=None):
     """Gets the number of errors for the global table.
 
-    .. todo::
-
-        Figure out how to document the javascript and link to that from here.
+    :ref:`piechart-ref` contains the function that actually draws the piecharts.
 
     :param str pievar: The variable to divide the piecharts by.
                        This is the variable that does not make up the axes of the page table
@@ -327,11 +337,8 @@ def get_errors_and_pietitles(pievar, session=None):
                                                (row, col)):
                 if errnum != 0:
                     toappend.append(errnum)
-                    if pievar != 'stepname':
-                        pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
-                    else:
-                        pietitle += '\n' + TITLEMAP[pievar] + str(piekey).split('/')[1] + \
-                            ': ' + str(errnum)
+                    pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
+
             pieinfo.append(toappend)
             sum_errors = sum(toappend)
             pietitlerow.append('Total Errors: ' + str(sum_errors) + '\n' + pietitle)
@@ -364,19 +371,15 @@ def get_header_titles(varname, errors, session=None):
             newname = newnamelist[0] + '<br>' + '/'.join(newnamelist[1:])
             output.append({'title': name, 'name': newname})
 
-        elif varname == 'errorcode':
-            output.append({'title': str('\n --- \n'.join(
-                check_session(session).get_errors_explained().get('name', [])
-                )
-                                       ).rstrip('\n'),
-                           'name': name})
-
         else:
             output.append({'title': name, 'name': name})
 
     for i, title in enumerate(output):
         title['title'] = ('Total errors: ' + str(errors[i]) + '\n' +
-                          title['title'])
+                          str(title['title']))
+
+        if varname == 'errorcode':
+            title['name'] = '<a href="/explainerror?errorcode={0}">{0}</a>'.format(title['name'])
 
     return output
 

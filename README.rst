@@ -140,6 +140,7 @@ Install ``mod_wsgi`` with the following::
 This is not listed as a strict requirement for the package.
 
 .. todo::
+
    Place documentation on how to configure the httpd service...
 
 Maintaining the Python Backend
@@ -148,10 +149,6 @@ Maintaining the Python Backend
 For developers wishing to make adjustments to the modules or
 anyone else who wants to understand some of the backend of the server,
 all of the Python modules for this system are documented below.
-
-.. todo::
-
-   Add JavaScript documentation for people who want to change the front end.
 
 Server Configuration
 ~~~~~~~~~~~~~~~~~~~~

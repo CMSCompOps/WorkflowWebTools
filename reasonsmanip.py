@@ -6,7 +6,7 @@
 import os
 import sqlite3
 
-from .serverconfig import LOCATION
+from WorkflowWebTools.serverconfig import LOCATION
 
 
 def get_reasons():
@@ -33,16 +33,25 @@ def update_reasons(reasons):
     :param reasons: is a list of dictionaries of short and long reasons,
                     with keys 'short' and 'long'
     :type reasons: list of dicts
+    :raises TypeError: if the parameter is not a list
+    :raises KeyError: if the dictionaries in the list do not have the correct structure
     """
 
     conn, curs = get_reasons()
 
-    for reason in reasons:
-        curs.execute('SELECT shortreason FROM reasons WHERE shortreason=?', (reason['short'],))
-        if not curs.fetchone():
-            curs.execute('INSERT INTO reasons VALUES (?,?)', (reason['short'], reason['long'],))
+    if not isinstance(reasons, list):
+        raise TypeError('reasons is not a list')
 
-    conn.commit()
+    try:
+        for reason in reasons:
+            curs.execute('SELECT shortreason FROM reasons WHERE shortreason=?', (reason['short'],))
+            if not curs.fetchone():
+                curs.execute('INSERT INTO reasons VALUES (?,?)', (reason['short'], reason['long'],))
+        conn.commit()
+    except KeyError:
+        print 'Parameter does not have correct keys.'
+        raise
+
     conn.close()
 
 
@@ -68,8 +77,8 @@ def short_reasons_list():
 def reasons_list():
     """Get the full list of reasons
 
-    :returns: all of the reaons in a dictionary
-    :rtype: list of dicts
+    :returns: all of the reasons in a dictionary with the short reasons being the key
+    :rtype: dict
     """
 
     short_list = short_reasons_list()

@@ -23,9 +23,9 @@ host:
   name: 127.0.0.1
   port: 8080
 data:
-  workflow_history: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
-  all_errors: https://cmst2.web.cern.ch/cmst2/unified/all_errors.json
-  explain_errors: https://cmst2.web.cern.ch/cmst2/unified/explanations.json
+  workflow_history: test/history.db
+  all_errors: test/errors.json
+  explain_errors: test/explained.json
 valid_emails:
   domains:
     - cern.ch
@@ -34,7 +34,7 @@ valid_emails:
 actions:
   submithistory: 2
 cluster:
-  n_clusters: 8
+  n_clusters: 2
   n_init: 30
   sitename:
     distance: 1.0
