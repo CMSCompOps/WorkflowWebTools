@@ -8,11 +8,7 @@ import sys
 import WorkflowWebTools.serverconfig as sc
 sc.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
-with open(os.path.join(sc.LOCATION, 'path.txt')) as path_file:
-    for directory in path_file.readlines():
-        sys.path.insert(0, os.path.abspath(
-                os.path.join(sc.LOCATION, '../{0}'.format(directory.strip('\n')))
-                ))
+import CMSToolBox._loadtestpath
 
 import update_history as uh
 import WorkflowWebTools.reasonsmanip as rm
@@ -81,6 +77,9 @@ class TestGlobalInfo(unittest.TestCase):
 
     def tearDown(self):
         os.remove(sc.workflow_history_path())
+        os.remove(sc.explain_errors_path())
+        if sc.workflow_history_path() != sc.all_errors_path():
+            os.remove(sc.all_errors_path())
 
     def test_updatehistory(self):
         import WorkflowWebTools.globalerrors as ge

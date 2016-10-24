@@ -11,6 +11,7 @@ import os
 import json
 import urllib2
 import sqlite3
+import validators
 
 
 def add_to_database(curs, data_location):
@@ -22,14 +23,18 @@ def add_to_database(curs, data_location):
                               This should be in JSON format,
                               and if a local file does not exist,
                               a url will be assumed.
+                              If the url is invalid,
+                              an empty database will be returned.
     """
 
     if os.path.isfile(data_location):
         res = open(data_location, 'r')
 
     else:
-        res = urllib2.urlopen(data_location)
-
+        if validators.url(data_location):
+            res = urllib2.urlopen(data_location)
+        else:
+            return
 
     for stepname, errorcodes in json.load(res).items():
         for errorcode, sitenames in errorcodes.items():

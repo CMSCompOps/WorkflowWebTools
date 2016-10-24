@@ -9,6 +9,7 @@ import urllib2
 import json
 import sqlite3
 import time
+import validators
 
 from . import errorutils
 from . import serverconfig
@@ -73,14 +74,19 @@ class ErrorInfo(object):
         allerrors.sort(key=int)
 
         data_location = serverconfig.explain_errors_path()
-        if os.path.isfile(data_location):
-            res = open(data_location, 'r')
+
+        if not (os.path.isfile(data_location) or validators.url(data_location)):
+            self.info = curs, allsteps, allerrors, allsites, dict()
 
         else:
-            res = urllib2.urlopen(data_location)
+            if os.path.isfile(data_location):
+                res = open(data_location, 'r')
 
-        self.info = curs, allsteps, allerrors, allsites, json.load(res)
-        res.close()
+            else:
+                res = urllib2.urlopen(data_location)
+
+            self.info = curs, allsteps, allerrors, allsites, json.load(res)
+            res.close()
 
         self.curs = curs
         self.allsteps = allsteps
