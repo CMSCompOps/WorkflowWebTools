@@ -77,6 +77,9 @@ class TestGlobalInfo(unittest.TestCase):
 
     def tearDown(self):
         os.remove(sc.workflow_history_path())
+        os.remove(sc.explain_errors_path())
+        if sc.workflow_history_path() != sc.all_errors_path():
+            os.remove(sc.all_errors_path())
 
     def test_updatehistory(self):
         import WorkflowWebTools.globalerrors as ge
