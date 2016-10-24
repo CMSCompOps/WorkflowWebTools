@@ -7,4 +7,5 @@ passlib>=1.6
 bcrypt
 pyOpenSSL
 pyyaml
+validators
 nltk
