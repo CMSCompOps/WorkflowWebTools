@@ -11,6 +11,7 @@ import os
 import json
 import urllib2
 import sqlite3
+import re
 import validators
 
 
@@ -38,6 +39,9 @@ def add_to_database(curs, data_location):
 
     for stepname, errorcodes in json.load(res).items():
         for errorcode, sitenames in errorcodes.items():
+            if not re.match('\d+', errorcode):
+                continue
+
             for sitename, numbererrors in sitenames.items():
                 full_key = '_'.join([stepname, sitename, errorcode])
                 try:
