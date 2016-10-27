@@ -3,8 +3,6 @@
 ##!
 # .. describe:: setup_server.sh
 #
-# :author: Daniel Abercrombie <dabercro@mit.edu>
-#
 # This script sets up a basic server configuration.
 # It takes one argument for determining the openssl flag
 # for the passphrase protocol.
@@ -27,6 +25,8 @@
 # The certificate is self-signed and valid for one year.
 #
 # After completing these steps, the script reminds the user to edit ``config.yml``.
+#
+# :author: Daniel Abercrombie <dabercro@mit.edu>
 ##!
 
 passwordopt=$1

@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
 
+# pylint: disable=wrong-import-position, no-self-use, invalid-name
+
 """
 .. describe:: workflowtools.py
 
