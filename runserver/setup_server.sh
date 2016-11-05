@@ -38,7 +38,7 @@ fi
 
 if [ ! -f keys/privkey.pem ]
 then
-    openssl genrsa $passwordopt -out keys/privkey.pem 2048
+    openssl genrsa "$passwordopt" -out keys/privkey.pem 2048
 fi
 
 if [ ! -f keys/salt.txt ]
