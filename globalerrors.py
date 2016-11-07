@@ -5,7 +5,6 @@ Generates the content for the errors pages
 """
 
 import os
-import urllib2
 import json
 import sqlite3
 import time
