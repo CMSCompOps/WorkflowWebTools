@@ -93,14 +93,13 @@ class ErrorInfo(object):
             self.info = curs, allsteps, allerrors, allsites, dict()
 
         else:
-            if os.path.isfile(data_location):
-                res = open(data_location, 'r')
+            res = errorutils.open_location(data_location)
 
+            if res:
+                self.info = curs, allsteps, allerrors, allsites, json.load(res)
+                res.close()
             else:
-                res = urllib2.urlopen(data_location)
-
-            self.info = curs, allsteps, allerrors, allsites, json.load(res)
-            res.close()
+                self.info = curs, allsteps, allerrors, allsites, {}
 
         self.curs = curs
         self.allsteps = allsteps

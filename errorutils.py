@@ -15,6 +15,27 @@ import re
 import validators
 
 
+def open_location(data_location):
+    """
+    Opens the data location and returns the file handle.
+
+    :param str data_location: The location of the file or url
+    :returns: the file handle for the data or None if failed
+    :rtype: file
+    """
+    if os.path.isfile(data_location):
+        return open(data_location, 'r')
+
+    else:
+        if validators.url(data_location):
+            try:
+                return urllib2.urlopen(data_location)
+            except urllib2.URLError as msg:
+                print msg, 'while trying to open', data_location
+
+    return None
+
+
 def add_to_database(curs, data_location):
     """Add data from a file to a central database
 
@@ -27,19 +48,10 @@ def add_to_database(curs, data_location):
                               If the url is invalid,
                               an empty database will be returned.
     """
+    res = open_location(data_location)
 
-    if os.path.isfile(data_location):
-        res = open(data_location, 'r')
-
-    else:
-        if validators.url(data_location):
-            try:
-                res = urllib2.urlopen(data_location)
-            except urllib2.URLError as msg:
-                print '%s while trying to open %s', (msg, data_location)
-                return
-        else:
-            return
+    if not res:
+        return
 
     for stepname, errorcodes in json.load(res).items():
         for errorcode, sitenames in errorcodes.items():
