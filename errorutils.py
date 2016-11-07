@@ -33,7 +33,10 @@ def add_to_database(curs, data_location):
 
     else:
         if validators.url(data_location):
-            res = urllib2.urlopen(data_location)
+            try:
+                res = urllib2.urlopen(data_location)
+            except urllib2.URLError as msg:
+                print '%s while trying to open %s', (msg, data_location)
         else:
             return
 
