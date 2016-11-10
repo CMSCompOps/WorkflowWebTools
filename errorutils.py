@@ -10,7 +10,6 @@ to generate an ErrorInfo instance in other applications.
 import os
 import json
 import urllib2
-import sqlite3
 import re
 import validators
 
@@ -39,24 +38,25 @@ def open_location(data_location):
 
 
 def add_to_database(curs, data_location):
-    """Add data from a file to a central database
+    """Add data from a file to a central database through the passed cursor
 
     :param sqlite3.Cursor curs: is the cursor to the database
-    :param str or list data_location: If a string, this
+    :param data_location: If a string, this
          is the location of the file
          or url of data to add to the database.
          This should be in JSON format, and if a local file does not exist,
          a url will be assumed. If the url is invalid,
          an empty database will be returned.
          If a list, it's a list of status to get workflows from wmstats.
+    :type data_location: str or list
     """
     if isinstance(data_location, list):
-        input = {}
+        indict = {}
         for status in data_location:
             print 'Getting status %s' % status
             for workflow in workflowinfo.list_workflows(status):
                 print 'Getting workflow %s' % workflow
-                input.update(workflowinfo.errors_for_workflow(workflow))
+                indict.update(workflowinfo.errors_for_workflow(workflow))
 
     else:
         res = open_location(data_location)
@@ -64,23 +64,22 @@ def add_to_database(curs, data_location):
         if not res:
             return
 
-        input = json.load(res)
+        indict = json.load(res)
         res.close()
 
-    for stepname, errorcodes in input.items():
+    for stepname, errorcodes in indict.items():
         for errorcode, sitenames in errorcodes.items():
             if not re.match(r'\d+', errorcode):
                 continue
 
             for sitename, numbererrors in sitenames.items():
                 full_key = '_'.join([stepname, sitename, errorcode])
-                try:
+                if not curs.execute(
+                        'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
+                        (full_key,)).fetchone()[0]:
                     curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?)',
                                  (full_key, stepname, errorcode,
                                   sitename, numbererrors))
-                except sqlite3.IntegrityError:
-                    print full_key + ' already exists in database.'
-                    print 'That is probably a duplicate. Skipping...'
 
 
 def create_table(curs):
