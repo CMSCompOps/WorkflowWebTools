@@ -43,7 +43,8 @@ class ErrorInfo(object):
 
         # Store everything into an SQL database for fast retrival
 
-        if data_location.endswith('.db') and os.path.exists(data_location):
+        if isinstance(data_location, str) and data_location.endswith('.db') \
+                and os.path.exists(data_location):
             self.conn = sqlite3.connect(data_location, check_same_thread=False)
             curs = self.conn.cursor()
 

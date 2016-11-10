@@ -14,6 +14,8 @@ import sqlite3
 import re
 import validators
 
+from CMSToolBox import workflowinfo
+
 
 def open_location(data_location):
     """
@@ -40,20 +42,32 @@ def add_to_database(curs, data_location):
     """Add data from a file to a central database
 
     :param sqlite3.Cursor curs: is the cursor to the database
-    :param str data_location: is the location of the file or url
-                              of data to add to the database.
-                              This should be in JSON format,
-                              and if a local file does not exist,
-                              a url will be assumed.
-                              If the url is invalid,
-                              an empty database will be returned.
+    :param str or list data_location: If a string, this
+         is the location of the file
+         or url of data to add to the database.
+         This should be in JSON format, and if a local file does not exist,
+         a url will be assumed. If the url is invalid,
+         an empty database will be returned.
+         If a list, it's a list of status to get workflows from wmstats.
     """
-    res = open_location(data_location)
+    if isinstance(data_location, list):
+        input = {}
+        for status in data_location:
+            print 'Getting status %s' % status
+            for workflow in workflowinfo.list_workflows(status):
+                print 'Getting workflow %s' % workflow
+                input.update(workflowinfo.errors_for_workflow(workflow))
 
-    if not res:
-        return
+    else:
+        res = open_location(data_location)
 
-    for stepname, errorcodes in json.load(res).items():
+        if not res:
+            return
+
+        input = json.load(res)
+        res.close()
+
+    for stepname, errorcodes in input.items():
         for errorcode, sitenames in errorcodes.items():
             if not re.match(r'\d+', errorcode):
                 continue
@@ -67,8 +81,6 @@ def add_to_database(curs, data_location):
                 except sqlite3.IntegrityError:
                     print full_key + ' already exists in database.'
                     print 'That is probably a duplicate. Skipping...'
-
-    res.close()
 
 
 def create_table(curs):

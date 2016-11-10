@@ -9,7 +9,7 @@ import os
 import yaml
 
 
-LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'runserver')
+LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test')
 """The string giving the location that serverconfig looks first for the configuration"""
 
 def config_dict():
