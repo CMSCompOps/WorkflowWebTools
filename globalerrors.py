@@ -5,7 +5,6 @@ Generates the content for the errors pages
 """
 
 import os
-import urllib2
 import json
 import sqlite3
 import time
@@ -44,7 +43,8 @@ class ErrorInfo(object):
 
         # Store everything into an SQL database for fast retrival
 
-        if data_location.endswith('.db') and os.path.exists(data_location):
+        if isinstance(data_location, str) and data_location.endswith('.db') \
+                and os.path.exists(data_location):
             self.conn = sqlite3.connect(data_location, check_same_thread=False)
             curs = self.conn.cursor()
 
@@ -66,12 +66,26 @@ class ErrorInfo(object):
             curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
             return [entry[0] for entry in curs.fetchall()]
 
+        def safe_int(element):
+            """A sorting algorithm that strings don't break.
+
+            :params str element: A string that should be a number,
+                                 but is taken care of in the event that it's not.
+            :returns: Either the string as an integer or the string unchanged.
+            :rtype: int or str
+            """
+            try:
+                return int(element)
+            except ValueError:
+                return element
+
+
         allsteps = get_all('stepname')
         allsteps.sort()
         allsites = get_all('sitename')
         allsites.sort()
         allerrors = get_all('errorcode')
-        allerrors.sort(key=int)
+        allerrors.sort(key=safe_int)
 
         data_location = serverconfig.explain_errors_path()
 
@@ -79,14 +93,13 @@ class ErrorInfo(object):
             self.info = curs, allsteps, allerrors, allsites, dict()
 
         else:
-            if os.path.isfile(data_location):
-                res = open(data_location, 'r')
+            res = errorutils.open_location(data_location)
 
+            if res:
+                self.info = curs, allsteps, allerrors, allsites, json.load(res)
+                res.close()
             else:
-                res = urllib2.urlopen(data_location)
-
-            self.info = curs, allsteps, allerrors, allsites, json.load(res)
-            res.close()
+                self.info = curs, allsteps, allerrors, allsites, {}
 
         self.curs = curs
         self.allsteps = allsteps

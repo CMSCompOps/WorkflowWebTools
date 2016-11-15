@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
 
+# pylint: disable=wrong-import-position, no-self-use, invalid-name
+
 """
 .. describe:: workflowtools.py
 
@@ -15,7 +17,9 @@ import cherrypy
 from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import serverconfig
-serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
+
+if __name__ == '__main__':
+    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
@@ -245,6 +249,21 @@ class WorkflowTools(object):
                 }
 
         return manageactions.get_actions(int(days))
+
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    def reportaction(self):
+        """
+        Tells the instance that a set of workflows has been acted on.
+        The passphrase and list of workflows are passed in a JSON through POST.
+        """
+
+        input_json = cherrypy.request.json
+
+        if input_json['key'] == serverconfig.config_dict()['actions']['key']:
+            manageactions.report_actions(input_json['workflows'])
+
+        return 'Done'
 
     @cherrypy.expose
     def explainerror(self, errorcode="0", workflowstep="/"):

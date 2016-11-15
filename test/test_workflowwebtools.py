@@ -38,6 +38,11 @@ class TestGlobalInfo(unittest.TestCase):
             '3': {
                 'site_c': 50
                 }
+            },
+        '/crash/time/haha': {
+            'NotANumber': {
+                'site_c': 0
+                }
             }
         }
 

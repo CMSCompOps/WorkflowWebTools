@@ -94,7 +94,7 @@ def get_workflow_vector(workflow, session=None, allmap=None):
 
         # Preprocessing here
         output = numpy.array(output)
-        length = numpy.linalg.norm(output)
+        length = numpy.linalg.norm(output) or 1.0
         norm = (float(settings['distance'])/1.4142 +
                 2.0 * float(settings['width']) *
                 (length/(length + float(settings['midpoint'])) - 0.5))/length
