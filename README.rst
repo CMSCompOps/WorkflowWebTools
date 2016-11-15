@@ -41,6 +41,20 @@ Detailed Workflow View
 
 .. autosimple:: workflowtools.WorkflowTools.seeworkflow
 
+.. _getaction-ref:
+
+Getting the List of Actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.getaction
+
+.. _reportaction-ref:
+
+Reporting Completed Actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosimple:: workflowtools.WorkflowTools.reportaction
+
 .. _show-logs-ref:
 
 Viewing Workflow Logs
