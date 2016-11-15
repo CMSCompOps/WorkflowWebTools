@@ -6,6 +6,7 @@
 import os
 import json
 import glob
+import sqlite3
 
 
 from datetime import datetime
@@ -142,8 +143,15 @@ def get_actions(num_days):
 
     output = {}
 
+    conn, curs = get_actions_db()
+
     for key, value in get_prev_actions(num_days):
-        output[key] = value
+        curs.execute('SELECT workflow FROM actions WHERE workflow=?',
+                     (key,))
+        if not curs.fetchone():
+            output[key] = value
+
+    conn.close()
 
     return output
 
@@ -164,3 +172,37 @@ def get_acted_workflows(num_days):
         workflows.append(key)
 
     return workflows
+
+
+def report_actions(workflows):
+    """Mark actions as acted on
+
+    :param list workflows: is the list of workflows to no longer show
+    """
+    conn, curs = get_actions_db()
+
+    for workflow in workflows:
+        try:
+            curs.execute('INSERT INTO actions VALUES (?)', (workflow,))
+        except sqlite3.IntegrityError:
+            print 'Workflow %s has already been reported' % workflow
+
+    conn.commit()
+    conn.close()
+
+
+def get_actions_db():
+    """Gets the actions database in the local directory.
+
+    :returns: the actions connection, cursor
+    :rtype: (sqlite3.Connection, sqlite3.Cursor)
+    """
+
+    conn = sqlite3.connect(os.path.join(reasonsmanip.LOCATION, 'actions.db'))
+    curs = conn.cursor()
+    curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="actions"')
+
+    if not curs.fetchone():
+        curs.execute('CREATE TABLE actions (workflow varchar(255) PRIMARY KEY)')
+
+    return conn, curs
