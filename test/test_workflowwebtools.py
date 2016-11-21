@@ -2,6 +2,7 @@
 
 import unittest
 import json
+import shutil
 import os
 import sys
 
@@ -12,6 +13,8 @@ import CMSToolBox._loadtestpath
 
 import update_history as uh
 import WorkflowWebTools.reasonsmanip as rm
+import WorkflowWebTools.manageactions as ma
+
 
 class TestGlobalInfo(unittest.TestCase):
 
@@ -104,6 +107,7 @@ class TestGlobalInfo(unittest.TestCase):
                              self.should_cluster[workflow],
                              'Clustering acting unexpectedly.')
 
+
 class TestReasons(unittest.TestCase):
 
     reasons = [
@@ -117,25 +121,114 @@ class TestReasons(unittest.TestCase):
         }
     ]
 
-    rm.LOCATION = os.path.join(sc.LOCATION, 'test')
-
     def setUp(self):
+        rm.LOCATION = os.path.join(sc.LOCATION, 'test')
         if not os.path.exists(rm.LOCATION):
             os.makedirs(rm.LOCATION)
 
         rm.update_reasons(self.reasons)
 
     def tearDown(self):
-        os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
+        shutil.rmtree(rm.LOCATION)
+        rm.LOCATION = sc.LOCATION
 
     def test_reasons(self):
 
         self.assertRaises(TypeError, rm.update_reasons, 'test')
         self.assertRaises(KeyError, rm.update_reasons, [{'wrong': 'key'}])
-        self.assertEqual(rm.reasons_list(), 
+        print rm.reasons_list()
+        print {reas['short']: reas['long'] for reas in self.reasons}
+        self.assertEqual(rm.reasons_list(),
                          {reas['short']: reas['long'] for reas in self.reasons},
                          'Reasons list return is not same as sent')
 
+
+class TestActions(unittest.TestCase):
+
+    reasons1 = [
+        {
+            'short': 'short reason 1',
+            'long': 'long reason 1'
+        }
+    ]
+
+    reasons2 = {
+        'shortreason0': 'short reason 2',
+        'longreason0': 'long reason 2',
+        'shortreason4': 'short reason 3',
+        'longreason4': 'long reason 3',
+        'selectedreason': 'short reason 1',
+    }
+
+    request_base = {
+        'workflows': 'test_workflow',
+        'task_0': 'task/0',
+        'task_1': 'task/1',
+    }
+
+    def extend_request(self, request):
+        output = request
+        output.update(self.reasons2)
+        output.update(self.request_base)
+
+        return output
+
+    def setUp(self):
+        rm.LOCATION = os.path.join(sc.LOCATION, 'test')
+        if not os.path.exists(rm.LOCATION):
+            os.makedirs(rm.LOCATION)
+
+        rm.update_reasons(self.reasons1)
+
+    def tearDown(self):
+        shutil.rmtree(rm.LOCATION)
+        rm.LOCATION = sc.LOCATION
+
+    def run_test(self, request, params_out):
+
+        wf, reasons, params = ma.submitaction('test', **request)
+
+        print wf
+        print [self.request_base['workflows']]
+
+        self.assertEqual(wf, [self.request_base['workflows']],
+                         'Workflows is not expected output')
+        
+        print reasons
+        print [{'short': 'short reason %i' % i, 'long': 'long reason %i' % i} for i in [2, 3, 1]]
+
+        self.assertEqual(reasons,
+                         [{'short': 'short reason %i' % i, 'long': 'long reason %i' % i} for i in [2, 3, 1]],
+                         'Output reasons are not what are expected')
+
+        print params
+        print params_out
+
+        self.assertEqual(params, params_out,
+                         'Parameters out are not expected')
+
+    def test_clone(self):
+        request = self.extend_request({
+                'action': 'clone',
+                'param_0_test': 'test_param'
+                })
+        self.run_test(request, {'test': 'test_param'})
+
+    def test_recover(self):
+        request = self.extend_request({
+                'action': 'recover',
+                'param_0_test': 'test_param_0',
+                'param_1_test': 'test_param_1',
+                })
+        self.run_test(request, {'task/0': {'test': 'test_param_0'},
+                                'task/1': {'test': 'test_param_1'}})
+
+    def test_investigate(self):
+        request = self.extend_request({
+                'action': 'investigate',
+                'param_0_test': 'test_param'
+                })
+        self.run_test(request, {'test': 'test_param'})
 
 if __name__ == '__main__':
     unittest.main()
