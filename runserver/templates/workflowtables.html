@@ -24,8 +24,14 @@
       var param_defaults = {
         "group": "DATAOPS",
       };
+      var task_list = [
+      % for step, _ in workflowdata['steplist']:
+        "${step}",
+      % endfor
+      ]
     </script>
     <script src="/static/js/addreason.js"></script>
+    <script src="/static/js/makeparams.js"></script>
     <style type="text/css">
       td { text-align: center; }
     </style>
@@ -49,7 +55,7 @@
     <div>
 
       <div>
-        <span style="font-weight:bold;">Steps with errors:</span> <br>
+        <span style="font-weight:bold;">Tasks with errors:</span> <br>
         % for step, _ in workflowdata['steplist']:
         <a href="#${step}">${step}</a> <br>
         % endfor
@@ -65,6 +71,12 @@
         <span style="font-weight:bold;">Actions:</span> <br>
         <form name="actionform" method="POST" action="/submitaction">
           <input type="hidden" name="workflows" value="${workflow}">
+          % for task, _ in workflowdata['steplist']:
+            <%
+               submitted_task = '/'.join(task.split('/')[2:])
+            %>
+            <input type="hidden" name="task_${loop.index}" value="${submitted_task}">
+          % endfor
           <%
              actions = {
                  'clone' : 'Kill and Clone',

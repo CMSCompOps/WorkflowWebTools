@@ -32,49 +32,63 @@ From the URL root index, users will be able to directly access the following:
 The Global Error View
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.globalerror
+.. automethod:: workflowtools.WorkflowTools.globalerror
 
 .. _workflow-view-ref:
 
 Detailed Workflow View
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.seeworkflow
+.. automethod:: workflowtools.WorkflowTools.seeworkflow
+
+.. _getaction-ref:
+
+Getting the List of Actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automethod:: workflowtools.WorkflowTools.getaction
+
+.. _reportaction-ref:
+
+Reporting Completed Actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automethod:: workflowtools.WorkflowTools.reportaction
 
 .. _show-logs-ref:
 
 Viewing Workflow Logs
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.showlog
+.. automethod:: workflowtools.WorkflowTools.showlog
 
 .. _new-user-ref:
 
 Creating a New Account
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.newuser
+.. automethod:: workflowtools.WorkflowTools.newuser
 
 .. _reset-pass-ref:
 
 Reseting Account Password
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.resetpassword
+.. automethod:: workflowtools.WorkflowTools.resetpassword
 
 .. _manually-reset-cache-ref:
 
 Manually Reseting Your Workflow Cache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.resetcache
+.. automethod:: workflowtools.WorkflowTools.resetcache
 
 .. _redo-cluster-ref:
 
 Redoing the Workflow Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosimple:: workflowtools.WorkflowTools.cluster
+.. automethod:: workflowtools.WorkflowTools.cluster
 
 Running the Web Tools
 ---------------------

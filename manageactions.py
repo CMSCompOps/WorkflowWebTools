@@ -17,9 +17,10 @@ from . import reasonsmanip
 ACTIONS_DIRECTORY = 'actions'
 """The location to store the actions JSON files"""
 
-def extract_reasons_params(**kwargs):
+def extract_reasons_params(action, **kwargs):
     """Extracts the reasons and parameters for an action from kwargs
 
+    :param str action: The action being asked for by the operator
     :param kwargs: Keywords that are submitted via POST to /submitaction
     :returns: reasons for action, and parameters for the action
     :rtype: list, dict
@@ -35,35 +36,38 @@ def extract_reasons_params(**kwargs):
         if 'shortreason' in key:
             long_re = kwargs[key.replace('short', 'long')].strip().replace('\n', '<br>')
 
-            if len(long_re) == 0:
-                continue
+            if long_re:
+                short_re = item or '---- No Short Reason Given, Not Saved to Database! ----'
 
-            if item != '':
                 reasons.append({
-                    'short': item,
-                    'long': long_re,
-                })
-            else:
-                notupdate.append({
-                    'short': '---- No Short Reason Given, Not Saved to Database! ----',
+                    'short': short_re,
                     'long': long_re,
                 })
 
         elif 'selectedreason' in key:
 
-            if not isinstance(item, list):
-                item = [item]
+            selectedlist = item if isinstance(item, list) else [item]
 
-            for short in item:
+            for short in selectedlist:
                 if short != "none":
                     notupdate.append({
                         'short': short,
                         'long': old_reasons[short],
-                        })
+                    })
 
         elif 'param_' in key:
-            parameter = '_'.join(key.split('_')[1:])
-            params[parameter] = item
+            parameter = '_'.join(key.split('_')[2:])
+
+            if action == 'recover':
+                which_task = kwargs['task_%s' % key.split('_')[1]]
+
+                if not params.get(which_task):
+                    params[which_task] = {}
+
+                params[which_task].update({parameter: item})
+
+            else:
+                params[parameter] = item
 
     reasonsmanip.update_reasons(reasons)
 
@@ -77,11 +81,11 @@ def submitaction(user, workflows, action, **kwargs):
     :param str workflows: is the original workflow name or workflows
     :param str action: is the suggested action for Unified to take
     :param kwargs: can include various reasons and additional datasets
-    :returns: a tuple of workflows, action, reasons, and params for the action
+    :returns: a tuple of workflows, reasons, and params for the action
     :rtype: list, str, list of dicts, dict
     """
 
-    reasons, params = extract_reasons_params(**kwargs)
+    reasons, params = extract_reasons_params(action, **kwargs)
 
     if not os.path.exists(ACTIONS_DIRECTORY):
         os.makedirs(ACTIONS_DIRECTORY)
@@ -109,7 +113,7 @@ def submitaction(user, workflows, action, **kwargs):
     with open(output_file_name, 'w') as outputfile:
         json.dump(add_to_json, outputfile)
 
-    return workflows, action, reasons, params
+    return workflows, reasons, params
 
 
 def get_prev_actions(num_days):

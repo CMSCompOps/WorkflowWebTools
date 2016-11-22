@@ -25,11 +25,12 @@ central database every hour.
 Duplicate entries will not be added.
 """
 
+import os
 import sys
 import sqlite3
 
 from WorkflowWebTools import errorutils
-from WorkflowWebTools.serverconfig import workflow_history_path
+from WorkflowWebTools import serverconfig
 
 
 def main(*args):
@@ -38,7 +39,7 @@ def main(*args):
 
     :param args: list of error files to add to the history.
     """
-    conn = sqlite3.connect(workflow_history_path())
+    conn = sqlite3.connect(serverconfig.workflow_history_path())
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="workflows"')
 
@@ -54,4 +55,5 @@ def main(*args):
 
 
 if __name__ == '__main__':
+    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
     main(*(sys.argv[1:]))

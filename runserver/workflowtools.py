@@ -5,7 +5,7 @@
 """
 .. describe:: workflowtools.py
 
-Script to by run the WorkflowWebTools server.
+Script to run the WorkflowWebTools server.
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
@@ -215,7 +215,7 @@ class WorkflowTools(object):
         if action == '':
             return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
 
-        workflows, action, reasons, params = manageactions.\
+        workflows, reasons, params = manageactions.\
             submitaction(cherrypy.request.login, workflows, action, **kwargs)
 
         return GET_TEMPLATE('actionsubmitted.html').\
@@ -225,12 +225,22 @@ class WorkflowTools(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def getaction(self, days=0, test=False):
-        """Returns the latest action json that has not been adressed yet.
+        """
+        The page at ``https://localhost:8080/getaction``
+        returns a list of workflows to perform actions on.
 
         :param int days: The number of past days to check.
                          The default, 0, means to only check today.
-        :param bool test: Used to determine whether or not to return the test file.
-        :returns: a JSON file containing actions to act on
+        :param bool test: Used to determine whether or not to return the test JSON.
+        :returns: JSON-formatted information containing actions to act on.
+                  The top-level keys of the JSON are the workflow names.
+                  Each of these keys refers to a dictionary specifying:
+
+                  - **"Action"** - The action to take on the workflow
+                  - **"Reasons"** - A list of reasons for this action
+                  - **"Parameters"** - Changes to make for the resubmission
+                  - **"user"** - The account name that submitted that action
+
         :rtype: JSON
         """
 
@@ -254,8 +264,16 @@ class WorkflowTools(object):
     @cherrypy.tools.json_in()
     def reportaction(self):
         """
-        Tells the instance that a set of workflows has been acted on.
-        The passphrase and list of workflows are passed in a JSON through POST.
+        A POST request to ``https://localhost:8080/reportaction``
+        tells the instance that a set of workflows has been acted on by Unified.
+        The body of the POST request must include a JSON with the passphrase
+        under ``"key"`` and a list of workflows under ``"workflows"``.
+
+        An example of making this POST request is provided in the file
+        ``test/report_action.py``, which relies on ``test/key.json``.
+
+        :returns: Just the phrase 'Done', no matter the results of the request
+        :rtype: str
         """
 
         input_json = cherrypy.request.json
