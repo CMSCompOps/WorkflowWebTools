@@ -43,7 +43,7 @@ def give_logs(query, module='', limit=50):
             if i['_source']['text'] in texts:
                 continue
 
-            if not module or  i['_source']['subject'] == module:
+            if not module or i['_source']['subject'] == module:
 
                 logs.append(
                     {
