@@ -70,7 +70,7 @@ class WorkflowTools(object):
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
-    def showlog(self, search=''):
+    def showlog(self, search='', module='', limit=50):
         """
         This page, located at ``https://localhost:8080/showlog``,
         returns logs that are stored in an elastic search server.
@@ -79,12 +79,17 @@ class WorkflowTools(object):
         the search will be for the relevant workflow.
 
         :param str search: The search string
+        :param str module: The module to look at, if only interested in one
+        :param int limit: The limit of number of logs to show on a single page
         :returns: the logs from elastic search
         :rtype: str
         """
-        logdata = showlog.give_logs(search)
+        logdata = showlog.give_logs(search, module, int(limit))
         if isinstance(logdata, dict):
-            return GET_TEMPLATE('showlog.html').render(logdata=logdata)
+            return GET_TEMPLATE('showlog.html').render(logdata=logdata,
+                                                       search=search,
+                                                       module=module,
+                                                       limit=limit)
         else:
             return logdata
 
