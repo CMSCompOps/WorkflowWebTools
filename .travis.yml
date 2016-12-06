@@ -3,7 +3,10 @@ cache: pip
 python: 2.7
 sudo: required
 dist: trusty
+addons:
+  apt:
+    sources: debian-sid
+    packages: shellcheck
 env: CHECKDOC=true
-install:
-  - git clone https://github.com/CMSCompOps/OpsSpace.git
+install: git clone https://github.com/CMSCompOps/OpsSpace.git
 script: OpsSpace/test/package_test.sh
