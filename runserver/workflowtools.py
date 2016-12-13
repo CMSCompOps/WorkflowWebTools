@@ -428,7 +428,9 @@ def secureheaders():
 CONF = {
     'global': {
         'server.socket_host': serverconfig.host_name(),
-        'server.socket_port': serverconfig.host_port()
+        'server.socket_port': serverconfig.host_port(),
+        'log.access_file': 'access.log',
+        'log.error_file': 'application.log'
         },
     '/': {
         'error_page.401': GET_TEMPLATE('401.html').render,

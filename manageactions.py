@@ -189,7 +189,7 @@ def report_actions(workflows):
         try:
             curs.execute('INSERT INTO actions VALUES (?)', (workflow,))
         except sqlite3.IntegrityError:
-            print 'Workflow %s has already been reported' % workflow
+            cherrypy.log('Workflow %s has already been reported' % workflow)
 
     conn.commit()
     conn.close()

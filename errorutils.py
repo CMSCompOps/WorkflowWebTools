@@ -12,6 +12,7 @@ import json
 import urllib2
 import re
 import validators
+import cherrypy
 
 from CMSToolBox import workflowinfo
 
@@ -32,7 +33,7 @@ def open_location(data_location):
             try:
                 return urllib2.urlopen(data_location)
             except urllib2.URLError as msg:
-                print msg, 'while trying to open', data_location
+                cherrypy.log(msg, 'while trying to open', data_location)
 
     return None
 
@@ -53,9 +54,9 @@ def add_to_database(curs, data_location):
     if isinstance(data_location, list):
         indict = {}
         for status in data_location:
-            print 'Getting status %s' % status
+            cherrypy.log('Getting status %s' % status)
             for workflow in workflowinfo.list_workflows(status):
-                print 'Getting workflow %s' % workflow
+                cherrypy.log('Getting workflow %s' % workflow)
                 indict.update(workflowinfo.errors_for_workflow(workflow))
 
     else:

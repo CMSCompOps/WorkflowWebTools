@@ -197,7 +197,7 @@ def add_user(email, username, password, url):
             good_email = True
             break
 
-    print good_email
+    cherrypy.log(good_email)
 
     if not (good_email and re.match(r'^[A-za-z0-9]+$', username)) or password == '':
         return 1

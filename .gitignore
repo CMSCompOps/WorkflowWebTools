@@ -8,3 +8,4 @@ runserver/keys/*
 test/*/*
 runserver/data/*
 runserver/config.yml
+*.log

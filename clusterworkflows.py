@@ -45,6 +45,7 @@ can be some separation for the number of errors in a workflow
 
 import sqlite3
 
+import cherrypy
 import numpy
 import sklearn.cluster
 
@@ -119,7 +120,7 @@ def get_clusterer(data_path):
     :rtype: dict
     """
 
-    print 'Initializing cluster session'
+    cherrypy.log('Initializing cluster session')
 
     # This will be the location of our training data
     fake_session = {
@@ -132,13 +133,13 @@ def get_clusterer(data_path):
     # Fill the data
     data = []
 
-    print 'Getting workflow vectors'
+    cherrypy.log('Getting workflow vectors')
 
     total = len(workflows)
 
     for iwf, workflow in enumerate(workflows):
         if iwf % 20 == 0:
-            print str(iwf) + '/' + str(total)
+            cherrypy.log(str(iwf) + '/' + str(total))
 
         workflow_array = get_workflow_vector(workflow, fake_session)
 
@@ -146,7 +147,7 @@ def get_clusterer(data_path):
         if len(workflow_array) != 0:
             data.append(workflow_array)
 
-    print 'Fitting workflows...'
+    cherrypy.log('Fitting workflows...')
 
     settings = serverconfig.get_cluster_settings()
     clusterer = sklearn.cluster.KMeans(n_clusters=settings['n_clusters'],
@@ -155,7 +156,7 @@ def get_clusterer(data_path):
 
     clusterer.fit(numpy.array(data))
 
-    print 'Done'
+    cherrypy.log('Done')
 
     return {'clusterer': clusterer, 'allmap': fake_session['info'].get_allmap()}
 
@@ -176,7 +177,7 @@ def get_workflow_groups(clusterer, session=None):
     if errorinfo.clusters:
         return errorinfo.clusters
 
-    print 'Fitting existing workflows.'
+    cherrypy.log('Fitting existing workflows.')
 
     workflows = globalerrors.check_session(session).return_workflows()
     vectors = []
@@ -186,7 +187,7 @@ def get_workflow_groups(clusterer, session=None):
 
     predictions = clusterer['clusterer'].predict(numpy.array(vectors))
 
-    print predictions
+    cherrypy.log(str(predictions))
 
     conn = sqlite3.connect(':memory:', check_same_thread=False)
     curs = conn.cursor()
