@@ -10,6 +10,7 @@ import uuid
 import urllib
 import re
 import os
+import cherrypy
 
 from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
