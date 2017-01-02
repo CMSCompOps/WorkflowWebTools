@@ -56,6 +56,17 @@ class ErrorInfo(object):
             errorutils.create_table(curs)
             errorutils.add_to_database(curs, data_location)
 
+
+        self.curs = curs
+        self.set_all_lists()
+        self.connection_log('opened')
+
+    def set_all_lists(self):
+        """
+        Get sets the list of all steps, sites, and errors for an ErrorInfo object.
+        This should be called if data is added to the ErrorInfo cursor manually.
+        """
+
         def get_all(column):
             """Get list of all unique entries in the database
 
@@ -64,8 +75,8 @@ class ErrorInfo(object):
             :rtype: list
             """
 
-            curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
-            return [entry[0] for entry in curs.fetchall()]
+            self.curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
+            return [entry[0] for entry in self.curs.fetchall()]
 
         def safe_int(element):
             """A sorting algorithm that strings don't break.
@@ -80,7 +91,6 @@ class ErrorInfo(object):
             except ValueError:
                 return element
 
-
         allsteps = get_all('stepname')
         allsteps.sort()
         allsites = get_all('sitename')
@@ -91,21 +101,18 @@ class ErrorInfo(object):
         data_location = serverconfig.explain_errors_path()
 
         if not (os.path.isfile(data_location) or validators.url(data_location)):
-            self.info = curs, allsteps, allerrors, allsites, dict()
+            self.info = self.curs, allsteps, allerrors, allsites, dict()
 
         else:
             res = errorutils.open_location(data_location)
 
             if res:
-                self.info = curs, allsteps, allerrors, allsites, json.load(res)
+                self.info = self.curs, allsteps, allerrors, allsites, json.load(res)
                 res.close()
             else:
-                self.info = curs, allsteps, allerrors, allsites, {}
+                self.info = self.curs, allsteps, allerrors, allsites, {}
 
-        self.curs = curs
         self.allsteps = allsteps
-
-        self.connection_log('opened')
 
     def teardown(self):
         """Close the database when cache expires"""

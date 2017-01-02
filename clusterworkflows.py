@@ -51,6 +51,7 @@ import sklearn.cluster
 
 from . import globalerrors
 from . import serverconfig
+from . import errorutils
 
 
 def get_workflow_vector(workflow, session=None, allmap=None):
@@ -110,11 +111,13 @@ def get_workflow_vector(workflow, session=None, allmap=None):
     return numpy.array(workflow_array)
 
 
-def get_clusterer(data_path):
+def get_clusterer(history_path, errors_path=''):
     """Use this function to get the clusterer of workflows
 
-    :param str data_path: Path to the workflow historical data.
-                          This can be a local file path or a URL.
+    :param str history_path: Path to the workflow historical data.
+                             This can be a local file path or a URL.
+    :param str errors_path: The errors for a given session to include
+                            in the clustering
     :return: A dict of a clusterer that is fitted to historical data
              with its allmap. The keys are 'clusterer' and 'allmap'.
     :rtype: dict
@@ -124,8 +127,13 @@ def get_clusterer(data_path):
 
     # This will be the location of our training data
     fake_session = {
-        'info': globalerrors.ErrorInfo(data_path)
+        'info': globalerrors.ErrorInfo(history_path)
         }
+
+    # If the path to additional errors is given, add that to the clustering data.
+    if errors_path:
+        errorutils.add_to_database(globalerrors.check_session(fake_session).curs, errors_path)
+        globalerrors.check_session(fake_session).set_all_lists()
 
     # Get the data by getting table for each workflow
     workflows = globalerrors.check_session(fake_session).return_workflows()
@@ -147,6 +155,7 @@ def get_clusterer(data_path):
         if len(workflow_array) != 0:
             data.append(workflow_array)
 
+    cherrypy.log('Number of datapoints to cluster: %i' % len(data))
     cherrypy.log('Fitting workflows...')
 
     settings = serverconfig.get_cluster_settings()

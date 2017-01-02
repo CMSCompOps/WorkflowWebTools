@@ -66,7 +66,8 @@ class WorkflowTools(object):
         :rtype: str
         """
         self.clusterer = clusterworkflows.get_clusterer(
-            serverconfig.workflow_history_path())
+            serverconfig.workflow_history_path(),
+            serverconfig.all_errors_path())
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
