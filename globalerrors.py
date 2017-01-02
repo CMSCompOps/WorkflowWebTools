@@ -24,8 +24,18 @@ class ErrorInfo(object):
         :param str data_location: Set the location of the data to read in the info
         """
 
-        self.clusters = None
         self.data_location = data_location
+
+        # These are setup by setup()
+        self.timestamp = None
+        self.curs = None
+        self.conn = None
+        # These are setup by set_all_lists(), which is called in setup()
+        self.info = None
+        self.allsteps = None
+        # This is created in clusterworkflows.get_workflow_groups()
+        self.clusters = None
+
         self.setup()
 
     def __del__(self):
