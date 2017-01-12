@@ -28,7 +28,7 @@
       % for step, _ in workflowdata['steplist']:
         "${step}",
       % endfor
-      ]
+      ];
     </script>
     <script src="/static/js/addreason.js"></script>
     <script src="/static/js/makeparams.js"></script>
@@ -47,6 +47,21 @@
         <a href="/globalerror">Global Errors</a> <br>
         <a href="/showlog?search=${workflow}">Workflow logs</a>
       </center>
+
+    </div>
+
+    <hr>
+
+    <div>
+
+      <span style="font-weight:bold;">Workflow Parameters:</span>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
+      Request Type: ${params['RequestType']} <br>
+      % if params.get('SubRequestType'):
+      Sub-Request Type: ${params['SubRequestType']} <br>
+      % endif
+      Memory: ${params['Memory']} <br>
+      Estimated Number of Jobs: ${params['TotalEstimatedJobs']}
 
     </div>
 
