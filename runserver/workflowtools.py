@@ -27,7 +27,8 @@ from WorkflowWebTools import showlog
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 
-from CMSToolBox.reqmgrclient import get_workflow_parameters
+from CMSToolBox import reqmgrclient
+from CMSToolBox import sitereadiness
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'templates')
@@ -200,11 +201,16 @@ class WorkflowTools(object):
             similar_wfs = clusterworkflows.\
                 get_clustered_group(workflow, self.clusterer, cherrypy.session)
 
+        workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
+
+        readiness = [sitereadiness.site_readiness(site) for site in workflowdata['allsites']]
+
         return GET_TEMPLATE('workflowtables.html').\
-            render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
+            render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
                    similar_wfs=similar_wfs,
-                   params=get_workflow_parameters(workflow)
+                   params=reqmgrclient.get_workflow_parameters(workflow),
+                   readiness=readiness
                   )
 
     @cherrypy.expose
