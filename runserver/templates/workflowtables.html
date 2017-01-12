@@ -56,12 +56,16 @@
 
       <span style="font-weight:bold;">Workflow Parameters:</span>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
+      % if params:
       Request Type: ${params['RequestType']} <br>
       % if params.get('SubRequestType'):
       Sub-Request Type: ${params['SubRequestType']} <br>
       % endif
       Memory: ${params['Memory']} <br>
       Estimated Number of Jobs: ${params['TotalEstimatedJobs']}
+      % else:
+      <span style="color:red;">Problem retrieving info (likely an expired certificate, use link above)</span>
+      % endif
 
     </div>
 
