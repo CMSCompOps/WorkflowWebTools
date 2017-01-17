@@ -5,6 +5,7 @@
 
 import os
 import sqlite3
+import cherrypy
 
 from WorkflowWebTools.serverconfig import LOCATION
 
@@ -49,7 +50,7 @@ def update_reasons(reasons):
                 curs.execute('INSERT INTO reasons VALUES (?,?)', (reason['short'], reason['long'],))
         conn.commit()
     except KeyError:
-        print 'Parameter does not have correct keys.'
+        cherrypy.log('Parameter does not have correct keys.')
         raise
 
     conn.close()

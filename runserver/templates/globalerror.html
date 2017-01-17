@@ -58,7 +58,7 @@
                  bg_type = 'todo'
           %>
           <th class="${bg_type}" title="${row['title'] | h}">
-            <a href="/seeworkflow/?workflow=${workflowpd}#${workflowstep}">
+            <a href="/seeworkflow/?workflow=${workflowpd}"> <!-- #${workflowstep}"> -->
               ${row['name']}
             </a>
           </th>

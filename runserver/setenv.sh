@@ -10,3 +10,4 @@ target=$(pwd)
 target=${target%%/WorkflowWebTools/runserver}
 
 export PYTHONPATH=$PYTHONPATH:$target
+export X509_USER_PROXY=~/voms_proxy.cert

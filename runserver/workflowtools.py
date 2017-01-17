@@ -27,6 +27,9 @@ from WorkflowWebTools import showlog
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 
+from CMSToolBox import reqmgrclient
+from CMSToolBox import sitereadiness
+
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'templates')
 
@@ -66,7 +69,8 @@ class WorkflowTools(object):
         :rtype: str
         """
         self.clusterer = clusterworkflows.get_clusterer(
-            serverconfig.workflow_history_path())
+            serverconfig.workflow_history_path(),
+            serverconfig.all_errors_path())
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
@@ -197,10 +201,16 @@ class WorkflowTools(object):
             similar_wfs = clusterworkflows.\
                 get_clustered_group(workflow, self.clusterer, cherrypy.session)
 
+        workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
+
+        readiness = [sitereadiness.site_readiness(site) for site in workflowdata['allsites']]
+
         return GET_TEMPLATE('workflowtables.html').\
-            render(workflowdata=globalerrors.see_workflow(workflow, cherrypy.session),
+            render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
-                   similar_wfs=similar_wfs
+                   similar_wfs=similar_wfs,
+                   params=reqmgrclient.get_workflow_parameters(workflow),
+                   readiness=readiness
                   )
 
     @cherrypy.expose
@@ -428,7 +438,9 @@ def secureheaders():
 CONF = {
     'global': {
         'server.socket_host': serverconfig.host_name(),
-        'server.socket_port': serverconfig.host_port()
+        'server.socket_port': serverconfig.host_port(),
+        'log.access_file': 'access.log',
+        'log.error_file': 'application.log'
         },
     '/': {
         'error_page.401': GET_TEMPLATE('401.html').render,

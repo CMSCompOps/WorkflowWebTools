@@ -11,6 +11,8 @@ import urllib
 import re
 import os
 
+import cherrypy
+
 from passlib.hash import bcrypt
 from CMSToolBox.emailtools import send_email
 
@@ -81,9 +83,14 @@ def confirmation(code, lookup='validator', return_curs=False):
 
     conn, curs = get_user_db()
 
+    if lookup == 'email':
+        value = code
+    else:
+        value = do_salt_hash(code)
+
     # Note that the sqlite ? doesn't seem to work for these hashes for some reason
     curs.execute('SELECT username FROM users WHERE {0}=\'{1}\''.\
-                     format(lookup, do_salt_hash(code)))
+                     format(lookup, value))
 
     users = list(curs.fetchall())
 
@@ -112,9 +119,13 @@ def send_reset_email(email, url):
     :param str email: the email linked to the account
     :param str url: the url of the running instance
     """
+    cherrypy.log('Trying to send email to %s for %s' % (email, url))
+
     user, conn, curs = confirmation(email, 'email', True)
 
     if user:
+
+        cherrypy.log('User is %s. Generating email.' % user)
 
         validation_string = uuid.uuid4().hex
         stored_string = do_salt_hash(str(validation_string))
@@ -141,6 +152,8 @@ def send_reset_email(email, url):
         send_email(serverconfig.wm_email(), email,
                    'Reset account on WorkflowWebTools Instance',
                    message_text)
+
+        cherrypy.log('Email sent.')
 
         curs.execute('UPDATE users SET validator=?, isvalid=? WHERE username=?',
                      (stored_string, 0, user))
@@ -196,8 +209,6 @@ def add_user(email, username, password, url):
         elif email == valid_email:
             good_email = True
             break
-
-    print good_email
 
     if not (good_email and re.match(r'^[A-za-z0-9]+$', username)) or password == '':
         return 1

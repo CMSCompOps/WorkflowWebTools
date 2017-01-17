@@ -9,6 +9,7 @@ import json
 import sqlite3
 import time
 import validators
+import cherrypy
 
 from . import errorutils
 from . import serverconfig
@@ -23,8 +24,18 @@ class ErrorInfo(object):
         :param str data_location: Set the location of the data to read in the info
         """
 
-        self.clusters = None
         self.data_location = data_location
+
+        # These are setup by setup()
+        self.timestamp = None
+        self.curs = None
+        self.conn = None
+        # These are setup by set_all_lists(), which is called in setup()
+        self.info = None
+        self.allsteps = None
+        # This is created in clusterworkflows.get_workflow_groups()
+        self.clusters = None
+
         self.setup()
 
     def __del__(self):
@@ -55,6 +66,17 @@ class ErrorInfo(object):
             errorutils.create_table(curs)
             errorutils.add_to_database(curs, data_location)
 
+
+        self.curs = curs
+        self.set_all_lists()
+        self.connection_log('opened')
+
+    def set_all_lists(self):
+        """
+        Get sets the list of all steps, sites, and errors for an ErrorInfo object.
+        This should be called if data is added to the ErrorInfo cursor manually.
+        """
+
         def get_all(column):
             """Get list of all unique entries in the database
 
@@ -63,8 +85,8 @@ class ErrorInfo(object):
             :rtype: list
             """
 
-            curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
-            return [entry[0] for entry in curs.fetchall()]
+            self.curs.execute('SELECT DISTINCT {0} FROM workflows'.format(column))
+            return [entry[0] for entry in self.curs.fetchall()]
 
         def safe_int(element):
             """A sorting algorithm that strings don't break.
@@ -79,7 +101,6 @@ class ErrorInfo(object):
             except ValueError:
                 return element
 
-
         allsteps = get_all('stepname')
         allsteps.sort()
         allsites = get_all('sitename')
@@ -90,21 +111,18 @@ class ErrorInfo(object):
         data_location = serverconfig.explain_errors_path()
 
         if not (os.path.isfile(data_location) or validators.url(data_location)):
-            self.info = curs, allsteps, allerrors, allsites, dict()
+            self.info = self.curs, allsteps, allerrors, allsites, dict()
 
         else:
             res = errorutils.open_location(data_location)
 
             if res:
-                self.info = curs, allsteps, allerrors, allsites, json.load(res)
+                self.info = self.curs, allsteps, allerrors, allsites, json.load(res)
                 res.close()
             else:
-                self.info = curs, allsteps, allerrors, allsites, {}
+                self.info = self.curs, allsteps, allerrors, allsites, {}
 
-        self.curs = curs
         self.allsteps = allsteps
-
-        self.connection_log('opened')
 
     def teardown(self):
         """Close the database when cache expires"""
@@ -118,15 +136,9 @@ class ErrorInfo(object):
     def connection_log(self, action):
         """Logs actions on the sqlite3 connection
 
-        .. todo::
-
-           logging does not play nice with CherryPy at the moment,
-           but there is documentation to fix this.
-           I should get a decent logger working.
-
         :param str action: is the action on the connection
         """
-        print 'Connection {0} with timestamp {1}'.format(action, self.timestamp)
+        cherrypy.log('Connection {0} with timestamp {1}'.format(action, self.timestamp))
 
     def get_errors_explained(self):
         """

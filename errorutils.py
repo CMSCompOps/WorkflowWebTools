@@ -12,6 +12,7 @@ import json
 import urllib2
 import re
 import validators
+import cherrypy
 
 from CMSToolBox import workflowinfo
 
@@ -32,8 +33,9 @@ def open_location(data_location):
             try:
                 return urllib2.urlopen(data_location)
             except urllib2.URLError as msg:
-                print msg, 'while trying to open', data_location
+                cherrypy.log(msg, 'while trying to open', data_location)
 
+    cherrypy.log('Nothing successfully opened. Returning None')
     return None
 
 
@@ -50,12 +52,15 @@ def add_to_database(curs, data_location):
          If a list, it's a list of status to get workflows from wmstats.
     :type data_location: str or list
     """
+
+    cherrypy.log('About to add data from %s' % data_location)
+
     if isinstance(data_location, list):
         indict = {}
         for status in data_location:
-            print 'Getting status %s' % status
+            cherrypy.log('Getting status %s' % status)
             for workflow in workflowinfo.list_workflows(status):
-                print 'Getting workflow %s' % workflow
+                cherrypy.log('Getting workflow %s' % workflow)
                 indict.update(workflowinfo.errors_for_workflow(workflow))
 
     else:
@@ -67,6 +72,8 @@ def add_to_database(curs, data_location):
         indict = json.load(res)
         res.close()
 
+    number_added = 0
+
     for stepname, errorcodes in indict.items():
         for errorcode, sitenames in errorcodes.items():
             if not re.match(r'\d+', errorcode):
@@ -77,9 +84,12 @@ def add_to_database(curs, data_location):
                 if not curs.execute(
                         'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
                         (full_key,)).fetchone()[0]:
+                    number_added += 1
                     curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?)',
                                  (full_key, stepname, errorcode,
                                   sitename, numbererrors))
+
+    cherrypy.log('Number of points added to the database: %i' % number_added)
 
 
 def create_table(curs):

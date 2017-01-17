@@ -8,9 +8,11 @@ import json
 import glob
 import sqlite3
 
-
 from datetime import datetime
 from datetime import timedelta
+
+import cherrypy
+
 from . import reasonsmanip
 
 
@@ -189,7 +191,7 @@ def report_actions(workflows):
         try:
             curs.execute('INSERT INTO actions VALUES (?)', (workflow,))
         except sqlite3.IntegrityError:
-            print 'Workflow %s has already been reported' % workflow
+            cherrypy.log('Workflow %s has already been reported' % workflow)
 
     conn.commit()
     conn.close()
