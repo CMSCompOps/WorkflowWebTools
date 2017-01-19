@@ -161,23 +161,12 @@
     <h2 id="${step}">${step}</h2>
     ${sendtotop}
 
-    <%
-
-       color = {
-         'red': '#ef4f4f',
-         'yellow': 'yellow',
-         'green': '#4fef4f',
-         'none': '#ffffff'
-       }
-
-    %>
-
     <table border="3" style="border-collapse: collapse;">
       <tr>
         <th>
         </th>
         % for site, status in zip(workflowdata['allsites'], readiness):
-        <th class="rotate" style="background-color: ${color[status]};"><div>${site}</div></th>
+        <th class="rotate ${status}"><div>${site}</div></th>
         % endfor
       </tr>
       
