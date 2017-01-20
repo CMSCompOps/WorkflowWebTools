@@ -38,15 +38,21 @@
           </form>
         </td>
 
-        % for col in errordata['collist']:
-          <th class="rotate" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
-        % endfor
+        % if errordata['pievar'] == 'sitename':
+          % for col in errordata['collist']:
+            <th class="rotate" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
+          % endfor
+        % else:
+          % for col, status in zip(errordata['collist'], readiness):
+            <th class="rotate ${status}" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
+          % endfor
+        % endif
 
       </tr>
 
       % for row, title_list in errordata['rowzip']:
       <tr bgcolor="${loop.cycle('#e0e0e0', '#ffffff')}">
-        % if errordata['pievar'] == "stepname":
+        % if errordata['pievar'] == 'stepname':
           <th title="${row['title'] | h}">${row['name']}</th>
         % else:
           <%

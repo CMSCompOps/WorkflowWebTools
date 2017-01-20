@@ -57,12 +57,16 @@
 
       <span style="font-weight:bold;">Workflow Parameters:</span>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
+      % if params:
       Request Type: ${params['RequestType']} <br>
       % if params.get('SubRequestType'):
       Sub-Request Type: ${params['SubRequestType']} <br>
       % endif
       Memory: ${params['Memory']} <br>
       Estimated Number of Jobs: ${params['TotalEstimatedJobs']}
+      % else:
+      <span style="color:red;">Problem retrieving info (likely an expired certificate, use link above)</span>
+      % endif
 
     </div>
 
@@ -157,12 +161,13 @@
 
     <h2 id="${step}">${step}</h2>
     ${sendtotop}
+
     <table border="3" style="border-collapse: collapse;">
       <tr>
         <th>
         </th>
-        % for site in workflowdata['allsites']:
-        <th class="rotate"><div>${site}</div></th>
+        % for site, status in zip(workflowdata['allsites'], readiness):
+        <th class="rotate ${status}"><div>${site}</div></th>
         % endfor
       </tr>
       

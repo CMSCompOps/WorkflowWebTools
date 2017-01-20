@@ -11,10 +11,11 @@ import time
 import validators
 import cherrypy
 
+from CMSToolBox import sitereadiness
+
 from . import errorutils
 from . import serverconfig
 from .reasonsmanip import reasons_list
-
 
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
@@ -33,6 +34,7 @@ class ErrorInfo(object):
         # These are setup by set_all_lists(), which is called in setup()
         self.info = None
         self.allsteps = None
+        self.readiness = None
         # This is created in clusterworkflows.get_workflow_groups()
         self.clusters = None
 
@@ -69,6 +71,7 @@ class ErrorInfo(object):
 
         self.curs = curs
         self.set_all_lists()
+        self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
         self.connection_log('opened')
 
     def set_all_lists(self):
