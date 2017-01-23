@@ -15,6 +15,7 @@ import validators
 import cherrypy
 
 from CMSToolBox import workflowinfo
+from CMSToolBox import sitereadiness
 
 
 def open_location(data_location):
@@ -104,9 +105,10 @@ def add_to_database(curs, data_location):
                         'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
                         (full_key,)).fetchone()[0]:
                     number_added += 1
-                    curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?)',
+                    curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
                                  (full_key, stepname, errorcode,
-                                  sitename, numbererrors))
+                                  sitename, numbererrors,
+                                  sitereadiness.site_readiness(sitename)))
 
     cherrypy.log('Number of points added to the database: %i' % number_added)
 
@@ -119,4 +121,5 @@ def create_table(curs):
     curs.execute(
         'CREATE TABLE workflows (fullkey varchar(1023) UNIQUE, '
         'stepname varchar(255), errorcode int, '
-        'sitename varchar(255), numbererrors int)')
+        'sitename varchar(255), numbererrors int, '
+        'sitereadiness varchar(15))')
