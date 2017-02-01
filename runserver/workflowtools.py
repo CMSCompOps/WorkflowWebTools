@@ -27,6 +27,7 @@ from WorkflowWebTools import manageactions
 from WorkflowWebTools import showlog
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
+from WorkflowWebTools import classifyerrors
 
 from CMSToolBox import reqmgrclient
 from CMSToolBox import sitereadiness
@@ -206,12 +207,20 @@ class WorkflowTools(object):
 
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
+        max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
+        main_error_class = classifyerrors.classifyerror(max_error, cherrypy.session)
+
+        print max_error
+        print main_error_class
+
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
                    similar_wfs=similar_wfs,
                    params=reqmgrclient.get_workflow_parameters(workflow),
-                   readiness=globalerrors.check_session(cherrypy.session).readiness
+                   readiness=globalerrors.check_session(cherrypy.session).readiness,
+                   mainerror=max_error,
+                   classification=main_error_class
                   )
 
     @cherrypy.expose

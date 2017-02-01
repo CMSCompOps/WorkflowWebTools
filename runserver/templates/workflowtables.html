@@ -55,6 +55,28 @@
 
     <div>
 
+      <span style="font-weight:bold;">Dominant Error Code:</span>
+      <a href="/explainerror?errorcode=${mainerror}">${mainerror}</a>
+      <br>
+      <span style="font-weight:bold;">Types Of Errors:</span> <br>
+      
+      ${classification[0]}
+      <br>
+      <span style="font-weight:bold;">Recommended Action:</span> <br>
+      ${classification[1]}
+
+      % if classification[2]:
+      <br>
+      <span style="font-weight:bold;">Additional Parameters:</span> <br>
+      ${classification[3]}
+      % endif
+
+    </div>
+
+    <hr>
+
+    <div>
+
       <span style="font-weight:bold;">Workflow Parameters:</span>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
       % if params:
