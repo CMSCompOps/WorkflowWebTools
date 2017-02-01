@@ -118,7 +118,7 @@ def classifyerror(errorcode, session=None):
     procedure = PROCEDURES.get(errorcode, {})
 
     logs = check_session(session).get_errors_explained().\
-        get(errorcode, [])
+        get(str(errorcode), [])
 
     error_re = re.compile(r'[\w\s]+ \(Exit code: (\d+)\)')
     error_types = {}
@@ -126,24 +126,17 @@ def classifyerror(errorcode, session=None):
     additional_re = procedure.get('additional', {}).get('re', None)
     additional_params = []
 
-    print additional_re
-
     for log in logs:
         for line in log.split('\n'):
             # Add each type of error associated with the log
-            print line
-            print error_re
             match = error_re.match(line)
             if match and match.group(1) not in error_types.keys():
-                print match.group(0)
-                print match.group(1)
                 error_types[match.group(1)] = match.group(0)
             # Get additional parameters
 
             if '.root' not in line:
                 continue
 
-            print line
             if additional_re:
                 print 'Checking add'
                 add_match = additional_re.search(line)
@@ -171,7 +164,7 @@ def get_max_errorcode(workflow, session=None):
     Get the errorcode with the most errors for a session
 
     :param str workflow: Is the primary name of the workflow
-    :param cherrypy.Session() session: Is the user's cherrypy session
+    :param cherrypy.Session session: Is the user's cherrypy session
     :returns: The error code that appears most often for this workflow
     :rtype: int
     """
@@ -182,7 +175,8 @@ def get_max_errorcode(workflow, session=None):
     num_errors = []
 
     for errorcode in allerrors:
-        curs.execute("SELECT SUM(numbererrors) FROM workflows WHERE stepname LIKE '/{0}/%' AND errorcode={1}".\
+        curs.execute("SELECT SUM(numbererrors) FROM workflows WHERE "
+                     "stepname LIKE '/{0}/%' AND errorcode={1}".\
                          format(workflow, errorcode))
         output = curs.fetchall()
 

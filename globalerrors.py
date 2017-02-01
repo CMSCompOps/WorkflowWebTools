@@ -180,7 +180,6 @@ class ErrorInfo(object):
         """Gets the list of steps within a workflow
 
         :param str workflow: Name of the workflow to gather information for
-        :param cherrypy.Session session: the current session
         :returns: list of steps withing the workflow
         :rtype: list
         """
