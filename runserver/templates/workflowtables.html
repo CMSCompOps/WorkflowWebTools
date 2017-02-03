@@ -46,11 +46,32 @@
         <h1>${workflow}</h1>
         <a href="/globalerror">Global Errors</a> <br>
         <a href="/showlog?search=${workflow}">Workflow logs</a>
+        <a href="/showlog?search=${workflow}&module=error">errors</a>
       </center>
 
     </div>
 
     <hr>
+
+    <div style="float:left; width:50%">
+
+      <span style="font-weight:bold;">Dominant Error Code:</span>
+      <a href="/explainerror?errorcode=${mainerror}">${mainerror}</a>
+      <br>
+      <span style="font-weight:bold;">Types Of Errors:</span> <br>
+      
+      ${classification[0]}
+      <br>
+      <span style="font-weight:bold;">Recommended Action:</span> <br>
+      ${classification[1]}
+
+      % if classification[2]:
+      <br>
+      <span style="font-weight:bold;">Additional Parameters:</span> <br>
+      ${classification[3]}
+      % endif
+
+    </div>
 
     <div>
 
@@ -69,7 +90,7 @@
 
     </div>
 
-    <hr>
+    <hr style="clear: both;">
 
     <div>
 
@@ -161,23 +182,12 @@
     <h2 id="${step}">${step}</h2>
     ${sendtotop}
 
-    <%
-
-       color = {
-         'red': '#ef4f4f',
-         'yellow': 'yellow',
-         'green': '#4fef4f',
-         'none': '#ffffff'
-       }
-
-    %>
-
     <table border="3" style="border-collapse: collapse;">
       <tr>
         <th>
         </th>
         % for site, status in zip(workflowdata['allsites'], readiness):
-        <th class="rotate" style="background-color: ${color[status]};"><div>${site}</div></th>
+        <th class="rotate ${status}"><div>${site}</div></th>
         % endfor
       </tr>
       

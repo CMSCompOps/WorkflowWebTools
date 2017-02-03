@@ -11,10 +11,11 @@ import time
 import validators
 import cherrypy
 
+from CMSToolBox import sitereadiness
+
 from . import errorutils
 from . import serverconfig
 from .reasonsmanip import reasons_list
-
 
 class ErrorInfo(object):
     """Holds the information for any errors for a session"""
@@ -33,6 +34,7 @@ class ErrorInfo(object):
         # These are setup by set_all_lists(), which is called in setup()
         self.info = None
         self.allsteps = None
+        self.readiness = None
         # This is created in clusterworkflows.get_workflow_groups()
         self.clusters = None
 
@@ -69,6 +71,7 @@ class ErrorInfo(object):
 
         self.curs = curs
         self.set_all_lists()
+        self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
         self.connection_log('opened')
 
     def set_all_lists(self):
@@ -173,6 +176,27 @@ class ErrorInfo(object):
         return wfs
 
 
+    def get_step_list(self, workflow):
+        """Gets the list of steps within a workflow
+
+        :param str workflow: Name of the workflow to gather information for
+        :returns: list of steps withing the workflow
+        :rtype: list
+        """
+
+        steplist = list(     # Make a list of all the steps so we can sort them
+            set(
+                [stepgets[0] for stepgets in self.curs.execute(
+                    "SELECT stepname FROM workflows WHERE stepname LIKE '/{0}/%'".format(workflow)
+                    )
+                ]
+                )
+            )
+        steplist.sort()
+
+        return steplist
+
+
 GLOBAL_INFO = ErrorInfo()
 
 
@@ -199,30 +223,6 @@ def check_session(session, can_refresh=False):
         theinfo.setup()
 
     return theinfo
-
-
-def get_step_list(workflow, session=None):
-    """Gets the list of steps within a workflow
-
-    :param str workflow: Name of the workflow to gather information for
-    :param cherrypy.Session session: the current session
-    :returns: list of steps withing the workflow
-    :rtype: list
-    """
-
-    curs = check_session(session).curs
-
-    steplist = list(     # Make a list of all the steps so we can sort them
-        set(
-            [stepgets[0] for stepgets in curs.execute(
-                "SELECT stepname FROM workflows WHERE stepname LIKE '/{0}/%'".format(workflow)
-                )
-            ]
-            )
-        )
-    steplist.sort()
-
-    return steplist
 
 
 def get_step_table(step, session=None, allmap=None):
@@ -270,7 +270,7 @@ def see_workflow(workflow, session=None):
     """
 
     _, _, allerrors, allsites, _ = check_session(session).info
-    steplist = get_step_list(workflow, session)
+    steplist = check_session(session).get_step_list(workflow)
 
     tables = []
 

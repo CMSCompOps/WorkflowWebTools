@@ -212,6 +212,14 @@ Show Log
 .. automodule:: WorkflowWebTools.showlog
    :members:
 
+Classifying Errors
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.classifyerrors
+   :members:
+
+.. automodule:: WorkflowWebTools.procedures
+
 JavaScript and Mako User Interface
 ----------------------------------
 

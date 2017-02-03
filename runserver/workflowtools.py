@@ -3,7 +3,8 @@
 # pylint: disable=wrong-import-position, no-self-use, invalid-name
 
 """
-.. describe:: workflowtools.py
+workflowtools.py
+----------------
 
 Script to run the WorkflowWebTools server.
 
@@ -26,6 +27,7 @@ from WorkflowWebTools import manageactions
 from WorkflowWebTools import showlog
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
+from WorkflowWebTools import classifyerrors
 
 from CMSToolBox import reqmgrclient
 from CMSToolBox import sitereadiness
@@ -139,7 +141,9 @@ class WorkflowTools(object):
         return GET_TEMPLATE('globalerror.html').\
             render(errordata=globalerrors.return_page(pievar, cherrypy.session),
                    acted_workflows=manageactions.get_acted_workflows(
-                       serverconfig.get_history_length()))
+                       serverconfig.get_history_length()),
+                   readiness=globalerrors.check_session(cherrypy.session).readiness
+                  )
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
@@ -203,14 +207,20 @@ class WorkflowTools(object):
 
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
-        readiness = [sitereadiness.site_readiness(site) for site in workflowdata['allsites']]
+        max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
+        main_error_class = classifyerrors.classifyerror(max_error, cherrypy.session)
+
+        print max_error
+        print main_error_class
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
                    similar_wfs=similar_wfs,
                    params=reqmgrclient.get_workflow_parameters(workflow),
-                   readiness=readiness
+                   readiness=globalerrors.check_session(cherrypy.session).readiness,
+                   mainerror=max_error,
+                   classification=main_error_class
                   )
 
     @cherrypy.expose
@@ -299,7 +309,7 @@ class WorkflowTools(object):
         return 'Done'
 
     @cherrypy.expose
-    def explainerror(self, errorcode="0", workflowstep="/"):
+    def explainerror(self, errorcode='0', workflowstep='/'):
         """Returns an explaination of the error code, along with a link returning to table
 
         :param str errorcode: The error code to display.
