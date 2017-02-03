@@ -10,7 +10,9 @@ Contains the drawPieCharts function for the global errors page.
 */
 
 var colors = ["#ff0000", "#00ff00", "#0000ff", "#00ffff", "#ff00ff", "#ffff00",
-              "#808080", "#808000", "#800080", "#008080", "#000000"];
+              "#808080", "#808000", "#800080", "#008080", "#000000",
+              "#ff8000", "#ff0080", "#80ff00", "#00ff80", "#8000ff", "#0080ff",
+              "#ff8080", "#80ff80", "#8080ff", "#ffff80", "#ff80ff", "#80ffff"];
 
 function drawPieCharts() {
     /*"""
@@ -31,7 +33,7 @@ function drawPieCharts() {
     var ncanvases = Math.min(canvases.length, arguments.length);
     for (iChart = 0; iChart < ncanvases; iChart++) {
         var data = arguments[iChart];
-        data.sort(function(a, b){return b-a});
+        // data.sort(function(a, b){return b-a});
         var total = 0;
         for (var point in data)
             total += data[point];
