@@ -219,7 +219,6 @@ Classifying Errors
    :members:
 
 .. automodule:: WorkflowWebTools.procedures
-   :members:
 
 JavaScript and Mako User Interface
 ----------------------------------
