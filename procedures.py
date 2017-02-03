@@ -17,7 +17,7 @@ An example procedure with just exit code ``84`` would look like the following::
         84: {
             'normal': 'ACDC',
             'additional': {
-                're': re.compile(r'(root://[-/\w\.]+\.root)'),
+                're': re.compile(r'(root://.+root)'),
                 'action': ('If a second round of ACDC and fails for same files, '
                            'contact the transfer team and/or site support team.')
                 }
@@ -116,6 +116,3 @@ PROCEDURES = {
         'normal': 'Strong failure, report immediately'
         },
     }
-"""
-The defined procedures for each error code.
-"""
