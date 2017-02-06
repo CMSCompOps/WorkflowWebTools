@@ -196,7 +196,7 @@ class WorkflowTools(object):
                  is not selected.
         """
 
-        if workflow == '':
+        if workflow not in globalerrors.check_session(cherrypy.session).return_workflows():
             raise cherrypy.HTTPRedirect('/globalerror')
 
         if issuggested:

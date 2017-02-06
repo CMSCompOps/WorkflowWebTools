@@ -226,6 +226,8 @@ def get_clustered_group(workflow, clusterer, session=None):
     :returns: List of other workflows in the same group
     :rtype: set
     """
+    output = []
+
     curs = get_workflow_groups(clusterer, session)['curs']
 
     curs.execute('SELECT cluster, ROWID FROM groups WHERE workflow=?',
@@ -233,13 +235,13 @@ def get_clustered_group(workflow, clusterer, session=None):
 
     group = curs.fetchall()
 
-    curs.execute('SELECT workflow FROM groups WHERE cluster=? AND ROWID!=?',
-                 (group[0][0], group[0][1]))
+    if group:
+        curs.execute('SELECT workflow FROM groups WHERE cluster=? AND ROWID!=?',
+                     (group[0][0], group[0][1]))
 
-    workflows = curs.fetchall()
+        workflows = curs.fetchall()
 
-    output = []
-    for workflow in workflows:
-        output.append(workflow[0])
+        for workflow in workflows:
+            output.append(workflow[0])
 
     return output

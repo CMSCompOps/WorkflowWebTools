@@ -1,3 +1,5 @@
+#pylint: disable=too-many-locals
+
 """
 Generates the content for the errors pages
 
@@ -358,6 +360,7 @@ def get_errors_and_pietitles(pievar, session=None):
 
         for icol, col in enumerate(allmap[colname]):
             toappend = []
+            piemap = {}
             pietitle = ''
             if rowname != 'stepname':
                 pietitle += TITLEMAP[rowname] + ': ' + str(row) + '\n'
@@ -366,20 +369,38 @@ def get_errors_and_pietitles(pievar, session=None):
                                                 'WHERE {1}=? AND {2}=?'.
                                                 format(pievar, rowname, colname)),
                                                (row, col)):
+
+                piemap[piekey] = errnum
+
                 if errnum != 0:
                     toappend.append(errnum)
                     pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
 
-            pieinfo.append(toappend)
             sum_errors = sum(toappend)
             pietitlerow.append('Total Errors: ' + str(sum_errors) + '\n' + pietitle)
 
             total_errors['row'][irow] += sum_errors
             total_errors['col'][icol] += sum_errors
 
+            # Append all the pie info for every possibility
+            pieinfo.append([piemap.get(value, 0) for value in allmap[pievar]])
+
         pietitles.append(pietitlerow)
 
-    return total_errors, pieinfo, pietitles
+    # Sort the pieinfo so that the maximum contributor is red
+
+    sum_list = [0] * len(allmap[pievar])
+
+    for cell in pieinfo:
+        sum_list = [value + cell[index] for index, value in enumerate(sum_list)]
+
+    sorted_pieinfo = []
+
+    for info in pieinfo:
+        sorted_pieinfo.append([info[index] for index, _ in sorted(
+            enumerate(sum_list), key=(lambda x: x[1]), reverse=True)])
+
+    return total_errors, sorted_pieinfo, pietitles
 
 
 def get_header_titles(varname, errors, session=None):
