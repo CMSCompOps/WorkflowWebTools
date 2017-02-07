@@ -94,11 +94,14 @@ def add_to_database(curs, data_location):
     for stepname, errorcodes in indict.items():
         for errorcode, sitenames in errorcodes.items():
             if not re.match(r'\d+', errorcode):
-                continue
+                errorcode = '-1'
 
             for sitename, numbererrors in sitenames.items():
                 if not numbererrors:
-                    continue
+                    if errorcode == '-1':
+                        numbererrors = 1
+                    else:
+                        continue
 
                 full_key = '_'.join([stepname, sitename, errorcode])
                 if not curs.execute(

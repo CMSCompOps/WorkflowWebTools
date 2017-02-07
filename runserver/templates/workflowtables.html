@@ -59,8 +59,11 @@
       <a href="/explainerror?errorcode=${mainerror}">${mainerror}</a>
       <br>
       <span style="font-weight:bold;">Types Of Errors:</span> <br>
-
-      ${classification[0]}
+      % if classification[0]:
+      classification[0]
+      % else:
+      Not Reported
+      % endif
       <br>
       <span style="font-weight:bold;">Recommended Action:</span> <br>
       ${classification[1]}
