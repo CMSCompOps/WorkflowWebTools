@@ -25,6 +25,7 @@ if __name__ == '__main__':
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
 from WorkflowWebTools import showlog
+from WorkflowWebTools import listpage
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
@@ -436,6 +437,23 @@ class WorkflowTools(object):
             cherrypy.session.get('info').teardown()
             cherrypy.session.get('info').setup()
         return GET_TEMPLATE('complete.html').render()
+
+    @cherrypy.expose
+    def listworkflows(self, errorcode='', sitename=''):
+        """
+        This simply returns a list of workflows that matches an errorcode and sitename
+
+        :param int errorcode: Error to match
+        :param str sitename: Site to match
+        :returns: Page listing workflows
+        :rtype: str
+        """
+
+        return GET_TEMPLATE('listworkflows.html').render(
+            errorcode=errorcode,
+            sitename=sitename,
+            info=listpage.listworkflows(errorcode, sitename, cherrypy.session))
+
 
 def secureheaders():
     """Generates secure headers for cherrypy Tool"""
