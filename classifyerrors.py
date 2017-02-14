@@ -74,7 +74,12 @@ def classifyerror(errorcode, session=None):
         [PROCEDURES[errorcode].get('additional', {}).get('action', ''), 'Problems:'] +
         additional_params) if additional_params else ''
 
-    return (error_types_string, normal_action_string, additional_actions_string)
+    # The procedures use ' |br| |br| ' to break lines because sphinx uses that
+    # to replace with raw html
+
+    return (error_types_string,
+            normal_action_string.replace(' |br| |br| ', '<br>'),
+            additional_actions_string.replace(' |br| |br| ', '<br>'))
 
 
 def get_max_errorcode(workflow, session=None):
