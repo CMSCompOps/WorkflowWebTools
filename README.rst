@@ -232,8 +232,6 @@ Classifying Errors
 .. automodule:: WorkflowWebTools.classifyerrors
    :members:
 
-.. automodule:: WorkflowWebTools.procedures
-
 List Workflows At Site
 ~~~~~~~~~~~~~~~~~~~~~~
 

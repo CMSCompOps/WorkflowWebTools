@@ -1,7 +1,7 @@
 # pylint: disable=redefined-builtin
 
 """
-Here are the list of procedures:
+Here is the list of procedures:
 
 %s
 
@@ -132,7 +132,7 @@ PROCEDURES = {
 # while reseting textwrap's counts at manual line breaks
 
 WRAP = lambda text: ' |br| '.join(
-    [' |br| '.join(textwrap.wrap(line, 22)) \
+    [' |br| '.join(textwrap.wrap(line, 30)) \
          for line in text.split(' |br| ')]
     )
 
@@ -140,10 +140,12 @@ __doc__ %= tabulate(
     [
         [key,
          WRAP(item['normal']),
-         item['additional']['re'].pattern if item.get('additional', {}).get('re') else '',
+         ' |br| '.join(item['additional']['re'].pattern.strip('()').split('|')) \
+             if item.get('additional', {}).get('re') else '',
          WRAP(item.get('additional', {}).get('action', ''))
         ] \
             for key, item in sorted(PROCEDURES.items(), key=lambda x: x[0])],
-    headers=['Exit Code', 'Normal Procedure', 'Additional Match', 'Additional Procedure'],
+    headers=['Exit |br| Code', 'Normal Procedure', 'Additional Match |br| Expression',
+             'Additional Procedure'],
     tablefmt='grid'
 )
