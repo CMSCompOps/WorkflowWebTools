@@ -53,7 +53,7 @@ class TestGlobalInfo(unittest.TestCase):
         'test1' : ['test2'],
         'test2' : ['test1'],
         'test3' : []
-        }        
+        }
             
     explained = {
         '1': [

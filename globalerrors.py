@@ -317,6 +317,34 @@ TITLEMAP = {
 """Dictionary that determines how a chosen pievar shows up in the pie chart titles"""
 
 
+def list_matching_pievars(pievar, row, col, session=None):
+    """
+    Return an iterator of variables in pievar, and number of errors
+    for a given rowname and colname
+
+    :param str pievar: The variable to return an iterator of
+    :param str row: Name of the row to match
+    :param str col: Name of the column to match
+    :param cherrypy.Session session: stores the session information
+    :returns: List of tuples containing name of pievar and number of errors
+    :rtype: list
+    """
+
+    curs = check_session(session, True).curs
+    rowname, colname = get_row_col_names(pievar)
+
+    output = []
+
+    # Let's do this very carefully and stupid for now...
+    for name, num in  curs.execute(('SELECT {0}, numbererrors FROM workflows '
+                                    'WHERE {1}=? AND {2}=?'.
+                                    format(pievar, rowname, colname)),
+                                   (row, col)):
+        output.append((name, num))
+
+    return output
+
+
 def get_errors_and_pietitles(pievar, session=None):
     """Gets the number of errors for the global table.
 
@@ -341,7 +369,6 @@ def get_errors_and_pietitles(pievar, session=None):
     """
 
 
-    curs = check_session(session, True).curs
     rowname, colname = get_row_col_names(pievar)
 
     allmap = check_session(session).get_allmap()
@@ -365,10 +392,7 @@ def get_errors_and_pietitles(pievar, session=None):
             if rowname != 'stepname':
                 pietitle += TITLEMAP[rowname] + ': ' + str(row) + '\n'
             pietitle += TITLEMAP[colname] + ': ' + str(col)
-            for piekey, errnum in curs.execute(('SELECT {0}, numbererrors FROM workflows '
-                                                'WHERE {1}=? AND {2}=?'.
-                                                format(pievar, rowname, colname)),
-                                               (row, col)):
+            for piekey, errnum in list_matching_pievars(pievar, row, col, session):
 
                 piemap[piekey] = errnum
 

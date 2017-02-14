@@ -34,6 +34,13 @@ The Global Error View
 
 .. automethod:: workflowtools.WorkflowTools.globalerror
 
+.. _list-wfs-ref:
+
+List Workflows
+~~~~~~~~~~~~~~
+
+.. automethod:: workflowtools.WorkflowTools.listworkflows
+
 .. _workflow-view-ref:
 
 Detailed Workflow View
@@ -219,6 +226,12 @@ Classifying Errors
    :members:
 
 .. automodule:: WorkflowWebTools.procedures
+
+List Workflows At Site
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.listpage
+   :members:
 
 JavaScript and Mako User Interface
 ----------------------------------

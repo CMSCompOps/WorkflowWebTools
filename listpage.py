@@ -5,27 +5,7 @@ This module provides lists of workflows/site errors/sites, given the other two v
 """
 
 
-from . import globalerrors
-
-
-def i_matching_pievars(pievar, row, col, session=None):
-    """
-    Return an iterator of variables in pievar, and number of errors
-    for a given rowname and colname
-
-    :param str pievar: The variable to return an iterator of
-    :param str row: Name of the row to match
-    :param str col: Name of the column to match
-    :param cherrypy.Session session: stores the session information
-    """
-
-    curs = globalerrors.check_session(session, True).curs
-    rowname, colname = globalerrors.get_row_col_names(pievar)
-
-    return list(curs.execute(('SELECT {0}, numbererrors FROM workflows '
-                              'WHERE {1}=? AND {2}=?'.
-                              format(pievar, rowname, colname)),
-                             (row, col)))
+from .globalerrors import list_matching_pievars
 
 
 def listworkflows(error_code, site_name, session=None):
@@ -42,7 +22,7 @@ def listworkflows(error_code, site_name, session=None):
 
     output_dict = {}
 
-    for step, numerrors in i_matching_pievars('stepname', error_code, site_name, session):
+    for step, numerrors in list_matching_pievars('stepname', error_code, site_name, session):
         workflow = step.split('/')[1]
         output_dict[workflow] = output_dict.get(workflow, 0) + numerrors
 

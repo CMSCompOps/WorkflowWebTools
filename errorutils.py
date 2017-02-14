@@ -25,6 +25,7 @@ def open_location(data_location):
     :param str data_location: The location of the file or url
     :returns: the file handle for the data or None if failed
     :rtype: file
+    :raises URLError: if the valid url fails to open
     """
     if os.path.isfile(data_location):
         return open(data_location, 'r')
@@ -35,9 +36,7 @@ def open_location(data_location):
                 return urllib2.urlopen(data_location)
             except urllib2.URLError as msg:
                 cherrypy.log(msg, 'while trying to open', data_location)
-
-    cherrypy.log('Nothing successfully opened. Returning None')
-    return None
+                raise
 
 
 def get_list_info(status_list):
@@ -82,10 +81,6 @@ def add_to_database(curs, data_location):
 
     else:
         res = open_location(data_location)
-
-        if not res:
-            return
-
         indict = json.load(res)
         res.close()
 
@@ -93,15 +88,18 @@ def add_to_database(curs, data_location):
 
     for stepname, errorcodes in indict.items():
         for errorcode, sitenames in errorcodes.items():
-            if not re.match(r'\d+', errorcode):
+            if errorcode == 'NotReported':
                 errorcode = '-1'
 
+            if not re.match(r'\d+', errorcode):
+                continue
+
             for sitename, numbererrors in sitenames.items():
+                if errorcode == '-1':
+                    numbererrors = 1
+
                 if not numbererrors:
-                    if errorcode == '-1':
-                        numbererrors = 1
-                    else:
-                        continue
+                    continue
 
                 full_key = '_'.join([stepname, sitename, errorcode])
                 if not curs.execute(

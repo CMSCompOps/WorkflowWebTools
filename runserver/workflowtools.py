@@ -441,7 +441,9 @@ class WorkflowTools(object):
     @cherrypy.expose
     def listworkflows(self, errorcode='', sitename=''):
         """
-        This simply returns a list of workflows that matches an errorcode and sitename
+        This simply returns a list of workflows that matches an errorcode and sitename.
+        It can be accessed directly by organizing :ref:`global-veiw-ref` with `pievar=stepname`,
+        and then clicking on the piechart corresponding to a given site and error code.
 
         :param int errorcode: Error to match
         :param str sitename: Site to match
