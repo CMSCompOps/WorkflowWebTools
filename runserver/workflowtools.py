@@ -443,7 +443,7 @@ class WorkflowTools(object):
     def listworkflows(self, errorcode='', sitename=''):
         """
         This simply returns a list of workflows that matches an errorcode and sitename.
-        It can be accessed directly by organizing :ref:`global-veiw-ref` with `pievar=stepname`,
+        It can be accessed directly by organizing :ref:`global-view-ref` with `pievar=stepname`,
         and then clicking on the piechart corresponding to a given site and error code.
 
         :param int errorcode: Error to match

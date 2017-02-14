@@ -97,6 +97,13 @@ Redoing the Workflow Clusters
 
 .. automethod:: workflowtools.WorkflowTools.cluster
 
+.. _procedures-ref:
+
+Workflows Procedures
+--------------------
+
+.. automodule:: WorkflowWebTools.procedures
+
 Running the Web Tools
 ---------------------
 
@@ -255,3 +262,7 @@ dabercro: |build-dabercro|
 
 .. |build| image:: https://travis-ci.org/CMSCompOps/WorkflowWebTools.svg?branch=master
     :target: https://travis-ci.org/CMSCompOps/WorkflowWebTools
+
+.. |br| raw:: html
+
+   <br>

@@ -9,3 +9,4 @@ pyOpenSSL
 pyyaml
 validators
 nltk
+tabulate

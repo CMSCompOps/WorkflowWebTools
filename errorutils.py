@@ -1,3 +1,5 @@
+# pylint:disable=too-complex
+
 """Simple utils functions that do not rely on a session.
 
 These are separated from globalerrors, since we do not need
@@ -81,8 +83,12 @@ def add_to_database(curs, data_location):
 
     else:
         res = open_location(data_location)
-        indict = json.load(res)
-        res.close()
+
+        try:
+            indict = json.load(res)
+            res.close()
+        except AttributeError:
+            indict = {}
 
     number_added = 0
 
