@@ -124,3 +124,5 @@ def create_table(curs):
         'stepname varchar(255), errorcode int, '
         'sitename varchar(255), numbererrors int, '
         'sitereadiness varchar(15))')
+    # Hopefully this makes lookups faster
+    curs.execute('CREATE INDEX composite_index ON workflows (stepname, errorcode, sitename)')

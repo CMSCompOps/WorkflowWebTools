@@ -13,6 +13,7 @@ Script to run the WorkflowWebTools server.
 
 import os
 import sys
+import time
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -451,10 +452,17 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        # Retry after ProgrammingError
+        try:
+            info=listpage.listworkflows(errorcode, sitename, cherrypy.session)
+        except sqlite3.ProgrammingError:
+            time.sleep(5)
+            return self.listworkflows(errorcode, sitename)
+
         return GET_TEMPLATE('listworkflows.html').render(
             errorcode=errorcode,
             sitename=sitename,
-            info=listpage.listworkflows(errorcode, sitename, cherrypy.session))
+            info=info)
 
 
 def secureheaders():
