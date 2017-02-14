@@ -1,0 +1,9 @@
+<%inherit file="simple.html"/>
+
+<%block name="title">Workflow List</%block>
+
+<h1>Workflows with exit code ${errorcode} at ${sitename}</h1>
+
+% for workflow, numbererr in info:
+<a href="seeworkflow?workflow=${workflow}">${workflow}</a>: ${numbererr} <br>
+% endfor

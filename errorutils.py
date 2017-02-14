@@ -1,3 +1,5 @@
+# pylint:disable=too-complex
+
 """Simple utils functions that do not rely on a session.
 
 These are separated from globalerrors, since we do not need
@@ -25,6 +27,7 @@ def open_location(data_location):
     :param str data_location: The location of the file or url
     :returns: the file handle for the data or None if failed
     :rtype: file
+    :raises URLError: if the valid url fails to open
     """
     if os.path.isfile(data_location):
         return open(data_location, 'r')
@@ -35,9 +38,7 @@ def open_location(data_location):
                 return urllib2.urlopen(data_location)
             except urllib2.URLError as msg:
                 cherrypy.log(msg, 'while trying to open', data_location)
-
-    cherrypy.log('Nothing successfully opened. Returning None')
-    return None
+                raise
 
 
 def get_list_info(status_list):
@@ -83,20 +84,26 @@ def add_to_database(curs, data_location):
     else:
         res = open_location(data_location)
 
-        if not res:
-            return
-
-        indict = json.load(res)
-        res.close()
+        try:
+            indict = json.load(res)
+            res.close()
+        except AttributeError:
+            indict = {}
 
     number_added = 0
 
     for stepname, errorcodes in indict.items():
         for errorcode, sitenames in errorcodes.items():
+            if errorcode == 'NotReported':
+                errorcode = '-1'
+
             if not re.match(r'\d+', errorcode):
                 continue
 
             for sitename, numbererrors in sitenames.items():
+                if errorcode == '-1':
+                    numbererrors = 1
+
                 if not numbererrors:
                     continue
 
@@ -123,3 +130,5 @@ def create_table(curs):
         'stepname varchar(255), errorcode int, '
         'sitename varchar(255), numbererrors int, '
         'sitereadiness varchar(15))')
+    # Hopefully this makes lookups faster
+    curs.execute('CREATE INDEX composite_index ON workflows (stepname, errorcode, sitename)')

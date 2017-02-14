@@ -3,7 +3,7 @@
   <head>
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
     <script>
       $(document).tooltip({
         content: function () {
@@ -36,7 +36,7 @@
             % endfor
             <input type="submit" value="Submit">
           </form>
-        </td>
+        </th>
 
         % if errordata['pievar'] == 'sitename':
           % for col in errordata['collist']:
@@ -70,10 +70,16 @@
           </th>
         % endif
 
-        % for title in title_list:
+        % for index, title in enumerate(title_list):
           <th title="${title}">
-            <canvas id="canvas" width="20" height="20" class="piechart">
-          </canvas></th>
+            % if errordata['pievar'] == 'stepname':
+              <a href="listworkflows?errorcode=${row['name'].split('>')[1].split('<')[0]}&sitename=${errordata['collist'][index]['name']}" target="blank">
+            % endif
+            <canvas id="canvas" width="20" height="20" class="piechart"></canvas>
+            % if errordata['pievar'] == 'stepname':
+              </a>
+            % endif
+          </th>
         % endfor
       </tr>
       % endfor

@@ -61,7 +61,7 @@ def extract_reasons_params(action, **kwargs):
             parameter = '_'.join(key.split('_')[2:])
 
             if action == 'recover':
-                which_task = kwargs['task_%s' % key.split('_')[1]]
+                which_task = kwargs.get('task_%s' % key.split('_')[1], 'AllSteps')
 
                 if not params.get(which_task):
                     params[which_task] = {}

@@ -13,6 +13,7 @@ Script to run the WorkflowWebTools server.
 
 import os
 import sys
+import time
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -25,6 +26,7 @@ if __name__ == '__main__':
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
 from WorkflowWebTools import showlog
+from WorkflowWebTools import listpage
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
@@ -436,6 +438,32 @@ class WorkflowTools(object):
             cherrypy.session.get('info').teardown()
             cherrypy.session.get('info').setup()
         return GET_TEMPLATE('complete.html').render()
+
+    @cherrypy.expose
+    def listworkflows(self, errorcode='', sitename=''):
+        """
+        This simply returns a list of workflows that matches an errorcode and sitename.
+        It can be accessed directly by organizing :ref:`global-view-ref` with `pievar=stepname`,
+        and then clicking on the piechart corresponding to a given site and error code.
+
+        :param int errorcode: Error to match
+        :param str sitename: Site to match
+        :returns: Page listing workflows
+        :rtype: str
+        """
+
+        # Retry after ProgrammingError
+        try:
+            info=listpage.listworkflows(errorcode, sitename, cherrypy.session)
+        except sqlite3.ProgrammingError:
+            time.sleep(5)
+            return self.listworkflows(errorcode, sitename)
+
+        return GET_TEMPLATE('listworkflows.html').render(
+            errorcode=errorcode,
+            sitename=sitename,
+            info=info)
+
 
 def secureheaders():
     """Generates secure headers for cherrypy Tool"""

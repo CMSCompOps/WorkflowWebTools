@@ -105,6 +105,11 @@ function makeParamTable(action) {
     }
 
     if (action.value == 'recover') {
+        var all_title = document.createElement("h3");
+        all_title.innerHTML = 'All Steps (use this or fill all others)'
+        paramDiv.appendChild(all_title);
+        paramDiv.appendChild(taskTable(opts, texts, task_list.length));
+
         for (task in task_list) {
             var title = document.createElement("h3");
             title.innerHTML = '<a href="#' + task_list[task] + '">'

@@ -34,6 +34,13 @@ The Global Error View
 
 .. automethod:: workflowtools.WorkflowTools.globalerror
 
+.. _list-wfs-ref:
+
+List Workflows
+~~~~~~~~~~~~~~
+
+.. automethod:: workflowtools.WorkflowTools.listworkflows
+
 .. _workflow-view-ref:
 
 Detailed Workflow View
@@ -89,6 +96,13 @@ Redoing the Workflow Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automethod:: workflowtools.WorkflowTools.cluster
+
+.. _procedures-ref:
+
+Workflows Procedures
+--------------------
+
+.. automodule:: WorkflowWebTools.procedures
 
 Running the Web Tools
 ---------------------
@@ -218,7 +232,11 @@ Classifying Errors
 .. automodule:: WorkflowWebTools.classifyerrors
    :members:
 
-.. automodule:: WorkflowWebTools.procedures
+List Workflows At Site
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.listpage
+   :members:
 
 JavaScript and Mako User Interface
 ----------------------------------
@@ -242,3 +260,7 @@ dabercro: |build-dabercro|
 
 .. |build| image:: https://travis-ci.org/CMSCompOps/WorkflowWebTools.svg?branch=master
     :target: https://travis-ci.org/CMSCompOps/WorkflowWebTools
+
+.. |br| raw:: html
+
+   <br>

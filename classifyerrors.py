@@ -1,6 +1,7 @@
 """
 This module reads the explain error info for a session and tries to
 classify them in a way that can help recommend procedures to the operator.
+These procedures are gathered from :py:mod:`WorkflowWebTools.procedures`.
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
