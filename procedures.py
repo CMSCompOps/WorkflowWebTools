@@ -1,7 +1,7 @@
 # pylint: disable=redefined-builtin
 
 """
-Here is the list of procedures:
+Here is the list of recommended procedures for various exit codes:
 
 %s
 
