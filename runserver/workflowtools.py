@@ -31,8 +31,8 @@ from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
 
-from CMSToolBox import reqmgrclient
 from CMSToolBox import sitereadiness
+from CMSToolBox.workflowinfo import WorkflowInfo
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'templates')
@@ -215,14 +215,18 @@ class WorkflowTools(object):
         print max_error
         print main_error_class
 
+        workflowinfo = WorkflowInfo(workflow)
+
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
                    similar_wfs=similar_wfs,
-                   params=reqmgrclient.get_workflow_parameters(workflow),
+                   workflowinfo=workflowinfo,
+                   params=workflowinfo.get_workflow_parameters(),
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    mainerror=max_error,
-                   classification=main_error_class
+                   classification=main_error_class,
+                   site_list=sitereadiness.site_list(),
                   )
 
     @cherrypy.expose

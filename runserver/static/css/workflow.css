@@ -1,5 +1,9 @@
 div.sitecheck {
     clear:right;
     float:left;
-    width:12em;
+    width:15em;
+}
+
+.clear {
+    clear: both;
 }

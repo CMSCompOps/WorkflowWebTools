@@ -83,6 +83,8 @@ function makeParamTable(action) {
     var texts = [];
     var opts = {};
 
+    var print_site_list = false;
+
     if (action.value == 'clone') {
         texts = [
                  'memory',
@@ -98,6 +100,7 @@ function makeParamTable(action) {
             'xrootd': ['enabled', 'disabled'],
             'splitting': ['2x', '3x', 'max'],
         };
+        print_site_list = true;
     } else if (action.value == 'investigate') {
         texts = [
                  'other',
@@ -117,6 +120,24 @@ function makeParamTable(action) {
                 + '</a>';
             paramDiv.appendChild(title);
             paramDiv.appendChild(taskTable(opts, texts, task));
+
+            if (print_site_list) {
+                for (site in sitelist) {
+                    var sitelistdiv = document.createElement('DIV');
+                    sitelistdiv.className = 'sitecheck';
+
+                    var isChecked = '';
+                    if (sites_for_task[task_list[task]].indexOf(sitelist[site]) >= 0)
+                        isChecked = ' checked';
+
+                    sitelistdiv.innerHTML = '<input type="checkbox" name="param_' + task + '_sites" value="' + 
+                        sitelist[site] + '"' + isChecked + '>' + sitelist[site] + '</input>';
+                    paramDiv.appendChild(sitelistdiv);
+                }
+                var clearBreak = document.createElement('BR');
+                clearBreak.className = 'clear';
+                paramDiv.appendChild(clearBreak);
+            }
         }
     } else {
         paramDiv.appendChild(taskTable(opts, texts, 0));
