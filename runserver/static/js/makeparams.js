@@ -127,8 +127,10 @@ function makeParamTable(action) {
                     sitelistdiv.className = 'sitecheck';
 
                     var isChecked = '';
-                    if (sites_for_task[task_list[task]].indexOf(sitelist[site]) >= 0)
+                    if (sites_for_task[task_list[task]].indexOf(sitelist[site]) >= 0) {
                         isChecked = ' checked';
+                        sitelistdiv.style.fontWeight = 'bold';
+                    }
 
                     sitelistdiv.innerHTML = '<input type="checkbox" name="param_' + task + '_sites" value="' + 
                         sitelist[site] + '"' + isChecked + '>' + sitelist[site] + '</input>';
