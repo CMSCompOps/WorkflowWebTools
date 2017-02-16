@@ -17,9 +17,11 @@
       % endfor
       };
       var sitelist = [
-        "Auto",
         "T1s",
         "T2s",
+      % for site in site_list:
+        "${site}",
+      % endfor
       ];
       var param_defaults = {
         "group": "DATAOPS",
@@ -29,6 +31,16 @@
         "${step}",
       % endfor
       ];
+      var sites_for_task = {
+      % for step, _ in workflowdata['steplist']:
+        "${step}": [
+        % for site in workflowinfo.site_to_run(step):
+          "${site}",
+        % endfor
+        ],
+      % endfor
+      }
+
     </script>
     <script src="/static/js/addreason.js"></script>
     <script src="/static/js/makeparams.js"></script>
