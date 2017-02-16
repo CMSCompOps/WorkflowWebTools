@@ -8,7 +8,8 @@ Here is the list of recommended procedures for various exit codes:
 The module :py:mod:`WorkflowWebTools.procedures`, which is used by
 :py:mod:`WorkflowWebTools.classifyerrors` contains only the ``PROCEDURES`` dictionary.
 The keys of this dictionary are the integer exit codes from the agent to act on.
-The values are dictionaries that contain ``'normal'`` and ``'additional'`` actions and a ``'cause'``.
+The values are dictionaries that contain ``'normal'`` and
+``'additional'`` actions and a ``'cause'``.
 The ``'additional'`` actions are dictionaries containing ``'re'`` and ``'action'``.
 The ``'re'`` field is a compiled regular expression to match to the logs.
 ``group(1)`` of this regular expression is taken to be a parameter to be displayed to the operator.
