@@ -9,6 +9,9 @@
 #   - Historic information
 #   - Location to fetch the current errors
 #   - Location to fetch the current errors' explanations
+#   - If any of these files are behind Shibboleth,
+#       cookie_file, cookie_pem, and cookie_key should be listed under data too.
+#       These keys are used as kwargs for :py:func:`CMSToolBox.get_json`
 #
 # - Valid email domains and specific whitelisted emails
 # - Actions stores the number of days to check the submission history for actions requested
@@ -26,6 +29,10 @@ data:
   workflow_history: test/history.db
   all_errors: test/errors.json
   explain_errors: test/explained.json
+# These are just here to show the proper location within the configuration
+#  cookie_file: optional
+#  cookie_pem: optional
+#  cookie_key: optional
 valid_emails:
   domains:
     - cern.ch
