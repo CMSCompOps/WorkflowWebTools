@@ -7,7 +7,6 @@ Generates the content for the errors pages
 """
 
 import os
-import json
 import sqlite3
 import time
 import validators
@@ -116,16 +115,11 @@ class ErrorInfo(object):
         data_location = serverconfig.explain_errors_path()
 
         if not (os.path.isfile(data_location) or validators.url(data_location)):
-            self.info = self.curs, allsteps, allerrors, allsites, dict()
+            self.info = self.curs, allsteps, allerrors, allsites, {}
 
         else:
-            res = errorutils.open_location(data_location)
-
-            if res:
-                self.info = self.curs, allsteps, allerrors, allsites, json.load(res)
-                res.close()
-            else:
-                self.info = self.curs, allsteps, allerrors, allsites, {}
+            self.info = self.curs, allsteps, allerrors, allsites, \
+                errorutils.open_location(data_location)
 
         self.allsteps = allsteps
 

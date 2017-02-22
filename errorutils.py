@@ -1,5 +1,3 @@
-# pylint:disable=too-complex
-
 """Simple utils functions that do not rely on a session.
 
 These are separated from globalerrors, since we do not need
@@ -11,35 +9,44 @@ to generate an ErrorInfo instance in other applications.
 
 import os
 import json
-import urllib2
 import re
+import urlparse
+
 import validators
 import cherrypy
 
 from CMSToolBox import workflowinfo
 from CMSToolBox import sitereadiness
+from CMSToolBox.webtools import get_json
 
+from . import serverconfig
 
 def open_location(data_location):
     """
-    Opens the data location and returns the file handle.
+    This function assumes that the contents of the location is in JSON format.
+    It opens the data location and returns the dictionary.
 
     :param str data_location: The location of the file or url
-    :returns: the file handle for the data or None if failed
-    :rtype: file
-    :raises URLError: if the valid url fails to open
+    :returns: information in the JSON file
+    :rtype: dict
     """
     if os.path.isfile(data_location):
-        return open(data_location, 'r')
+        with open(data_location, 'r') as input_file:
+            output = json.load(input_file)
+
+        return output
 
     else:
         if validators.url(data_location):
-            try:
-                return urllib2.urlopen(data_location)
-            except urllib2.URLError as msg:
-                cherrypy.log(msg, 'while trying to open', data_location)
-                raise
+            components = urlparse.urlparse(data_location)
 
+            # Anything we need for the Shibboleth cookie could be in the config file
+            cookie_stuff = serverconfig.config_dict()['data']
+
+            return get_json(components.netloc, components.path,
+                            cookie_file=cookie_stuff.get('cookie_file'),
+                            cookie_pem=cookie_stuff.get('cookie_pem'),
+                            cookie_key=cookie_stuff.get('cookie_key'))
 
 def get_list_info(status_list):
     """
@@ -82,13 +89,7 @@ def add_to_database(curs, data_location):
         indict = get_list_info(data_location)
 
     else:
-        res = open_location(data_location)
-
-        try:
-            indict = json.load(res)
-            res.close()
-        except AttributeError:
-            indict = {}
+        indict = open_location(data_location) or {}
 
     number_added = 0
 
