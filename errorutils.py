@@ -34,7 +34,7 @@ def open_location(data_location):
         with open(data_location, 'r') as input_file:
             output = json.load(input_file)
 
-        return output or {}
+        return output
 
     else:
         if validators.url(data_location):
@@ -89,7 +89,7 @@ def add_to_database(curs, data_location):
         indict = get_list_info(data_location)
 
     else:
-        indict = open_location(data_location)
+        indict = open_location(data_location) or {}
 
     number_added = 0
 
