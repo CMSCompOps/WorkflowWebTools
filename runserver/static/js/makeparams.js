@@ -98,6 +98,7 @@ function makeParamTable(action) {
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],
+            'secondary': ['enabled', 'disabled'],
             'splitting': ['2x', '3x', 'max'],
         };
         print_site_list = true;
