@@ -32,7 +32,7 @@ from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
 
 from CMSToolBox import sitereadiness
-from CMSToolBox.workflowinfo import WorkflowInfo
+from CMSToolBox.workflowinfo import explain_errors
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'templates')
@@ -210,12 +210,12 @@ class WorkflowTools(object):
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
         max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-        main_error_class = classifyerrors.classifyerror(max_error, cherrypy.session)
+        main_error_class = classifyerrors.classifyerror(max_error, workflow)
 
         print max_error
         print main_error_class
 
-        workflowinfo = WorkflowInfo(workflow)
+        workflowinfo = globalerrors.check_session(cherrypy.session).get_workflow(workflow)
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
@@ -324,14 +324,19 @@ class WorkflowTools(object):
         :rtype: str
         """
 
-        if errorcode == "0":
+        if errorcode == '0':
             return 'Need to specify error. Follow link from workflow tables.'
+
+        workflow = workflowstep.split('/')[1]
+        if workflow:
+            errs_explained = globalerrors.check_session(cherrypy.session).get_workflow(workflow).get_explanation(errorcode)
+        else:
+            errs_explained = globalerrors.check_session(cherrypy.session).\
+                get_errors_explained().get(errorcode, ['No info for this error code'])
 
         return GET_TEMPLATE('explainerror.html').\
             render(error=errorcode,
-                   explanation=globalerrors.check_session(cherrypy.session).\
-                       get_errors_explained().\
-                       get(errorcode, ['No info for this error code']),
+                   explanation=errs_explained,
                    source=workflowstep)
 
     @cherrypy.expose

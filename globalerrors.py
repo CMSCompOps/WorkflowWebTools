@@ -13,6 +13,7 @@ import validators
 import cherrypy
 
 from CMSToolBox import sitereadiness
+from CMSToolBox import workflowinfo
 
 from . import errorutils
 from . import serverconfig
@@ -38,6 +39,8 @@ class ErrorInfo(object):
         self.readiness = None
         # This is created in clusterworkflows.get_workflow_groups()
         self.clusters = None
+        # These are set in get_workflow()
+        self.workflowinfos = {}
 
         self.setup()
 
@@ -171,6 +174,11 @@ class ErrorInfo(object):
 
         return wfs
 
+    def get_workflow(self, workflow):
+        if not self.workflowinfos.get(workflow):
+            self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
+
+        return self.workflowinfos[workflow]
 
     def get_step_list(self, workflow):
         """Gets the list of steps within a workflow
