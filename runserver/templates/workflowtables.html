@@ -39,7 +39,12 @@
         % endfor
         ],
       % endfor
-      }
+      };
+      var drain_statuses = {
+      % for site, stat in drain_statuses.iteritems():
+      "${site}": "${stat}",
+      % endfor
+      };
 
     </script>
     <script src="/static/js/addreason.js"></script>

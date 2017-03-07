@@ -217,6 +217,8 @@ class WorkflowTools(object):
 
         workflowinfo = globalerrors.check_session(cherrypy.session).get_workflow(workflow)
 
+        drain_statuses = {sitename: drain for sitename, _, drain in sitereadiness.i_site_readiness()}
+
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
                    workflow=workflow, issuggested=issuggested,
@@ -226,7 +228,8 @@ class WorkflowTools(object):
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    mainerror=max_error,
                    classification=main_error_class,
-                   site_list=sitereadiness.site_list(),
+                   site_list=sorted(drain_statuses.keys()),
+                   drain_statuses=drain_statuses
                   )
 
     @cherrypy.expose
