@@ -153,11 +153,11 @@ PROCEDURES = {
         'normal': 'Strong failure, report immediately'
         },
     71104: {
+        'normal': ('Copy input files from tape (?) or '
+                   'wait for site listed to come out of drain.'),
+        'cause': 'Site containing only available copy of input datasets is in drain.',
         'additional': {
-            're': re.compile(r'The job can run only at .*(T[12].*)'),
-            'action': ('The listed site contains the only data this workflow can run on. '
-                       'You need to wait for the site to be available or '
-                       'copy the data elsewhere (from tape?)')
+            're': re.compile(r'The job can run only at .*(T[12].*)')
             }
         }
     }
