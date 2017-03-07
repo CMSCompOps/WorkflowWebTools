@@ -210,7 +210,7 @@ class WorkflowTools(object):
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
         max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-        main_error_class = classifyerrors.classifyerror(max_error, workflow)
+        main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
 
         print max_error
         print main_error_class
