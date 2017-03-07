@@ -8,10 +8,10 @@ These procedures are gathered from :py:mod:`WorkflowWebTools.procedures`.
 
 import re
 
-from .globalerrors import check_session
 from .procedures import PROCEDURES
+from .globalerrors import check_session
 
-def classifyerror(errorcode, session=None):
+def classifyerror(errorcode, workflow, session=None):
     """
     Return the most relevant characteristics of an error code for this session.
     This will include things like:
@@ -24,7 +24,8 @@ def classifyerror(errorcode, session=None):
        More error types should be added to this function as needed
 
     :param int errorcode: The error code that we want to classify
-    :param cherrypy.Session session: the current session
+    :param str workflow: the workflow that we want to get the errors from
+    :param cherrypy.Session session: Is the user's cherrypy session
     :returns: A tuple of strings describing the key characteristics of the errorcode.
               These strings are good for printing directly in web browsers.
               The first string is the types of errors reported with this error code.
@@ -35,8 +36,7 @@ def classifyerror(errorcode, session=None):
 
     procedure = PROCEDURES.get(errorcode, {})
 
-    logs = check_session(session).get_errors_explained().\
-        get(str(errorcode), [])
+    logs = check_session(session).get_workflow(workflow).get_explanation(errorcode)
 
     error_re = re.compile(r'[\w\s]+ \(Exit code: (\d+)\)')
     error_types = {}

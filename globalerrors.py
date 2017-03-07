@@ -13,6 +13,7 @@ import validators
 import cherrypy
 
 from CMSToolBox import sitereadiness
+from CMSToolBox import workflowinfo
 
 from . import errorutils
 from . import serverconfig
@@ -38,6 +39,8 @@ class ErrorInfo(object):
         self.readiness = None
         # This is created in clusterworkflows.get_workflow_groups()
         self.clusters = None
+        # These are set in get_workflow()
+        self.workflowinfos = {}
 
         self.setup()
 
@@ -161,7 +164,7 @@ class ErrorInfo(object):
 
     def return_workflows(self):
         """
-        :returns: the set of all workflow names
+        :returns: the set of all workflow prep IDs that need attention
         :rtype: set
         """
         wfs = set()
@@ -171,6 +174,19 @@ class ErrorInfo(object):
 
         return wfs
 
+    def get_workflow(self, workflow):
+        """
+        This should be used to get the workflow info so that there is no
+        redundant fetching for a single session.
+
+        :param str workflow: The prep ID for a workflow
+        :returns: Cached WorkflowInfo from the ToolBox.
+        :rtype: CMSToolBox.workflowinfo.WorkflowInfo
+        """
+        if not self.workflowinfos.get(workflow):
+            self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
+
+        return self.workflowinfos[workflow]
 
     def get_step_list(self, workflow):
         """Gets the list of steps within a workflow

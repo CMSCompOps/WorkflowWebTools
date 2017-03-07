@@ -98,6 +98,7 @@ function makeParamTable(action) {
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],
+            'secondary': ['enabled', 'disabled'],
             'splitting': ['2x', '3x', 'max'],
         };
         print_site_list = true;
@@ -109,7 +110,7 @@ function makeParamTable(action) {
 
     if (action.value == 'recover') {
         var all_title = document.createElement("h3");
-        all_title.innerHTML = 'All Steps (use this or fill all others)'
+        all_title.innerHTML = 'All Steps (use this or fill all others)';
         paramDiv.appendChild(all_title);
         paramDiv.appendChild(taskTable(opts, texts, task_list.length));
 
@@ -122,9 +123,16 @@ function makeParamTable(action) {
             paramDiv.appendChild(taskTable(opts, texts, task));
 
             if (print_site_list) {
+                var site_list_message = document.createElement('DIV');
+                site_list_message.style.fontWeight="900";
+                site_list_message.innerHTML = '<span style="color:red">Red sites</span> are sites in drain.';
+                paramDiv.appendChild(site_list_message);
                 for (site in sitelist) {
                     var sitelistdiv = document.createElement('DIV');
                     sitelistdiv.className = 'sitecheck';
+
+                    if (drain_statuses[sitelist[site]] == 'drain')
+                        sitelistdiv.style.color = 'red';
 
                     var isChecked = '';
                     if (sites_for_task[task_list[task]].indexOf(sitelist[site]) >= 0) {

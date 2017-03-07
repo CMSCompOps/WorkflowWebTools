@@ -39,7 +39,12 @@
         % endfor
         ],
       % endfor
-      }
+      };
+      var drain_statuses = {
+      % for site, stat in drain_statuses.iteritems():
+      "${site}": "${stat}",
+      % endfor
+      };
 
     </script>
     <script src="/static/js/addreason.js"></script>
@@ -68,7 +73,7 @@
     <div style="float:left; width:50%">
 
       <span style="font-weight:bold;">Dominant Error Code:</span>
-      <a href="/explainerror?errorcode=${mainerror}">${mainerror}</a>
+      <a href="/explainerror?errorcode=${mainerror}&workflowstep=/${workflow}">${mainerror}</a>
       <br>
       <span style="font-weight:bold;">Types Of Errors:</span> <br>
       % if classification[0]:

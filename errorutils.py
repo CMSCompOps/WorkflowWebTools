@@ -98,7 +98,7 @@ def add_to_database(curs, data_location):
             if errorcode == 'NotReported':
                 errorcode = '-1'
 
-            if not re.match(r'\d+', errorcode):
+            if not re.match(r'-?\d+', errorcode):
                 continue
 
             for sitename, numbererrors in sitenames.items():
