@@ -36,7 +36,7 @@ def classifyerror(errorcode, workflow, session=None):
 
     procedure = PROCEDURES.get(errorcode, {})
 
-    logs = check_session(session).get_workflow(workflow).get_explanation(errorcode)
+    logs = check_session(session).get_workflow(workflow).get_explanation(str(errorcode))
 
     error_re = re.compile(r'[\w\s]+ \(Exit code: (\d+)\)')
     error_types = {}
@@ -56,10 +56,7 @@ def classifyerror(errorcode, workflow, session=None):
                 continue
 
             if additional_re:
-                print 'Checking add'
                 add_match = additional_re.search(line)
-                print add_match
-                print add_match is None
                 if add_match and add_match.group(1) not in additional_params:
                     additional_params.append(add_match.group(1))
 
