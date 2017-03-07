@@ -24,7 +24,7 @@ def classifyerror(errorcode, workflow, session=None):
        More error types should be added to this function as needed
 
     :param int errorcode: The error code that we want to classify
-    :param str: the workflow that we want to get the errors from
+    :param str workflow: the workflow that we want to get the errors from
     :param cherrypy.Session session: Is the user's cherrypy session
     :returns: A tuple of strings describing the key characteristics of the errorcode.
               These strings are good for printing directly in web browsers.

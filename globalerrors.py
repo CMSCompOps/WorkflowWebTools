@@ -164,7 +164,7 @@ class ErrorInfo(object):
 
     def return_workflows(self):
         """
-        :returns: the set of all workflow names
+        :returns: the set of all workflow prep IDs that need attention
         :rtype: set
         """
         wfs = set()
@@ -175,6 +175,14 @@ class ErrorInfo(object):
         return wfs
 
     def get_workflow(self, workflow):
+        """
+        This should be used to get the workflow info so that there is no
+        redundant fetching for a single session.
+
+        :param str workflow: The prep ID for a workflow
+        :returns: Cached WorkflowInfo from the ToolBox.
+        :rtype: CMSToolBox.workflowinfo.WorkflowInfo
+        """
         if not self.workflowinfos.get(workflow):
             self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
 
