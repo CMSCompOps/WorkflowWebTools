@@ -152,6 +152,14 @@ PROCEDURES = {
     8002: {
         'normal': 'Strong failure, report immediately'
         },
+    71104: {
+        'additional': {
+            're': re.compile(r'The job can run only at .*(T[12].*)'),
+            'action': ('The listed site contains the only data this workflow can run on. '
+                       'You need to wait for the site to be available or '
+                       'copy the data elsewhere (from tape?)')
+            }
+        }
     }
 
 # Here is a list comprehension to make you cry.
