@@ -176,7 +176,10 @@
 
               <div id="wflist">
                 % for wf in similar_wfs:
-                <input type="checkbox" name="workflows" value="${wf}"><a target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
+                <%
+                   acted_class = 'acted' if (wf in acted_workflows) else 'notacted'
+                %>
+                <input type="checkbox" name="workflows" value="${wf}"><a class="${acted_class}" target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
                 % endfor
               </div>
             </div>

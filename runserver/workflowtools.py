@@ -227,6 +227,8 @@ class WorkflowTools(object):
                    params=workflowinfo.get_workflow_parameters(),
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    mainerror=max_error,
+                   acted_workflows=manageactions.get_acted_workflows(
+                    serverconfig.get_history_length()),
                    classification=main_error_class,
                    site_list=sorted(drain_statuses.keys()),
                    drain_statuses=drain_statuses
@@ -474,6 +476,8 @@ class WorkflowTools(object):
         return GET_TEMPLATE('listworkflows.html').render(
             errorcode=errorcode,
             sitename=sitename,
+            acted_workflows=manageactions.get_acted_workflows(
+                serverconfig.get_history_length()),
             info=info)
 
 
