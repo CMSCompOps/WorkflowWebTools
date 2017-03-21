@@ -35,6 +35,9 @@ function taskTable(opts, texts, taskNumber) {
             option.setAttribute("type", "radio");
             option.setAttribute("name", "param_" + taskNumber + "_" + key);
             option.setAttribute("value", opts[key][opt]);
+            option.ondblclick = function() {
+                this.checked = false;
+            }
             optionDiv.appendChild(option);
 
         }

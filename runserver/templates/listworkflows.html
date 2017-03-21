@@ -5,5 +5,8 @@
 <h1>Workflows with exit code ${errorcode} at ${sitename}</h1>
 
 % for workflow, numbererr in info:
-<a href="seeworkflow?workflow=${workflow}">${workflow}</a>: ${numbererr} <br>
+<%
+   acted_class = 'acted' if (workflow in acted_workflows) else 'notacted'
+%>
+<a class="${acted_class}" href="seeworkflow?workflow=${workflow}">${workflow}</a>: ${numbererr} <br>
 % endfor
