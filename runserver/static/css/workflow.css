@@ -7,3 +7,7 @@ div.sitecheck {
 .clear {
     clear: both;
 }
+
+.acted {
+    background-color:#00ff00;
+}
