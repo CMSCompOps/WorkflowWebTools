@@ -221,7 +221,8 @@ class WorkflowTools(object):
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
-                   workflow=workflow, issuggested=issuggested,
+                   workflow=workflow,
+                   issuggested=issuggested,
                    similar_wfs=similar_wfs,
                    workflowinfo=workflowinfo,
                    params=workflowinfo.get_workflow_parameters(),

@@ -285,15 +285,23 @@ def see_workflow(workflow, session=None):
     steplist = check_session(session).get_step_list(workflow)
 
     tables = []
+    # Each key is a step, and contains a list of sites to not put in the table
+    skip_site = {}
 
     for step in steplist:
+        skip_site[step] = {'sites': [], 'index': []}
         steptable = get_step_table(step, session)
         tables.append(zip(steptable, allerrors))
+        for index, site in enumerate(allsites):
+            if sum([row[index] for row in steptable]) == 0:
+                skip_site[step]['index'].append(index)
+                skip_site[step]['sites'].append(site)
 
     return {
         'steplist':  zip(steplist, tables),
         'allerrors': allerrors,
         'allsites':  allsites,
+        'skips': skip_site,
         'reasonslist': reasons_list(),
         }
 
