@@ -210,7 +210,9 @@
         <th>
         </th>
         % for site, status in zip(workflowdata['allsites'], readiness):
+        % if site not in workflowdata['skips'][step]['sites']:
         <th class="rotate ${status}"><div>${site}</div></th>
+        % endif
         % endfor
       </tr>
       
@@ -219,11 +221,13 @@
         <th><a href="/explainerror?errorcode=${error}&workflowstep=${step}">
             ${error}
         </a></th>
-        % for entry in tablerow:
+        % for index, entry in enumerate(tablerow):
+        % if index not in workflowdata['skips'][step]['index']:
         % if entry == 0:
         <td>${entry}</td>
         % else:
         <td style="background-color:#ef4f4f;">${entry}</td>
+        % endif
         % endif
         % endfor
       </tr>
