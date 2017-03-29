@@ -1,3 +1,5 @@
+# pylint: disable=too-many-locals
+
 """Module to manage actions of WorkflowWebTools.
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
@@ -114,7 +116,6 @@ def submitaction(user, workflows, action, session, **kwargs):
             all_steps = wf_params.pop('AllSteps')
             banned_sites = wf_params.pop('Ban', {'sites': []})['sites']
 
-            workflowinfo = check_session(session).get_workflow(workflow)
             # Fill empty parameters for each step from AllSteps
             for step_name in check_session(session).get_step_list(workflow):
                 short_step_name = '/'.join(step_name.split('/')[2:])
@@ -132,8 +133,9 @@ def submitaction(user, workflows, action, session, **kwargs):
                 if kwargs.get('method', 'Manual') != 'Manual':
                     # Banned sites would show up under 'AllSteps'
                     wf_params[short_step_name]['sites'] = \
-                        [site for site in workflowinfo.site_to_run(step_name) \
-                             if site not in banned_sites]
+                        [site for site in \
+                             check_session(session).get_workflow(workflow).\
+                             site_to_run(step_name) if site not in banned_sites]
 
         add_to_json[workflow] = {
             'Action': action,
