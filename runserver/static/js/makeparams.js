@@ -16,7 +16,17 @@ The fields added by this script are handled by the :py:mod:`WorkflowWebTools.man
 */
 
 function taskTable(opts, texts, taskNumber) {
+    /*"""
+    .. function:: taskTable(opts, texts, taskNumber)
 
+    Creates a "table" for parameters to be filled in and returns the <div> these are contained in.
+
+    :param dict opts: Each key is the name of the parameter.
+                      Each value is the list of possible values for this parameter.
+    :param list texts: A list of parameters that should be set by a text field.
+    :param int taskNumber: Separates the different parameters for each task in ACDC.
+    :returns: The <div> element that contains the table
+    */
     var paramDiv = document.createElement("DIV");
     paramDiv.innerHTML = '';
     paramDiv.style.padding = "10px";
@@ -112,6 +122,8 @@ function makeParamTable(action) {
     }
 
     if (action.value == 'recover') {
+        // ACDC is the most complex action, and needs parameters for each task and sites.
+
         var all_title = document.createElement("h3");
         all_title.innerHTML = 'All Steps (use this or fill all others)';
         paramDiv.appendChild(all_title);
