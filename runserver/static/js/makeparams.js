@@ -85,7 +85,8 @@ function printSiteList(method, task, siteTableDiv) {
         sitelistdiv.className = 'sitecheck';
 
         var isChecked = '';
-        if (drain_statuses[sitelist[site]] == 'drain') {
+        if (drain_statuses[sitelist[site]] == 'drain' ||
+            drain_statuses[sitelist[site]] == 'disabled') {
             if (method.value == 'Ban')
                 isChecked = ' checked';
             sitelistdiv.style.color = 'red';
