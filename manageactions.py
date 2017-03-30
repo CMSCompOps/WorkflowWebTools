@@ -79,7 +79,7 @@ def extract_reasons_params(action, **kwargs):
     return reasons + notupdate, params
 
 
-def submitaction(user, workflows, action, session, **kwargs):
+def submitaction(user, workflows, action, session=None, **kwargs):
     """Writes the action to Unified and notifies the user that this happened
 
     :param str user: is the user that submitted the action
@@ -113,7 +113,7 @@ def submitaction(user, workflows, action, session, **kwargs):
         wf_params = dict(params)
         # For recovery, get the proper sites and parameters out for each step
         if action == 'recover':
-            all_steps = wf_params.pop('AllSteps')
+            all_steps = wf_params.pop('AllSteps', {})
             banned_sites = wf_params.pop('Ban', {'sites': []})['sites']
 
             # Fill empty parameters for each step from AllSteps
