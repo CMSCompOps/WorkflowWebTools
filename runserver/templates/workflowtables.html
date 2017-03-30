@@ -215,6 +215,7 @@
       </tr>
       
       % for tablerow, error in table:
+      % if sum(tablerow) != 0:
       <tr>
         <th><a href="/explainerror?errorcode=${error}&workflowstep=${step}">
             ${error}
@@ -229,6 +230,7 @@
         % endif
         % endfor
       </tr>
+      % endif
       % endfor
       
     </table>

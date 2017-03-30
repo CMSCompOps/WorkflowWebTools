@@ -336,7 +336,8 @@ class WorkflowTools(object):
 
         workflow = workflowstep.split('/')[1]
         if workflow:
-            errs_explained = globalerrors.check_session(cherrypy.session).get_workflow(workflow).get_explanation(errorcode)
+            errs_explained = globalerrors.check_session(cherrypy.session).\
+                get_workflow(workflow).get_explanation(errorcode, workflowstep)
         else:
             errs_explained = globalerrors.check_session(cherrypy.session).\
                 get_errors_explained().get(errorcode, ['No info for this error code'])
