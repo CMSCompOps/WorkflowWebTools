@@ -77,7 +77,7 @@ function taskTable(opts, texts, taskNumber) {
 function printSiteList(method, task, siteTableDiv) {
     var site_list_message = document.createElement('DIV');
     site_list_message.style.fontWeight="900";
-    site_list_message.innerHTML = '<span style="color:red">Red sites</span> are sites in drain.';
+    site_list_message.innerHTML = '<span style="color:red">Red sites</span> are sites in drain or disabled.';
     siteTableDiv.appendChild(site_list_message);
 
     for (site in sitelist) {
