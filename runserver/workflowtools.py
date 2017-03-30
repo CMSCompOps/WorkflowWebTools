@@ -253,7 +253,8 @@ class WorkflowTools(object):
             return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
 
         workflows, reasons, params = manageactions.\
-            submitaction(cherrypy.request.login, workflows, action, **kwargs)
+            submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
+                         **kwargs)
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,
