@@ -111,14 +111,15 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
     for workflow in workflows:
         wf_params = dict(params)
+        step_list = check_session(session).get_step_list(workflow)
+        short_step_list = ['/'.join(step.split('/')[2:]) for step in step_list]
         # For recovery, get the proper sites and parameters out for each step
         if action == 'recover':
             all_steps = wf_params.pop('AllSteps', {})
             banned_sites = wf_params.pop('Ban', {'sites': []})['sites']
 
             # Fill empty parameters for each step from AllSteps
-            for step_name in check_session(session).get_step_list(workflow):
-                short_step_name = '/'.join(step_name.split('/')[2:])
+            for short_step_name, step_name in zip(short_step_list, step_list):
                 # Get any existing thing (most likely not there)
                 step_params = wf_params.get(short_step_name, {})
 
@@ -136,6 +137,10 @@ def submitaction(user, workflows, action, session=None, **kwargs):
                         [site for site in \
                              check_session(session).get_workflow(workflow).\
                              site_to_run(step_name) if site not in banned_sites]
+
+        # Only keep the workflow parameters with steps that occur in given workflow
+        wf_params = {key: wf_params[key] for key in wf_params \
+                         if key in short_step_list}
 
         add_to_json[workflow] = {
             'Action': action,
