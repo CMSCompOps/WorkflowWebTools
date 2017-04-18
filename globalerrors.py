@@ -262,7 +262,7 @@ def get_step_table(step, session=None, allmap=None):
                          (site, error, step))
             numbererrors = curs.fetchall()
 
-            if len(numbererrors) == 0:
+            if not numbererrors:
                 steprow.append(0)
             else:
                 steprow.append(numbererrors[0][0])
