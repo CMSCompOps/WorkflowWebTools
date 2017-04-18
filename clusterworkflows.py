@@ -152,7 +152,7 @@ def get_clusterer(history_path, errors_path=''):
         workflow_array = get_workflow_vector(workflow, fake_session)
 
         # Bad training data returns empty list
-        if workflow_array:
+        if workflow_array.any():
             data.append(workflow_array)
 
     cherrypy.log('Number of datapoints to cluster: %i' % len(data))
