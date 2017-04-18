@@ -5,21 +5,14 @@
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
-import os
-import json
-import glob
-import sqlite3
-
-from datetime import datetime
-from datetime import timedelta
+import time
 
 import cherrypy
+import pymongo
 
+from . import serverconfig
 from . import reasonsmanip
 from .globalerrors import check_session
-
-ACTIONS_DIRECTORY = 'actions'
-"""The location to store the actions JSON files"""
 
 def extract_reasons_params(action, **kwargs):
     """Extracts the reasons and parameters for an action from kwargs
@@ -93,18 +86,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
     reasons, params = extract_reasons_params(action, **kwargs)
 
-    if not os.path.exists(ACTIONS_DIRECTORY):
-        os.makedirs(ACTIONS_DIRECTORY)
-
-    output_file_name = os.path.join(
-        ACTIONS_DIRECTORY, '{0}_{1}.json'.\
-            format(user, datetime.now().strftime('%Y%m%d'))
-        )
-
-    add_to_json = {}
-    if os.path.isfile(output_file_name):
-        with open(output_file_name, 'r') as outputfile:
-            add_to_json = json.load(outputfile)
+    coll = get_actions_collection()
 
     if not isinstance(workflows, list):
         workflows = [workflows]
@@ -138,62 +120,49 @@ def submitaction(user, workflows, action, session=None, **kwargs):
                              check_session(session).get_workflow(workflow).\
                              site_to_run(step_name) if site not in banned_sites]
 
-        # Only keep the workflow parameters with steps that occur in given workflow
-        wf_params = {key: wf_params[key] for key in wf_params \
-                         if key in short_step_list}
+            # Only keep the workflow parameters with steps that occur in given workflow
+            wf_params = {key: wf_params[key] for key in wf_params \
+                             if key in short_step_list}
 
-        add_to_json[workflow] = {
+        document = {
             'Action': action,
             'Parameters': wf_params,
-            'Reasons': [reason['long'] for reason in reasons]
+            'Reasons': [reason['long'] for reason in reasons],
+            'user': user
             }
 
-    with open(output_file_name, 'w') as outputfile:
-        json.dump(add_to_json, outputfile)
+        cherrypy.log('About to insert workflow: %s action: %s' % (workflow, document))
+
+        coll.update_one({'workflow': workflow},
+                        {'$set':
+                             {'timestamp': int(time.time()),
+                              'parameters': document,
+                              'acted': 0}},
+                        upsert=True)
 
     return workflows, reasons, params
 
 
-def get_prev_actions(num_days):
-    """Get the keys and values of recent actions
+def get_actions(num_days=None, num_hours=24):
+    """Get the recent actions to be acted on in dictionary form
 
     :param int num_days: is the number of days to check for actions
-    :rtype: generator
-    """
-
-    date = datetime.now()
-    date_int = int(date.strftime('%Y%m%d'))
-    prev_int = int((date - timedelta(num_days)).strftime('%Y%m%d'))
-
-    for match in glob.iglob(os.path.join(ACTIONS_DIRECTORY, '*.json')):
-        check_int = int(match.split('_')[-1].rstrip('.json'))
-        if prev_int <= check_int <= date_int:
-            with open(match, 'r') as infile:
-                output = json.load(infile)
-                for key, value in output.iteritems():
-                    value['user'] = match.split('/')[-1].split('_')[0]
-                    yield key, value
-
-
-def get_actions(num_days):
-    """Get the recent actions to be act on in dictionary form
-
-    :param int num_days: is the number of days to check for actions
+    :param int num_hours: can be used instead of num_days for finer granularity.
+                          If ``num_days`` is given, ``num_hours`` is ignored.
     :returns: A dictionary of actions, to be rendered as JSON
     :rtype: dict
     """
 
+    if num_days:
+        num_hours = num_days * 24
+
     output = {}
+    coll = get_actions_collection()
 
-    conn, curs = get_actions_db()
+    age_to_compare = int(time.time()) - num_hours * 3600
 
-    for key, value in get_prev_actions(num_days):
-        curs.execute('SELECT workflow FROM actions WHERE workflow=?',
-                     (key,))
-        if not curs.fetchone():
-            output[key] = value
-
-    conn.close()
+    for match in coll.find({'timestamp': {'$gt': age_to_compare}, 'acted': 0}):
+        output[match['workflow']] = match['parameters']
 
     return output
 
@@ -210,7 +179,7 @@ def get_acted_workflows(num_days):
 
     workflows = []
 
-    for key, _ in get_prev_actions(num_days):
+    for key in list(get_actions(num_days)):
         workflows.append(key)
 
     return workflows
@@ -221,30 +190,24 @@ def report_actions(workflows):
 
     :param list workflows: is the list of workflows to no longer show
     """
-    conn, curs = get_actions_db()
+    coll = get_actions_collection()
 
-    for workflow in workflows:
-        try:
-            curs.execute('INSERT INTO actions VALUES (?)', (workflow,))
-        except sqlite3.IntegrityError:
-            cherrypy.log('Workflow %s has already been reported' % workflow)
-
-    conn.commit()
-    conn.close()
+    coll.update_many({'workflow': {'$in': workflows}, 'acted': 0},
+                     {'$set': {'acted': 1}})
 
 
-def get_actions_db():
-    """Gets the actions database in the local directory.
+def get_actions_collection():
+    """Gets the actions collection from MongoDB.
 
-    :returns: the actions connection, cursor
-    :rtype: (sqlite3.Connection, sqlite3.Cursor)
+    :returns: the actions collection
+    :rtype: pymongo.collection.Collection
     """
 
-    conn = sqlite3.connect(os.path.join(reasonsmanip.LOCATION, 'actions.db'))
-    curs = conn.cursor()
-    curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="actions"')
+    client = pymongo.MongoClient()
+    coll = client[serverconfig.config_dict()['actions']['database']].actions
 
-    if not curs.fetchone():
-        curs.execute('CREATE TABLE actions (workflow varchar(255) PRIMARY KEY)')
+    if 'workflow' not in list(coll.index_information()):
+        coll.create_index([('workflow', pymongo.TEXT)],
+                          name='workflow', unique=True)
 
-    return conn, curs
+    return coll

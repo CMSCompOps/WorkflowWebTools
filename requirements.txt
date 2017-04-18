@@ -10,3 +10,5 @@ pyyaml
 validators
 nltk
 tabulate
+pymongo
+MySQL-python

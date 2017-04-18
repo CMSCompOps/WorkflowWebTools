@@ -41,6 +41,7 @@ valid_emails:
 actions:
   submithistory: 2
   key: testkey
+  database: test_workflowwebtools
 cluster:
   n_clusters: 2
   n_init: 30

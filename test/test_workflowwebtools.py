@@ -180,9 +180,14 @@ class TestActions(unittest.TestCase):
 
         rm.update_reasons(self.reasons1)
 
+        if ma.get_actions_collection().count() != 0:
+            print 'Test database not empty, abort!!'
+            exit(123)
+
     def tearDown(self):
         shutil.rmtree(rm.LOCATION)
         rm.LOCATION = sc.LOCATION
+        ma.get_actions_collection().drop()
 
     def run_test(self, request, params_out):
 
