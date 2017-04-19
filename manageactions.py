@@ -206,7 +206,7 @@ def get_actions_collection():
     client = pymongo.MongoClient()
     coll = client[serverconfig.config_dict()['actions']['database']].actions
 
-    if 'workflow' not in list(coll.index_information()):
+    if coll.count() == 0 or 'workflow' not in list(coll.index_information()):
         coll.create_index([('workflow', pymongo.TEXT)],
                           name='workflow', unique=True)
 
