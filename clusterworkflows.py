@@ -91,7 +91,7 @@ def get_workflow_vector(workflow, session=None, allmap=None):
             out = curs.fetchall()[0][0]
             output.append(float(out))
 
-        if len(output) == 0:
+        if not output:
             return output
 
         # Preprocessing here
@@ -152,7 +152,7 @@ def get_clusterer(history_path, errors_path=''):
         workflow_array = get_workflow_vector(workflow, fake_session)
 
         # Bad training data returns empty list
-        if len(workflow_array) != 0:
+        if workflow_array.any():
             data.append(workflow_array)
 
     cherrypy.log('Number of datapoints to cluster: %i' % len(data))
@@ -241,7 +241,7 @@ def get_clustered_group(workflow, clusterer, session=None):
 
         workflows = curs.fetchall()
 
-        for workflow in workflows:
-            output.append(workflow[0])
+        for wkf in workflows:
+            output.append(wkf[0])
 
     return output
