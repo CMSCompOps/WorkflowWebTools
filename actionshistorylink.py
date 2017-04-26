@@ -25,7 +25,7 @@ def dump_json(file_name=None):
     output = {}
 
     history = globalerrors.ErrorInfo(serverconfig.workflow_history_path())
-    actions = manageactions.get_actions(0)
+    actions = manageactions.get_actions(0, acted=None)
 
     session = {'info': history}
 

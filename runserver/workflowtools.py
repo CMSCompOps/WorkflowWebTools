@@ -262,7 +262,7 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def getaction(self, days=0, test=False):
+    def getaction(self, days=0, acted=0):
         """
         The page at ``https://localhost:8080/getaction``
         returns a list of workflows to perform actions on.
@@ -281,22 +281,13 @@ class WorkflowTools(object):
 
         :rtype: JSON
         """
+        acted = int(acted)
+        if acted < 0:
+            acted = None
+        if acted > 1:
+            acted = 1
 
-        # This will also need to somehow note that an action has been gotten by Unified
-
-        if test:
-            return {
-                'test' : {
-                    'Actions': 'test',
-                    'Parameters': {
-                        'test': 'True',
-                        'what': 'test'
-                        },
-                    'Reasons': 'I needed a test'
-                    }
-                }
-
-        return manageactions.get_actions(int(days))
+        return manageactions.get_actions(int(days), acted=acted)
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
