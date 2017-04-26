@@ -45,9 +45,9 @@ def dump_json(file_name=None):
                         'bad_sites': globalerrors.get_step_table(
                             subtask, session, readymatch=('yellow', 'red', 'none'))
                         },
-                    'actions': {
-                        actions[workflow]['Action']: parameters
-                        }
+                    'actions': [
+                        actions[workflow]['Action'], parameters
+                        ]
                     }
 
     if file_name:
