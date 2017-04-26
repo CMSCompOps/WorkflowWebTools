@@ -254,14 +254,18 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
 
     steptable = []
 
+    this = 0
+
     for error in allmap['errorcode']:
+        this += 1
+        print '%i/%i' % (this, len(allmap['errorcode']))
         steprow = []
 
         for site in allmap['sitename']:
             if readymatch:
                 curs.execute('SELECT numbererrors FROM workflows '
                              'WHERE sitename=? AND errorcode=? AND stepname=? AND '
-                             '({0})'.format(' OR '.join(['sitereadiness LIKE ?']*len(readymatch))),
+                             '({0})'.format(' OR '.join(['sitereadiness=?']*len(readymatch))),
                              tuple([site, error, step] + readymatch))
             else:
                 curs.execute('SELECT numbererrors FROM workflows '
