@@ -244,7 +244,7 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
     :param cherrypy.Session session: Stores the information for a session
     :param dict allmap: a globalerrors.ErrorInfo allmap to override the
                         session's allmap
-    :param list readymatch: Match the readiness statuses in this list, if set
+    :param tuple readymatch: Match the readiness statuses in this tuple, if set
     :returns: A table of errors for the step
     :rtype: list of lists of ints
     """
@@ -254,29 +254,35 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
 
     steptable = []
 
-    this = 0
+    query = 'SELECT numbererrors, sitename, errorcode FROM workflows ' \
+        'WHERE stepname=?'
+    params = (step,)
+    if readymatch:
+        query += ' AND ({0})'.format(' OR '.join(['sitereadiness=?']*len(readymatch)))
+        params += readymatch
+
+    query += ' ORDER BY errorcode ASC, sitename ASC'
+    curs.execute(query, params)
+
+    numbererrors, sitename, errorcode = (0, '', '')
+    fetch = True
 
     for error in allmap['errorcode']:
-        this += 1
-        print '%i/%i' % (this, len(allmap['errorcode']))
+        if fetch:
+            line = curs.fetchone()
+            if line:
+                numbererrors, sitename, errorcode = line
+            fetch = False
+
         steprow = []
 
         for site in allmap['sitename']:
-            if readymatch:
-                curs.execute('SELECT numbererrors FROM workflows '
-                             'WHERE sitename=? AND errorcode=? AND stepname=? AND '
-                             '({0})'.format(' OR '.join(['sitereadiness=?']*len(readymatch))),
-                             tuple([site, error, step] + readymatch))
-            else:
-                curs.execute('SELECT numbererrors FROM workflows '
-                             'WHERE sitename=? AND errorcode=? AND stepname=?',
-                             (site, error, step))
-            numbererrors = curs.fetchall()
 
-            if not numbererrors:
+            if error != errorcode or site != sitename:
                 steprow.append(0)
             else:
-                steprow.append(numbererrors[0][0])
+                steprow.append(numbererrors)
+                fetch = True
 
         steptable.append(steprow)
 

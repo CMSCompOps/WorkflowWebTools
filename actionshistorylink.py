@@ -29,14 +29,8 @@ def dump_json(file_name=None):
 
     session = {'info': history}
 
-    print len(actions.keys())
-    this = 0
-
     for workflow in actions:
-        this += 1
-        print '%i/%i' % (this, len(actions.keys()))
         for subtask in history.get_step_list(workflow):
-            print subtask
             if actions[workflow]['Action'] == 'recover':
                 parameters = actions[workflow]['Parameters'].get(
                     '/'.join(subtask.split('/')[2:]), {})
@@ -47,9 +41,9 @@ def dump_json(file_name=None):
                 output[subtask] = {
                     'errors': {
                         'good_sites': globalerrors.get_step_table(
-                            subtask, session, readymatch=['green']),
+                            subtask, session, readymatch=('green',)),
                         'bad_sites': globalerrors.get_step_table(
-                            subtask, session, readymatch=['yellow', 'red', 'none'])
+                            subtask, session, readymatch=('yellow', 'red', 'none'))
                         },
                     'actions': {
                         actions[workflow]['Action']: parameters
