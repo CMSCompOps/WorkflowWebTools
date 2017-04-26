@@ -159,7 +159,7 @@ def get_actions(num_days=None, num_hours=24):
     output = {}
     coll = get_actions_collection()
 
-    age_to_compare = int(time.time()) - num_hours * 3600
+    age_to_compare = int(time.time()) - num_hours * 3600 if num_hours > 0 else 0
 
     for match in coll.find({'timestamp': {'$gt': age_to_compare}, 'acted': 0}):
         output[match['workflow']] = match['parameters']

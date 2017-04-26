@@ -237,13 +237,14 @@ def check_session(session, can_refresh=False):
     return theinfo
 
 
-def get_step_table(step, session=None, allmap=None):
+def get_step_table(step, session=None, allmap=None, readymatch=None):
     """Gathers the errors for a step into a 2-D table of ints
 
     :param str step: name of the step to get the table for
     :param cherrypy.Session session: Stores the information for a session
     :param dict allmap: a globalerrors.ErrorInfo allmap to override the
                         session's allmap
+    :param list readymatch: Match the readiness statuses in this list, if set
     :returns: A table of errors for the step
     :rtype: list of lists of ints
     """
@@ -257,9 +258,15 @@ def get_step_table(step, session=None, allmap=None):
         steprow = []
 
         for site in allmap['sitename']:
-            curs.execute('SELECT numbererrors FROM workflows '
-                         'WHERE sitename=? AND errorcode=? AND stepname=?',
-                         (site, error, step))
+            if readymatch:
+                curs.execute('SELECT numbererrors FROM workflows '
+                             'WHERE sitename=? AND errorcode=? AND stepname=? AND '
+                             '({0})'.format(' OR '.join(['sitereadiness LIKE ?']*len(readymatch))),
+                             tuple([site, error, step] + readymatch))
+            else:
+                curs.execute('SELECT numbererrors FROM workflows '
+                             'WHERE sitename=? AND errorcode=? AND stepname=?',
+                             (site, error, step))
             numbererrors = curs.fetchall()
 
             if not numbererrors:
