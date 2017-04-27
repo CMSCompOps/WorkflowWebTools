@@ -269,8 +269,7 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
     query += ' ORDER BY errorcode ASC, sitename ASC'
     curs.execute(query, params)
 
-    numbererrors, sitename, errorcode = (0, '', '')
-    fetch = True
+    numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
 
     for error in allmap['errorcode']:
 
@@ -278,17 +277,11 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
 
         for site in allmap['sitename']:
 
-            if fetch:
-                fetch = False
-                line = curs.fetchone()
-                if line:
-                    numbererrors, sitename, errorcode = line
-
             if error != errorcode or site != sitename:
                 steprow.append(0)
             else:
                 steprow.append(numbererrors)
-                fetch = True
+                numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
 
         steptable.append(steprow)
 
