@@ -54,16 +54,16 @@ from . import serverconfig
 from . import errorutils
 
 
-def get_workflow_vector(workflow, session=None, allmap=None):
+def get_workflow_vectors(workflows, session=None, allmap=None):
     """
-    Gets the errors for a workflow in a numpy array, vector form
+    Gets the errors for workflows in a list of numpy arrays
 
-    :param str workflow: is the workflow the vector is returned for
+    :param str workflows: the workflows that vectors are returned for
     :param cherrypy.Session session: Stores the information for a session
     :param dict allmap: a globalerrors.ErrorInfo allmap to override the
                         session's allmap
-    :return: a 1-d vector of errors for the workflow
-    :rtype: numpy.array
+    :return: a list of numpy arrays of errors for the workflow
+    :rtype: list of numpy.array
     """
     workflow_array = []
 
@@ -73,55 +73,40 @@ def get_workflow_vector(workflow, session=None, allmap=None):
 
     cluster_settings = serverconfig.get_cluster_settings()
 
-    def get_column_sum_list(column):
-        """
-        :param str column: is the column type to sum over
-        :returns: a list of sums for each column in the column type
-        :rtype: list
-        """
+    columns = ['errorcode', 'sitename']
+    column_output = {}
 
+    for column in columns:
+        # Initialize with all zeros
         settings = cluster_settings[column]
+        column_output[column] = [numpy.zeros(len(allmap[column])) for _ in workflows]
 
-        output = []
+        curs.execute("SELECT SUM(numbererrors), {0}, stepname "
+                     "FROM workflows "
+                     "GROUP BY stepname, {0} "
+                     "ORDER BY {0} ASC, stepname ASC;".format(column))
 
-        curs.execute("SELECT SUM(numbererrors),{1} FROM workflows "
-                     "WHERE stepname LIKE '/{0}/%' GROUP BY {1} "
-                     "ORDER BY {1} ASC;".format(workflow, column))
+        numerrors, colval, stepname = curs.fetchone() or (0, '', '//')
+        wfname = stepname.split('/')[1]
 
-        fetch = True
-        out, val = (0, '')
-
-        for value in allmap[column]:
-            if fetch:
-                fetch = False
-                line = curs.fetchone()
-                if line:
-                    out, val = line
-
-            if val == value:
-                output.append(float(out))
-                fetch = True
-            else:
-                output.append(0.0)
-
-        if not output:
-            return output
+        for icol, value in enumerate(allmap[column]):
+            for iwkf, workflow in enumerate(workflows):
+                while colval == value and workflow == wfname:
+                    column_output[column][iwkf][icol] += numerrors
+                    numerrors, colval, stepname = curs.fetchone() or (0, '', '//')
+                    wfname = stepname.split('/')[1]
 
         # Preprocessing here
-        output = numpy.array(output)
-        length = numpy.linalg.norm(output) or 1.0
-        norm = (float(settings['distance'])/1.4142 +
-                2.0 * float(settings['width']) *
-                (length/(length + float(settings['midpoint'])) - 0.5))/length
+        for iout, output in enumerate(column_output[column]):
+            length = numpy.linalg.norm(output) or 1.0
+            norm = (float(settings['distance'])/1.4142 +
+                    2.0 * float(settings['width']) *
+                    (length/(length + float(settings['midpoint'])) - 0.5))/length
 
-        output *= float(norm)
+            output *= float(norm)
 
-        return list(output)
-
-    workflow_array += get_column_sum_list('errorcode')
-    workflow_array += get_column_sum_list('sitename')
-
-    return numpy.array(workflow_array)
+    return [numpy.concatenate([column_output[col][iwkf] for col in columns]) \
+                for iwkf, _ in enumerate(workflows)]
 
 
 def get_clusterer(history_path, errors_path=''):
@@ -152,21 +137,8 @@ def get_clusterer(history_path, errors_path=''):
     workflows = globalerrors.check_session(fake_session).return_workflows()
 
     # Fill the data
-    data = []
-
     cherrypy.log('Getting workflow vectors')
-
-    total = len(workflows)
-
-    for iwf, workflow in enumerate(workflows):
-        if iwf % 20 == 0:
-            cherrypy.log(str(iwf) + '/' + str(total))
-
-        workflow_array = get_workflow_vector(workflow, fake_session)
-
-        # Bad training data returns empty list
-        if workflow_array.any():
-            data.append(workflow_array)
+    data = get_workflow_vectors(workflows, fake_session)
 
     cherrypy.log('Number of datapoints to cluster: %i' % len(data))
     cherrypy.log('Fitting workflows...')
@@ -202,10 +174,7 @@ def get_workflow_groups(clusterer, session=None):
     cherrypy.log('Fitting existing workflows.')
 
     workflows = globalerrors.check_session(session).return_workflows()
-    vectors = []
-    for workflow in workflows:
-        vectors.append(
-            get_workflow_vector(workflow, session, clusterer['allmap']))
+    vectors = get_workflow_vectors(workflows, session, clusterer['allmap'])
 
     predictions = clusterer['clusterer'].predict(numpy.array(vectors))
 
