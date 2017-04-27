@@ -1,3 +1,5 @@
+#pylint: disable=too-many-locals
+
 """
 Tools for clustering workflows based on their errors.
 
@@ -65,20 +67,16 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
     :return: a list of numpy arrays of errors for the workflow
     :rtype: list of numpy.array
     """
-    workflow_array = []
-
     curs = globalerrors.check_session(session).curs
     if not allmap:
         allmap = globalerrors.check_session(session).get_allmap()
-
-    cluster_settings = serverconfig.get_cluster_settings()
 
     columns = ['errorcode', 'sitename']
     column_output = {}
 
     for column in columns:
         # Initialize with all zeros
-        settings = cluster_settings[column]
+        settings = serverconfig.get_cluster_settings()[column]
         column_output[column] = [numpy.zeros(len(allmap[column])) for _ in workflows]
 
         curs.execute("SELECT SUM(numbererrors), {0}, stepname "
@@ -97,7 +95,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
                     wfname = stepname.split('/')[1]
 
         # Preprocessing here
-        for iout, output in enumerate(column_output[column]):
+        for output in column_output[column]:
             length = numpy.linalg.norm(output) or 1.0
             norm = (float(settings['distance'])/1.4142 +
                     2.0 * float(settings['width']) *
