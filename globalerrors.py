@@ -268,15 +268,16 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
     fetch = True
 
     for error in allmap['errorcode']:
-        if fetch:
-            line = curs.fetchone()
-            if line:
-                numbererrors, sitename, errorcode = line
-            fetch = False
 
         steprow = []
 
         for site in allmap['sitename']:
+
+            if fetch:
+                line = curs.fetchone()
+                if line:
+                    numbererrors, sitename, errorcode = line
+                fetch = False
 
             if error != errorcode or site != sitename:
                 steprow.append(0)
