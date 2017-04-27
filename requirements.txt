@@ -12,3 +12,4 @@ nltk
 tabulate
 pymongo
 MySQL-python
+h5py

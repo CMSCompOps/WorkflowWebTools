@@ -143,25 +143,30 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     return workflows, reasons, params
 
 
-def get_actions(num_days=None, num_hours=24):
+def get_actions(num_days=None, num_hours=24, acted=0):
     """Get the recent actions to be acted on in dictionary form
 
     :param int num_days: is the number of days to check for actions
     :param int num_hours: can be used instead of num_days for finer granularity.
                           If ``num_days`` is given, ``num_hours`` is ignored.
+    :param int acted: Flag (0, 1, or None) for whether to use acted or not
     :returns: A dictionary of actions, to be rendered as JSON
     :rtype: dict
     """
 
-    if num_days:
+    if num_days is not None:
         num_hours = num_days * 24
 
     output = {}
     coll = get_actions_collection()
 
-    age_to_compare = int(time.time()) - num_hours * 3600
+    age_to_compare = int(time.time()) - num_hours * 3600 if num_hours > 0 else 0
 
-    for match in coll.find({'timestamp': {'$gt': age_to_compare}, 'acted': 0}):
+    query = {'timestamp': {'$gt': age_to_compare}, 'acted': acted}
+    if acted is None:
+        query.pop('acted')
+
+    for match in coll.find(query):
         output[match['workflow']] = match['parameters']
 
     return output

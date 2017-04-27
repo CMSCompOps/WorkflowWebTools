@@ -164,13 +164,18 @@ class ErrorInfo(object):
 
     def return_workflows(self):
         """
-        :returns: the set of all workflow prep IDs that need attention
-        :rtype: set
+        :returns: the ordered list of all workflow prep IDs that need attention
+        :rtype: list
         """
-        wfs = set()
+        wfs = list()
+
+        last = ''
 
         for step in self.allsteps:
-            wfs.add(step.split('/')[1])
+            val = step.split('/')[1]
+            if val != last:
+                wfs.append(val)
+                last = val
 
         return wfs
 
@@ -237,13 +242,14 @@ def check_session(session, can_refresh=False):
     return theinfo
 
 
-def get_step_table(step, session=None, allmap=None):
+def get_step_table(step, session=None, allmap=None, readymatch=None):
     """Gathers the errors for a step into a 2-D table of ints
 
     :param str step: name of the step to get the table for
     :param cherrypy.Session session: Stores the information for a session
     :param dict allmap: a globalerrors.ErrorInfo allmap to override the
                         session's allmap
+    :param tuple readymatch: Match the readiness statuses in this tuple, if set
     :returns: A table of errors for the step
     :rtype: list of lists of ints
     """
@@ -253,19 +259,29 @@ def get_step_table(step, session=None, allmap=None):
 
     steptable = []
 
+    query = 'SELECT numbererrors, sitename, errorcode FROM workflows ' \
+        'WHERE stepname=?'
+    params = (step,)
+    if readymatch:
+        query += ' AND ({0})'.format(' OR '.join(['sitereadiness=?']*len(readymatch)))
+        params += readymatch
+
+    query += ' ORDER BY errorcode ASC, sitename ASC'
+    curs.execute(query, params)
+
+    numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
+
     for error in allmap['errorcode']:
+
         steprow = []
 
         for site in allmap['sitename']:
-            curs.execute('SELECT numbererrors FROM workflows '
-                         'WHERE sitename=? AND errorcode=? AND stepname=?',
-                         (site, error, step))
-            numbererrors = curs.fetchall()
 
-            if not numbererrors:
+            if error != errorcode or site != sitename:
                 steprow.append(0)
             else:
-                steprow.append(numbererrors[0][0])
+                steprow.append(numbererrors)
+                numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
 
         steptable.append(steprow)
 
