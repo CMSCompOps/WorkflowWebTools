@@ -164,13 +164,18 @@ class ErrorInfo(object):
 
     def return_workflows(self):
         """
-        :returns: the set of all workflow prep IDs that need attention
-        :rtype: set
+        :returns: the ordered list of all workflow prep IDs that need attention
+        :rtype: list
         """
-        wfs = set()
+        wfs = list()
+
+        last = ''
 
         for step in self.allsteps:
-            wfs.add(step.split('/')[1])
+            val = step.split('/')[1]
+            if val != last:
+                wfs.append(val)
+                last = val
 
         return wfs
 
@@ -274,10 +279,10 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
         for site in allmap['sitename']:
 
             if fetch:
+                fetch = False
                 line = curs.fetchone()
                 if line:
                     numbererrors, sitename, errorcode = line
-                fetch = False
 
             if error != errorcode or site != sitename:
                 steprow.append(0)

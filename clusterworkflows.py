@@ -83,13 +83,26 @@ def get_workflow_vector(workflow, session=None, allmap=None):
         settings = cluster_settings[column]
 
         output = []
-        for value in allmap[column]:
-            curs.execute("SELECT COALESCE(SUM(numbererrors), 0) FROM workflows "
-                         "WHERE stepname LIKE '/{0}/%' and {1}='{2}'".\
-                             format(workflow, column, value))
 
-            out = curs.fetchall()[0][0]
-            output.append(float(out))
+        curs.execute("SELECT SUM(numbererrors),{1} FROM workflows "
+                     "WHERE stepname LIKE '/{0}/%' GROUP BY {1} "
+                     "ORDER BY {1} ASC;".format(workflow, column))
+
+        fetch = True
+        out, val = (0, '')
+
+        for value in allmap[column]:
+            if fetch:
+                fetch = False
+                line = curs.fetchone()
+                if line:
+                    out, val = line
+
+            if val == value:
+                output.append(float(out))
+                fetch = True
+            else:
+                output.append(0.0)
 
         if not output:
             return output
