@@ -231,7 +231,6 @@ class WorkflowTools(object):
                    acted_workflows=manageactions.get_acted_workflows(
                     serverconfig.get_history_length()),
                    classification=main_error_class,
-                   site_list=sorted(drain_statuses.keys()),
                    drain_statuses=drain_statuses
                   )
 
@@ -255,6 +254,28 @@ class WorkflowTools(object):
         workflows, reasons, params = manageactions.\
             submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
                          **kwargs)
+
+        # Immediately get actions to check the sites list
+        check_actions = manageactions.get_actions()
+        blank_sites_subtask = []
+        sites_to_run = {}
+        # Loop through all workflows just submitted
+        for workflow in workflows:
+            # Check sites of recovered workflows
+            if check_actions[workflow]['Action'] == 'recover':
+                for subtask, params in check_actions[workflow]['Parameters'].iteritems():
+                    # Empty sites are noted
+                    if not params.get('sites'):
+                        blank_sites_subtask.append('/%s/%s' % (workflow, subtask))
+                        sites_to_run['/%s/%s' % (workflow, subtask)] = \
+                            globalerrors.check_session(cherrypy.session).\
+                            get_workflow(workflow).site_to_run(subtask)
+
+        if blank_sites_subtask:
+            drain_statuses = {sitename: drain for sitename, _, drain in sitereadiness.i_site_readiness()}
+            return GET_TEMPLATE('picksites.html').render(tasks=blank_sites_subtask,
+                                                         statuses=drain_statuses,
+                                                         sites_to_run=sites_to_run)
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,
