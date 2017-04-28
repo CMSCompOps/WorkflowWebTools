@@ -17,7 +17,7 @@
       % endfor
       };
       var sitelist = [
-      % for site in site_list:
+      % for site in sorted(drain_statuses.keys()):
         "${site}",
       % endfor
       ];
