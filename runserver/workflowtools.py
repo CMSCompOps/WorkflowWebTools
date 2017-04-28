@@ -235,6 +235,22 @@ class WorkflowTools(object):
                   )
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def sitesfortasks(self, **kwargs):
+        """
+        Accessed through a popup that allows user to submit sites for workflow
+        tasks that did not have any sites to run on.
+        Returns operators back the :py:func:`get_action` output.
+
+        :param kwargs: Set up in a way that manageactions.extract_reasons_params
+                       can extract the sites for each subtask.
+        :rtype: JSON
+        """
+
+        manageactions.fix_sites(**kwargs)
+        return self.getaction(1)
+
+    @cherrypy.expose
     def submitaction(self, workflows='', action='', **kwargs):
         """Submits the action to Unified and notifies the user that this happened
 
@@ -540,7 +556,7 @@ if __name__ == '__main__':
         'tools.auth_basic.realm': 'localhost',
         'tools.auth_basic.checkpassword': manageusers.validate_password
         }
-    for key in ['/cluster', '/resetcache']:
+    for key in ['/cluster', '/resetcache', '/sitesfortasks']:
         CONF[key] = CONF['/submitaction']
 
     cherrypy.quickstart(WorkflowTools(), '/', CONF)

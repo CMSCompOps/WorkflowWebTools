@@ -62,6 +62,9 @@ def extract_reasons_params(action, **kwargs):
                 if not params.get(which_task):
                     params[which_task] = {}
 
+                if parameter == 'sites' and not isinstance(item, list):
+                    item = [item]
+
                 params[which_task].update({parameter: item})
 
             else:
@@ -216,3 +219,29 @@ def get_actions_collection():
                           name='workflow', unique=True)
 
     return coll
+
+
+def fix_sites(**kwargs):
+    """Fix the site lists for tasks that had zero sites.
+
+    :param kwargs: Keywords to be parsed by :py:func:`extract_reasons_params`
+    """
+
+    _, params = extract_reasons_params('recover', **kwargs)
+
+    coll = get_actions_collection()
+
+    for task, value in params.iteritems():
+        split_task = task.split('/')
+        workflow = split_task[1]
+        subtask = '/'.join(split_task[2:])
+
+        output = coll.find_one({'workflow': workflow})['parameters']
+        output['Parameters'][subtask]['sites'] = value['sites']
+
+        coll.update_one({'workflow': workflow},
+                        {'$set': {'parameters': output}},
+                        upsert=True)
+
+
+    print params
