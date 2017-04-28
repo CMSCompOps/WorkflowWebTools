@@ -59,8 +59,7 @@ def extract_reasons_params(action, **kwargs):
                 default = 'AllSteps' if parameter != 'sites' else 'Ban'
                 which_task = kwargs.get('task_%s' % key.split('_')[1], default)
 
-                if not params.get(which_task):
-                    params[which_task] = {}
+                params[which_task] = params.get(which_task, {})
 
                 if parameter == 'sites' and not isinstance(item, list):
                     item = [item]
