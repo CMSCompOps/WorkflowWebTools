@@ -239,8 +239,6 @@ def fix_sites(**kwargs):
         output['Parameters'][subtask]['sites'] = value['sites']
 
         coll.update_one({'workflow': workflow},
-                        {'$set': {'parameters': output}},
-                        upsert=True)
-
+                        {'$set': {'parameters': output}})
 
     print params
