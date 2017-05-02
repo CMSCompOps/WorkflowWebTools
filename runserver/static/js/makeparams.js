@@ -157,13 +157,23 @@ function makeParamTable(action) {
             'secondary': ['enabled', 'disabled'],
             'splitting': ['2x', '3x', 'max'],
         };
+    } else if (action.value == 'recovery') {
+        texts = [
+                 'memory',
+                 'group',
+                 ];
+        opts = {
+            'xrootd': ['enabled', 'disabled'],
+            'secondary': ['enabled', 'disabled'],
+            'splitting': ['2x', '3x', 'max'],
+        };
     } else if (action.value == 'investigate') {
         texts = [
                  'other',
                  ];
     }
 
-    if (action.value == 'recover') {
+    if (['recover', 'recovery'].indexOf(action.value) >= 0) {
         // ACDC is the most complex action, and needs parameters for each task and sites.
         var methods = [
                        'Auto',

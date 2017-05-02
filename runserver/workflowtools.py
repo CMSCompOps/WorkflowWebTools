@@ -140,12 +140,20 @@ class WorkflowTools(object):
         :rtype: str
         """
 
-        return GET_TEMPLATE('globalerror.html').\
+        # For some reasons, we occasionally have to refresh this global errors page
+
+        template = lambda: GET_TEMPLATE('globalerror.html').\
             render(errordata=globalerrors.return_page(pievar, cherrypy.session),
                    acted_workflows=manageactions.get_acted_workflows(
-                       serverconfig.get_history_length()),
+                    serverconfig.get_history_length()),
                    readiness=globalerrors.check_session(cherrypy.session).readiness
-                  )
+                   )
+
+        try:
+            return template()
+        except:
+            time.sleep(2)
+            return template()
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
@@ -278,7 +286,7 @@ class WorkflowTools(object):
         # Loop through all workflows just submitted
         for workflow in workflows:
             # Check sites of recovered workflows
-            if check_actions[workflow]['Action'] == 'recover':
+            if check_actions[workflow]['Action'] in ['recover', 'recovery']:
                 for subtask, params in check_actions[workflow]['Parameters'].iteritems():
                     # Empty sites are noted
                     if not params.get('sites'):
