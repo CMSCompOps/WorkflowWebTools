@@ -22,7 +22,7 @@
       % endfor
       ];
       var param_defaults = {
-        "group": "DATAOPS",
+        "group": "production",
       };
       var task_list = [
       % for step, _ in workflowdata['steplist']:
@@ -139,6 +139,7 @@
              actions = {
                  'clone' : 'Kill and Clone',
                  'recover' : 'Recover (ACDC)',
+                 'recovery' : 'Recovery (not ACDC)',
                  'investigate' : 'Other action'
              }
           %>
