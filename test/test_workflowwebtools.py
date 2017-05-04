@@ -14,9 +14,39 @@ import CMSToolBox._loadtestpath
 import update_history as uh
 import WorkflowWebTools.reasonsmanip as rm
 import WorkflowWebTools.manageactions as ma
+import WorkflowWebTools.globalerrors as ge
 
 
-class TestGlobalInfo(unittest.TestCase):
+class TestGlobalError(unittest.TestCase):
+
+    dictionary = {
+        '/test1/a/1': {
+            'errors': [[1, 0, 0], [0, 1, 1]],
+            'sub': {}
+            },
+        '/test1/a/2': {
+            'errors': [[1, 1, 0], [0, 0, 1]],
+            'sub': {}
+            },
+        '/test2/a/1': {
+            'errors': [[0, 0, 0], [1, 0, 0]],
+            'sub': {}
+            }
+        }
+
+    def test_grouping(self):
+        group_by = lambda subtask: subtask.split('/')[1]
+        check_this = ge.group_errors(self.dictionary, group_by)
+
+        self.assertEqual(len(check_this.keys()), 2)
+        self.assertTrue('test1' in check_this.keys())
+        self.assertTrue('test2' in check_this.keys())
+        self.assertEqual(check_this['test1']['errors'], [[2, 1, 0], [0, 1, 2]])
+        self.assertEqual(check_this['test2']['errors'], [[0, 0, 0], [1, 0, 0]])
+        self.assertEqual(check_this['test1']['sub']['/test1/a/1'], self.dictionary['/test1/a/1'])
+
+
+class TestClusteringAndReasons(unittest.TestCase):
 
     errors = {
         '/test1/a/1': {

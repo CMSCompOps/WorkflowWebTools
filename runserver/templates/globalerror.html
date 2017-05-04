@@ -15,8 +15,15 @@
   </head>
   <%
      stringpieinfo = []
-     for info in errordata['pieinfo']:
-         stringpieinfo.append(str(info))
+     for _, info in sorted(errors.items()):
+         for pie in info['errors']:
+             stringpieinfo.append(str(pie))
+         for _, info_1 in sorted(info.get('sub', {}).items()):
+             for pie in info_1['errors']:
+                 stringpieinfo.append(str(pie))
+             for _, info_2 in sorted(info_1.get('sub', {}).items()):
+                 for pie in info_2['errors']:
+                     stringpieinfo.append(str(pie))
   %>
   <body onload="drawPieCharts(${','.join(stringpieinfo)});">
     <table border="3" style="border-collapse: collapse;">
@@ -38,50 +45,66 @@
           </form>
         </th>
 
-        % if errordata['pievar'] == 'sitename':
-          % for col in errordata['collist']:
-            <th class="rotate" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
-          % endfor
-        % else:
-          % for col, status in zip(errordata['collist'], readiness):
-            <th class="rotate ${status}" title="${col['title'] | h}"><div><span>${col['name']}</span></div></th>
-          % endfor
-        % endif
+        % for icol, col in enumerate(columns):
+            <% 
+               status = ''
+               if pievar != 'sitename':
+                   status = readiness[icol]
+               tot_errors = sum(sum([error['errors'][icol] for error in errors.values()], []))
+            %>
+            <th class="rotate ${status}" title="Total Errors: ${tot_errors}"><div><span>${col}</span></div></th>
+        % endfor
 
-      </tr>
+      <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
+        <%
+           if pievar != 'stepname':
+               sub_rows = True
 
-      % for row, title_list in errordata['rowzip']:
-      <tr bgcolor="${loop.cycle('#e0e0e0', '#ffffff')}">
-        % if errordata['pievar'] == 'stepname':
-          <th title="${row['title'] | h}">${row['name']}</th>
-        % else:
-          <%
-             workflowstep = '/' + '/'.join(row['name'].split('<br>'))
-             workflowpd = workflowstep.split('/')[1]
-             if workflowpd in acted_workflows:
-                 bg_type = 'done'
-             else:
-                 bg_type = 'todo'
-          %>
-          <th class="${bg_type}" title="${row['title'] | h}">
-            <a href="/seeworkflow/?workflow=${workflowpd}"> <!-- #${workflowstep}"> -->
-              ${row['name']}
-            </a>
-          </th>
-        % endif
+           tot_errors = sum([sum(pie) for pie in row['errors']])
+           
+           bg_type = ''
+           if is_wf:
+               if row_name in acted_workflows:
+                   bg_type = 'done'
+               else:
+                   bg_type = 'todo'
+           elif hiddenstuff:
+               bg_type = 'step'
+               row_name = '/'.join(row_name.split('/')[2:])
+               sub_rows = False
+        %>
+      <tr>
+        <th class="${bg_type}" title="Total Errors: ${tot_errors}">
+          % if is_wf:
+          <a href="/seeworkflow/?workflow=${row_name}">
+            ${row_name}
+          </a>
+          % else:
+            ${row_name}
+          % endif
+        </th>
 
-        % for index, title in enumerate(title_list):
-          <th title="${title}">
-            % if errordata['pievar'] == 'stepname':
-              <a href="listworkflows?errorcode=${row['name'].split('>')[1].split('<')[0]}&sitename=${errordata['collist'][index]['name']}" target="blank">
+        % for index, pie in enumerate(row['errors']):
+          <th title="Total Errors: ${sum(pie)}">
+            % if pievar == 'stepname':
+              <a href="listworkflows?errorcode=${row_name}&sitename=${columns[index]}" target="blank">
             % endif
-            <canvas id="canvas" width="20" height="20" class="piechart"></canvas>
-            % if errordata['pievar'] == 'stepname':
+            <canvas width="20" height="20" class="piechart"></canvas>
+            % if pievar == 'stepname':
               </a>
             % endif
           </th>
         % endfor
       </tr>
+      </%def>
+      % for row_name, row in sorted(errors.items()):
+         ${errors_row(row_name, row, False)}
+         % for row_name_1, row_1 in sorted(row.get('sub', {}).items()):
+           ${errors_row(row_name_1, row_1, True, (0, row_name))}
+           % for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
+             ${errors_row(row_name_2, row_2, False, (1, row_name_1))}
+           % endfor
+         % endfor
       % endfor
     </table>
   </body>
