@@ -87,14 +87,16 @@
       % else:
       <tr>
       % endif
-        <th class="${bg_type}" title="Total Errors: ${tot_errors}">
           % if sub_rows:
-          <table onclick="expand_children('${this_row_level}', '${row_name}', false)">
+        <th class="${bg_type}" title="Total Errors: ${tot_errors}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
+          <table>
             <tr>
               <th>
                 <span id="${row_name}_span">&#x25B6;</span>
               </th>
               <th>
+          % else:
+        <th class="${bg_type}" title="Total Errors: ${tot_errors}">
           % endif
           % if is_wf:
           <a href="/seeworkflow/?workflow=${row_name}" id="${row_name}_a">
