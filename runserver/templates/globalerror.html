@@ -12,6 +12,7 @@
       })
     </script>
     <script type="text/javascript" src="static/js/piechart.js"></script>
+    <script type="text/javascript" src="static/js/expandtable.js"></script>
   </head>
   <%
      stringpieinfo = []
@@ -72,15 +73,39 @@
                bg_type = 'step'
                row_name = '/'.join(row_name.split('/')[2:])
                sub_rows = False
+
+           if hiddenstuff:
+               this_row_level = hiddenstuff[0] + 1
+               row_class = 'child_of_%i_%s' % hiddenstuff
+           else:
+               this_row_level = 0
+               row_class = ''
         %>
+      % if row_class:
+      <tr class="${row_class}" style="display:none;" id="${row_name}">
+      % else:
       <tr>
+      % endif
         <th class="${bg_type}" title="Total Errors: ${tot_errors}">
+          % if sub_rows:
+          <table>
+            <tr>
+              <th>
+                <span id="${row_name}_span" onclick="expand_children(this, '${this_row_level}', '${row_name}', false)">&#x25B6;</span>
+              </th>
+              <th>
+          % endif
           % if is_wf:
           <a href="/seeworkflow/?workflow=${row_name}">
             ${row_name}
           </a>
           % else:
             ${row_name}
+          % endif
+          % if sub_rows:
+              </th>
+            </tr>
+          </table>
           % endif
         </th>
 
