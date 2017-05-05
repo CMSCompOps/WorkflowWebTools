@@ -58,6 +58,7 @@
 
       <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
         <%
+           sub_rows = False
            if pievar != 'stepname':
                sub_rows = True
 
@@ -88,17 +89,20 @@
       % endif
         <th class="${bg_type}" title="Total Errors: ${tot_errors}">
           % if sub_rows:
-          <table>
+          <table onclick="expand_children('${this_row_level}', '${row_name}', false)">
             <tr>
               <th>
-                <span id="${row_name}_span" onclick="expand_children(this, '${this_row_level}', '${row_name}', false)">&#x25B6;</span>
+                <span id="${row_name}_span">&#x25B6;</span>
               </th>
               <th>
           % endif
           % if is_wf:
-          <a href="/seeworkflow/?workflow=${row_name}">
+          <a href="/seeworkflow/?workflow=${row_name}" id="${row_name}_a">
             ${row_name}
           </a>
+          <script>
+            $('#${row_name}_a').click(function(event){event.stopPropagation();});
+          </script>
           % else:
             ${row_name}
           % endif
