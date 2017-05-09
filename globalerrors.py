@@ -1,4 +1,4 @@
-#pylint: disable=too-many-locals
+#pylint: disable=too-many-locals, too-complex
 
 """
 Generates the content for the errors pages
@@ -42,6 +42,8 @@ class ErrorInfo(object):
         self.clusters = None
         # These are set in get_workflow()
         self.workflowinfos = {}
+        # These are set in get_prepid()
+        self.prepidinfos = {}
 
         self.setup()
 
@@ -193,6 +195,17 @@ class ErrorInfo(object):
             self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
 
         return self.workflowinfos[workflow]
+
+    def get_prepid(self, prep_id):
+        """
+        :param str prep_id: The name of the Prep ID to check cache for
+        :returns: Either cached PrepIDInfo, or a new one
+        :rtype: CMSToolBox.workflowinfo.PrepIDInfo
+        """
+        if not self.prepidinfos.get(prep_id):
+            self.prepidinfos[prep_id] = workflowinfo.PrepIDInfo(prep_id)
+
+        return self.prepidinfos[prep_id]
 
     def get_step_list(self, workflow):
         """Gets the list of steps within a workflow
@@ -455,6 +468,7 @@ def get_errors(pievar, session=None):
         output[row] = {
             'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]]
             }
+
         for icol, col in enumerate(allmap[colname]):
             for ipie, pie in enumerate(allmap[pievar]):
                 if (row, col, pie) == (this_row, this_col, this_pievar):
@@ -462,6 +476,62 @@ def get_errors(pievar, session=None):
                     total_pie_vars[ipie] += numerrors
                     numerrors, this_row, this_col, this_pievar = \
                         curs.fetchone() or (0, '', '', '')
+
+    # Add the historic information for workflows in the same Prep IDs
+    if pievar != 'stepname':
+        conn = sqlite3.connect(serverconfig.workflow_history_path())
+        curs = conn.cursor()
+
+        # Execute same query as before
+        curs.execute(query)
+
+        info = check_session(session)
+
+        current_workflows = info.return_workflows()
+        # Get the unique list of prep IDs from the workflows currently concerning us
+        prep_ids = set([info.get_workflow(wf).get_prep_id() for wf in current_workflows])
+        # Get the workflows
+        historic_workflows = sum([info.get_prepid(prep_id).get_workflows_requesttime() \
+                                      for prep_id in prep_ids], [])
+
+        historic_dictionary = {workflow: timestamp for workflow, timestamp in historic_workflows \
+                                   if workflow not in current_workflows}
+
+        def fetch_one():
+            """
+            Does the cursor fetch and checks conditions.
+            We only want results that are included in our allmap, and in this historic_dictionary
+
+            :returns: Next useful cursor result
+            :rtype: tuple
+            """
+
+            numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
+            while this_row and \
+                    (this_col not in allmap[colname] or this_pievar not in allmap[pievar] \
+                         or this_row.split('/')[1] not in historic_dictionary.keys()):
+                numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
+
+            return (numerrors, this_row, this_col, this_pievar)
+
+
+        numerrors, this_row, this_col, this_pievar = fetch_one()
+
+        while this_row:
+            output[this_row] = {
+                'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]],
+                'timestamp': historic_dictionary[this_row.split('/')[1]],
+                'is_history': True
+                }
+            for icol, col in enumerate(allmap[colname]):
+                for ipie, pie in enumerate(allmap[pievar]):
+                    if (col, pie) == (this_col, this_pievar):
+                        output[this_row]['errors'][icol][ipie] = numerrors
+                        total_pie_vars[ipie] += numerrors
+
+                        numerrors, this_row, this_col, this_pievar = fetch_one()
+
+        conn.close()
 
     # Sort the pievars
     indices_for_pievars = [index for index, _ in sorted(
