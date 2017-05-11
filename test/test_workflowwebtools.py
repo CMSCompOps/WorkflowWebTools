@@ -219,9 +219,9 @@ class TestActions(unittest.TestCase):
                 })
         self.run_test(request, {'test': 'test_param'})
 
-    def test_recover(self):
+    def test_acdc(self):
         request = self.extend_request({
-                'action': 'recover',
+                'action': 'acdc',
                 'param_0_test': 'test_param_0',
                 'param_1_test': 'test_param_1',
                 })

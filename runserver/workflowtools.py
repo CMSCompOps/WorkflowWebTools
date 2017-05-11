@@ -286,7 +286,7 @@ class WorkflowTools(object):
         # Loop through all workflows just submitted
         for workflow in workflows:
             # Check sites of recovered workflows
-            if check_actions[workflow]['Action'] in ['recover', 'recovery']:
+            if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
                 for subtask, params in check_actions[workflow]['Parameters'].iteritems():
                     # Empty sites are noted
                     if not params.get('sites'):

@@ -55,7 +55,7 @@ def extract_reasons_params(action, **kwargs):
         elif 'param_' in key:
             parameter = '_'.join(key.split('_')[2:])
 
-            if action in ['recover', 'recovery']:
+            if action in ['acdc', 'recovery']:
                 default = 'AllSteps' if parameter != 'sites' else 'Ban'
                 which_task = kwargs.get('task_%s' % key.split('_')[1], default)
 
@@ -98,7 +98,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
         step_list = check_session(session).get_step_list(workflow)
         short_step_list = ['/'.join(step.split('/')[2:]) for step in step_list]
         # For recovery, get the proper sites and parameters out for each step
-        if action in ['recover', 'recovery']:
+        if action in ['acdc', 'recovery']:
             all_steps = wf_params.pop('AllSteps', {})
             banned_sites = wf_params.pop('Ban', {'sites': []})['sites']
 
@@ -226,7 +226,7 @@ def fix_sites(**kwargs):
     :param kwargs: Keywords to be parsed by :py:func:`extract_reasons_params`
     """
 
-    _, params = extract_reasons_params('recover', **kwargs)
+    _, params = extract_reasons_params('acdc', **kwargs)
 
     coll = get_actions_collection()
 
