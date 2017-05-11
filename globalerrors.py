@@ -11,6 +11,7 @@ import sqlite3
 import time
 import validators
 import cherrypy
+import numpy
 
 from CMSToolBox import sitereadiness
 from CMSToolBox import workflowinfo
@@ -242,6 +243,46 @@ def check_session(session, can_refresh=False):
     return theinfo
 
 
+def group_errors(input_errors, grouping_function):
+    """
+    Takes inputs errors with the format::
+
+      {group1: {'errors': [[]], 'sub': {}}, group2: ...}
+
+    and sums the errors into a larger group.
+    This second grouping is done by the output of the grouping_function.
+
+    :param dict input_errors: The input that will be grouped
+    :param grouping_function: Takes an input, which is a key of ``input_errors``
+                              and groups those keys by this function output.
+    :type grouping_function: function
+    :returns: A dictionary with the same format as the input, but with groupings.
+    :rtype: dict
+    """
+
+    output = {}
+
+    for subgroup, values in input_errors.iteritems():
+
+        group = grouping_function(subgroup)
+
+        if group in output.keys():
+            output[group]['errors'] += numpy.matrix(values['errors'])
+            output[group]['sub'][subgroup] = values
+        else:
+            output[group] = {
+                'errors': numpy.matrix(values['errors']),
+                'sub': {
+                    subgroup: values
+                    }
+                }
+
+    for group in output:
+        output[group]['errors'] = output[group]['errors'].tolist()
+
+    return output
+
+
 def get_step_table(step, session=None, allmap=None, readymatch=None):
     """Gathers the errors for a step into a 2-D table of ints
 
@@ -379,143 +420,55 @@ def list_matching_pievars(pievar, row, col, session=None):
     return output
 
 
-def get_errors_and_pietitles(pievar, session=None):
-    """Gets the number of errors for the global table.
-
-    :ref:`piechart-ref` contains the function that actually draws the piecharts.
-
-    :param str pievar: The variable to divide the piecharts by.
-                       This is the variable that does not make up the axes of the page table
-    :param cherrypy.Session session: Stores the information for a session
-    :returns: Errors for global table and titles for each pie chart.
-              The errors are split into two variables.
-
-               - The first variable is a dictionary with two keys: 'col' and 'row'.
-                 Each item is a list of the total number of errors in each column or row.
-               - The second variable is just a long list lists of ints.
-                 One element of the first layer corresponds to
-                 a pie chart on the globalerrors view.
-                 Each element of the second layer tells different slices of the pie chart.
-                 This is read in by the javascript.
-               - The last variable is the list of titles to give each pie chart.
-                 This will show up in a tooltip on the webpage.
-    :rtype: dict, list of lists, list
+def get_errors(pievar, session=None):
     """
+    Gets the number of errors with the format::
 
+      {group1: {'errors': [[]]}, group2: ...}
 
-    rowname, colname = get_row_col_names(pievar)
+    where each group is a different value for the variables that
+    go into the row of the global errors table.
+    That is, the groups will usually be the subtask list, unless ``pievar`` is ``"stepname"``.
+    In that case, the grouping is by error code.
 
-    allmap = check_session(session).get_allmap()
-
-    pieinfo = []
-    pietitles = []
-
-    total_errors = {
-        'row': [0] * len(allmap[rowname]),
-        'col': [0] * len(allmap[colname])
-        }
-
-    for irow, row in enumerate(allmap[rowname]):
-
-        pietitlerow = []
-
-        for icol, col in enumerate(allmap[colname]):
-            toappend = []
-            piemap = {}
-            pietitle = ''
-            if rowname != 'stepname':
-                pietitle += TITLEMAP[rowname] + ': ' + str(row) + '\n'
-            pietitle += TITLEMAP[colname] + ': ' + str(col)
-            for piekey, errnum in list_matching_pievars(pievar, row, col, session):
-
-                piemap[piekey] = errnum
-
-                if errnum != 0:
-                    toappend.append(errnum)
-                    pietitle += '\n' + TITLEMAP[pievar] + str(piekey) + ': ' + str(errnum)
-
-            sum_errors = sum(toappend)
-            pietitlerow.append('Total Errors: ' + str(sum_errors) + '\n' + pietitle)
-
-            total_errors['row'][irow] += sum_errors
-            total_errors['col'][icol] += sum_errors
-
-            # Append all the pie info for every possibility
-            pieinfo.append([piemap.get(value, 0) for value in allmap[pievar]])
-
-        pietitles.append(pietitlerow)
-
-    # Sort the pieinfo so that the maximum contributor is red
-
-    sum_list = [0] * len(allmap[pievar])
-
-    for cell in pieinfo:
-        sum_list = [value + cell[index] for index, value in enumerate(sum_list)]
-
-    sorted_pieinfo = []
-
-    for info in pieinfo:
-        sorted_pieinfo.append([info[index] for index, _ in sorted(
-            enumerate(sum_list), key=(lambda x: x[1]), reverse=True)])
-
-    return total_errors, sorted_pieinfo, pietitles
-
-
-def get_header_titles(varname, errors, session=None):
-    """Gets the titles that will end up being the <th> tooltips for the global view
-
-    :param str varname: Name of the column or row variable
-    :param list errors: A list of the total number of errors for the row or column
+    :param str pievar: The variable that each piechart is split into.
     :param cherrypy.Session session: Stores the information for a session
-    :returns: A list of strings of the titles based on the column or row variable
-              and the number of errors
-    :rtype: list
-    """
-
-    output = []
-
-    for name in check_session(session).get_allmap()[varname]:
-
-        if varname == 'stepname':
-            newnamelist = name.lstrip('/').split('/')
-            newname = newnamelist[0] + '<br>' + '/'.join(newnamelist[1:])
-            output.append({'title': name, 'name': newname})
-
-        else:
-            output.append({'title': name, 'name': name})
-
-    for i, title in enumerate(output):
-        title['title'] = ('Total errors: ' + str(errors[i]) + '\n' +
-                          str(title['title']))
-
-        if varname == 'errorcode':
-            title['name'] = '<a href="/explainerror?errorcode={0}">{0}</a>'.format(title['name'])
-
-    return output
-
-
-def return_page(pievar, session=None):
-    """Get the information for the global views webpage
-
-    :param str pievar: The variable to divide the piecharts by.
-                       This is the variable that does not make up the axes of the page table
-    :param cherrypy.Session session: Stores the information for a session
-    :returns: Dictionary of information used by the global views page
-              Of interest for other applications is the dictionary member 'steplist'.
-              It is a tuple of the names of each step and the errors table for each of these steps.
-              The table is an array of rows of the number of errors. Each row is an error code,
-              and each column is a site.
+    :returns: A dictionary of 2D list of errors.
     :rtype: dict
     """
 
-    # Based on the dimesions from the user, create a list of pies to show
     rowname, colname = get_row_col_names(pievar)
+    allmap = check_session(session).get_allmap()
 
-    total_errors, pieinfo, pietitles = get_errors_and_pietitles(pievar, session)
+    query = 'SELECT numbererrors, {0}, {1}, {2} FROM workflows ' \
+        'ORDER BY {0} ASC, {1} ASC, {2} ASC;'.format(rowname, colname, pievar)
 
-    return {
-        'collist': get_header_titles(colname, total_errors['col'], session),
-        'pieinfo': pieinfo,
-        'rowzip':  zip(get_header_titles(rowname, total_errors['row'], session), pietitles),
-        'pievar':  pievar,
-        }
+    curs = check_session(session).curs
+    curs.execute(query)
+
+    numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
+
+    output = {}
+    total_pie_vars = [0] * len(allmap[pievar])
+
+    for row in allmap[rowname]:
+        output[row] = {
+            'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]]
+            }
+        for icol, col in enumerate(allmap[colname]):
+            for ipie, pie in enumerate(allmap[pievar]):
+                if (row, col, pie) == (this_row, this_col, this_pievar):
+                    output[row]['errors'][icol][ipie] = numerrors
+                    total_pie_vars[ipie] += numerrors
+                    numerrors, this_row, this_col, this_pievar = \
+                        curs.fetchone() or (0, '', '', '')
+
+    # Sort the pievars
+    indices_for_pievars = [index for index, _ in sorted(
+        enumerate(total_pie_vars), key=(lambda x: x[1]), reverse=True)]
+
+    for key, errors in output.iteritems():
+        for icol, col in enumerate(errors['errors']):
+            output[key]['errors'][icol] = [col[index] for index in indices_for_pievars]
+
+    return output

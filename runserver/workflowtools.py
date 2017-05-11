@@ -142,8 +142,22 @@ class WorkflowTools(object):
 
         # For some reasons, we occasionally have to refresh this global errors page
 
+        errors = globalerrors.get_errors(pievar, cherrypy.session)
+        if pievar != 'stepname':
+            errors = globalerrors.group_errors(
+                globalerrors.group_errors(errors, lambda subtask: subtask.split('/')[1]),
+                lambda workflow: globalerrors.check_session(cherrypy.session).\
+                    get_workflow(workflow).get_prep_id()
+                )
+
+        # Get the names of the columns
+        cols = globalerrors.check_session(cherrypy.session).\
+            get_allmap()[globalerrors.get_row_col_names(pievar)[1]]
+
         template = lambda: GET_TEMPLATE('globalerror.html').\
-            render(errordata=globalerrors.return_page(pievar, cherrypy.session),
+            render(errors=errors,
+                   columns=cols,
+                   pievar=pievar,
                    acted_workflows=manageactions.get_acted_workflows(
                     serverconfig.get_history_length()),
                    readiness=globalerrors.check_session(cherrypy.session).readiness
