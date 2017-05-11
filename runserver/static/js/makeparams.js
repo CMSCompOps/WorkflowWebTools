@@ -112,7 +112,7 @@ function printSiteLists(method) {
     /*"""
     .. function:: printSiteLists(method)
 
-      Sets the contents of the site tables under the "recover" action
+      Sets the contents of the site tables under the "acdc" action
       based on the method of site selection subsequently selected.
     */
 
@@ -148,7 +148,7 @@ function makeParamTable(action) {
         opts = {
             'splitting': ['2x', '3x', 'max']
         };
-    } else if (action.value == 'recover') {
+    } else if (action.value == 'acdc') {
         texts = [
                  'memory',
                  ];
@@ -173,7 +173,7 @@ function makeParamTable(action) {
                  ];
     }
 
-    if (['recover', 'recovery'].indexOf(action.value) >= 0) {
+    if (['acdc', 'recovery'].indexOf(action.value) >= 0) {
         // ACDC is the most complex action, and needs parameters for each task and sites.
         var methods = [
                        'Auto',

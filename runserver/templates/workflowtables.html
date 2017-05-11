@@ -94,7 +94,8 @@
     <div>
 
       <span style="font-weight:bold;">Workflow Parameters:</span>
-      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=${params['PrepID']}&detail=true" target="blank">Prep ID</a> <br>
       % if params:
       Request Type: ${params['RequestType']} <br>
       % if params.get('SubRequestType'):
@@ -138,7 +139,7 @@
           <%
              actions = {
                  'clone' : 'Kill and Clone',
-                 'recover' : 'Recover (ACDC)',
+                 'acdc' : 'ACDC',
                  'recovery' : 'Recovery (not ACDC)',
                  'investigate' : 'Other action'
              }
