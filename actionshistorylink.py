@@ -31,7 +31,7 @@ def dump_json(file_name=None):
 
     for workflow in actions:
         for subtask in history.get_step_list(workflow):
-            if actions[workflow]['Action'] in ['recover', 'recovery']:
+            if actions[workflow]['Action'] in ['acdc', 'recovery']:
                 parameters = actions[workflow]['Parameters'].get(
                     '/'.join(subtask.split('/')[2:]), {})
             else:
