@@ -22,14 +22,15 @@ function expand_children(this_level, this_name, only_hide) {
     var rows = document.getElementsByClassName('child_of_' + this_level + '_' + this_name);
 
     for (row = 0; row < rows.length; row++) {
-        new_id = rows[row].id;
         if (rows[row].style.display == 'none' && !only_hide) {
             rows[row].style.display = '';
         } else {
             rows[row].style.display = 'none';
-            if (parseInt(this_level) < 1) {
-                expand_children((parseInt(this_level) + 1).toString(),
-                                new_id, true);
+            // Only have two layers, so I'll do something lazy and just hide all children
+            var more_rows = document.getElementsByClassName('child_of_' + 
+                              (parseInt(this_level) + 1).toString() + '_' + rows[row].id);
+            for (row2 = 0; row2 < more_rows.length; row2++) {
+                more_rows[row2].style.display = 'none';
             }
         }
     }

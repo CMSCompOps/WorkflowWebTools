@@ -1,4 +1,4 @@
-#pylint: disable=too-many-locals
+#pylint: disable=too-many-locals, too-complex
 
 """
 Generates the content for the errors pages
@@ -42,6 +42,8 @@ class ErrorInfo(object):
         self.clusters = None
         # These are set in get_workflow()
         self.workflowinfos = {}
+        # These are set in get_prepid()
+        self.prepidinfos = {}
 
         self.setup()
 
@@ -77,6 +79,20 @@ class ErrorInfo(object):
         self.curs = curs
         self.set_all_lists()
         self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
+
+        if not self.data_location:
+            current_workflows = self.return_workflows()
+
+            prep_ids = set([self.get_workflow(wf).get_prep_id() for wf in current_workflows])
+
+            other_workflows = sum([self.get_prepid(prep_id).get_workflows() \
+                                       for prep_id in prep_ids], [])
+
+            errorutils.add_to_database(self.curs, [new for new in other_workflows \
+                                                       if new not in current_workflows])
+            self.set_all_lists()
+            self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
+
         self.connection_log('opened')
 
     def set_all_lists(self):
@@ -193,6 +209,17 @@ class ErrorInfo(object):
             self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
 
         return self.workflowinfos[workflow]
+
+    def get_prepid(self, prep_id):
+        """
+        :param str prep_id: The name of the Prep ID to check cache for
+        :returns: Either cached PrepIDInfo, or a new one
+        :rtype: CMSToolBox.workflowinfo.PrepIDInfo
+        """
+        if not self.prepidinfos.get(prep_id):
+            self.prepidinfos[prep_id] = workflowinfo.PrepIDInfo(prep_id)
+
+        return self.prepidinfos[prep_id]
 
     def get_step_list(self, workflow):
         """Gets the list of steps within a workflow
@@ -455,6 +482,7 @@ def get_errors(pievar, session=None):
         output[row] = {
             'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]]
             }
+
         for icol, col in enumerate(allmap[colname]):
             for ipie, pie in enumerate(allmap[pievar]):
                 if (row, col, pie) == (this_row, this_col, this_pievar):

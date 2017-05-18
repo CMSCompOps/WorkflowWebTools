@@ -184,12 +184,7 @@ def get_acted_workflows(num_days):
     :rtype: list
     """
 
-    workflows = []
-
-    for key in list(get_actions(num_days)):
-        workflows.append(key)
-
-    return workflows
+    return list(get_actions(num_days, acted=None))
 
 
 def report_actions(workflows):
