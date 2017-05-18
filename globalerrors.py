@@ -79,6 +79,20 @@ class ErrorInfo(object):
         self.curs = curs
         self.set_all_lists()
         self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
+
+        if not self.data_location:
+            current_workflows = self.return_workflows()
+
+            prep_ids = set([self.get_workflow(wf).get_prep_id() for wf in current_workflows])
+
+            other_workflows = sum([self.get_prepid(prep_id).get_workflows() \
+                                       for prep_id in prep_ids], [])
+
+            errorutils.add_to_database(self.curs, [new for new in other_workflows \
+                                                       if new not in current_workflows])
+            self.set_all_lists()
+            self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
+
         self.connection_log('opened')
 
     def set_all_lists(self):
@@ -476,62 +490,6 @@ def get_errors(pievar, session=None):
                     total_pie_vars[ipie] += numerrors
                     numerrors, this_row, this_col, this_pievar = \
                         curs.fetchone() or (0, '', '', '')
-
-    # Add the historic information for workflows in the same Prep IDs
-    if pievar != 'stepname':
-        conn = sqlite3.connect(serverconfig.workflow_history_path())
-        curs = conn.cursor()
-
-        # Execute same query as before
-        curs.execute(query)
-
-        info = check_session(session)
-
-        current_workflows = info.return_workflows()
-        # Get the unique list of prep IDs from the workflows currently concerning us
-        prep_ids = set([info.get_workflow(wf).get_prep_id() for wf in current_workflows])
-        # Get the workflows
-        historic_workflows = sum([info.get_prepid(prep_id).get_workflows_requesttime() \
-                                      for prep_id in prep_ids], [])
-
-        historic_dictionary = {workflow: timestamp for workflow, timestamp in historic_workflows \
-                                   if workflow not in current_workflows}
-
-        def fetch_one():
-            """
-            Does the cursor fetch and checks conditions.
-            We only want results that are included in our allmap, and in this historic_dictionary
-
-            :returns: Next useful cursor result
-            :rtype: tuple
-            """
-
-            numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
-            while this_row and \
-                    (this_col not in allmap[colname] or this_pievar not in allmap[pievar] \
-                         or this_row.split('/')[1] not in historic_dictionary.keys()):
-                numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
-
-            return (numerrors, this_row, this_col, this_pievar)
-
-
-        numerrors, this_row, this_col, this_pievar = fetch_one()
-
-        while this_row:
-            output[this_row] = {
-                'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]],
-                'timestamp': historic_dictionary[this_row.split('/')[1]],
-                'is_history': True
-                }
-            for icol, col in enumerate(allmap[colname]):
-                for ipie, pie in enumerate(allmap[pievar]):
-                    if (col, pie) == (this_col, this_pievar):
-                        output[this_row]['errors'][icol][ipie] = numerrors
-                        total_pie_vars[ipie] += numerrors
-
-                        numerrors, this_row, this_col, this_pievar = fetch_one()
-
-        conn.close()
 
     # Sort the pievars
     indices_for_pievars = [index for index, _ in sorted(
