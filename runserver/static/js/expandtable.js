@@ -26,6 +26,8 @@ function expand_children(this_level, this_name, only_hide) {
             rows[row].style.display = '';
         } else {
             rows[row].style.display = 'none';
+            var another_arrow = document.getElementById(rows[row].id + '_span');
+            another_arrow.innerHTML = '&#x25B6;';
             // Only have two layers, so I'll do something lazy and just hide all children
             var more_rows = document.getElementsByClassName('child_of_' + 
                               (parseInt(this_level) + 1).toString() + '_' + rows[row].id);
