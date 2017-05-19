@@ -14,6 +14,7 @@ Script to run the WorkflowWebTools server.
 import os
 import sys
 import time
+import datetime
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -144,8 +145,17 @@ class WorkflowTools(object):
 
         errors = globalerrors.get_errors(pievar, cherrypy.session)
         if pievar != 'stepname':
+
+            # This pulls out the timestamp from the workflow parameters
+            timestamp = lambda wkf: time.mktime(
+                datetime.datetime(
+                    *(globalerrors.check_session(cherrypy.session).\
+                          get_workflow(wkf).get_workflow_parameters()['RequestDate'])).timetuple()
+                )
+
             errors = globalerrors.group_errors(
-                globalerrors.group_errors(errors, lambda subtask: subtask.split('/')[1]),
+                globalerrors.group_errors(errors, lambda subtask: subtask.split('/')[1],
+                                          timestamp=timestamp),
                 lambda workflow: globalerrors.check_session(cherrypy.session).\
                     get_workflow(workflow).get_prep_id()
                 )
