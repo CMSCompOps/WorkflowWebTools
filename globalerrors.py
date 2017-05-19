@@ -287,9 +287,9 @@ def group_errors(input_errors, grouping_function, **kwargs):
     :param grouping_function: Takes an input, which is a key of ``input_errors``
                               and groups those keys by this function output.
     :type grouping_function: function
-    :param **kwargs: The keyword should point to a function.
-                     That keyword will be added to the dictionary of each group.
-                     It's value will be the function output with the group as an argument.
+    :param kwargs: The keyword should point to a function.
+                   That keyword will be added to the dictionary of each group.
+                   It's value will be the function output with the group as an argument.
     :returns: A dictionary with the same format as the input, but with groupings.
     :rtype: dict
     """
