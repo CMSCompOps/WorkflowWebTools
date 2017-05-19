@@ -82,11 +82,12 @@
                this_row_level = 0
                row_class = ''
         %>
-      % if row_name:
-      % if row_class:
+      % if row_class and row_name:
       <tr class="${row_class}" style="display:none;" id="${row_name}">
-      % else:
+      % elif row_name:
       <tr>
+      % else:
+      <tr style="display:none;">
       % endif
           % if sub_rows:
         <th class="${bg_type}" title="Total Errors: ${tot_errors}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
@@ -128,7 +129,6 @@
           </th>
         % endfor
       </tr>
-      % endif
       </%def>
       % for row_name, row in sorted(errors.items()):
          ${errors_row(row_name, row, False)}
