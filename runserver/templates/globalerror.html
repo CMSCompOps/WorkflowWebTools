@@ -82,6 +82,7 @@
                this_row_level = 0
                row_class = ''
         %>
+      % if row_name:
       % if row_class:
       <tr class="${row_class}" style="display:none;" id="${row_name}">
       % else:
@@ -127,10 +128,11 @@
           </th>
         % endfor
       </tr>
+      % endif
       </%def>
       % for row_name, row in sorted(errors.items()):
          ${errors_row(row_name, row, False)}
-         % for row_name_1, row_1 in sorted(row.get('sub', {}).items()):
+         % for row_name_1, row_1 in sorted(row.get('sub', {}).items(), key=lambda x: x[1]['timestamp']):
            ${errors_row(row_name_1, row_1, True, (0, row_name))}
            % for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
              ${errors_row(row_name_2, row_2, False, (1, row_name_1))}

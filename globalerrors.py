@@ -91,6 +91,10 @@ class ErrorInfo(object):
             errorutils.add_to_database(self.curs, [new for new in other_workflows \
                                                        if new not in current_workflows])
             self.set_all_lists()
+            current_workflows = self.return_workflows()
+
+            self.allsteps.extend(['/%s/' % zero for zero in other_workflows \
+                                      if zero not in current_workflows])
             self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
 
         self.connection_log('opened')
@@ -270,7 +274,7 @@ def check_session(session, can_refresh=False):
     return theinfo
 
 
-def group_errors(input_errors, grouping_function):
+def group_errors(input_errors, grouping_function, **kwargs):
     """
     Takes inputs errors with the format::
 
@@ -283,6 +287,9 @@ def group_errors(input_errors, grouping_function):
     :param grouping_function: Takes an input, which is a key of ``input_errors``
                               and groups those keys by this function output.
     :type grouping_function: function
+    :param kwargs: The keyword should point to a function.
+                   That keyword will be added to the dictionary of each group.
+                   It's value will be the function output with the group as an argument.
     :returns: A dictionary with the same format as the input, but with groupings.
     :rtype: dict
     """
@@ -303,6 +310,9 @@ def group_errors(input_errors, grouping_function):
                     subgroup: values
                     }
                 }
+
+        for key, func in kwargs.iteritems():
+            output[group][key] = func(group)
 
     for group in output:
         output[group]['errors'] = output[group]['errors'].tolist()

@@ -5,7 +5,6 @@ sudo: required
 dist: trusty
 services:
   - mongodb
-  - mysql
 addons:
   apt:
     sources: debian-sid
