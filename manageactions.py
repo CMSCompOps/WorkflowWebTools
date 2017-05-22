@@ -134,7 +134,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             'Reasons': [reason['long'] for reason in reasons],
             'user': user,
             'ACDCs': [wkf for wkf in error_info.get_prepid(
-                    error_info.get_workflow(workflow).get_prep_id()).get_workflows() \
+                error_info.get_workflow(workflow).get_prep_id()).get_workflows() \
                           if wkf != workflow]
             }
 
