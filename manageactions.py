@@ -90,12 +90,14 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
     coll = get_actions_collection()
 
+    error_info = check_session(session)
+
     if not isinstance(workflows, list):
         workflows = [workflows]
 
     for workflow in workflows:
         wf_params = dict(params)
-        step_list = check_session(session).get_step_list(workflow)
+        step_list = error_info.get_step_list(workflow)
         short_step_list = ['/'.join(step.split('/')[2:]) for step in step_list]
         # For recovery, get the proper sites and parameters out for each step
         if action in ['acdc', 'recovery']:
@@ -130,7 +132,10 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             'Action': action,
             'Parameters': wf_params,
             'Reasons': [reason['long'] for reason in reasons],
-            'user': user
+            'user': user,
+            'ACDCs': [wkf for wkf in error_info.get_prepid(
+                    error_info.get_workflow(workflow).get_prep_id()).get_workflows() \
+                          if wkf != workflow]
             }
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, document))
