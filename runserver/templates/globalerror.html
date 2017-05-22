@@ -120,12 +120,14 @@
         % for index, pie in enumerate(row['errors']):
           <th title="Total Errors: ${sum(pie)}">
             % if pievar == 'stepname':
-              <a href="listworkflows?errorcode=${row_name}&sitename=${columns[index]}" target="blank">
+              <a href="listpage?errorcode=${row_name}&sitename=${columns[index]}" target="blank">
+            % elif pievar == 'errorcode':
+              <a href="listpage?workflow=${row_name}&sitename=${columns[index]}" target="blank">
+            % else:
+              <a href="listpage?workflow=${row_name}&errorcode=${columns[index]}" target="blank">
             % endif
             <canvas width="20" height="20" class="piechart"></canvas>
-            % if pievar == 'stepname':
-              </a>
-            % endif
+            </a>
           </th>
         % endfor
       </tr>

@@ -517,7 +517,7 @@ class WorkflowTools(object):
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
-    def listworkflows(self, errorcode='', sitename=''):
+    def listpage(self, errorcode='', sitename='', workflow=''):
         """
         This simply returns a list of workflows that matches an errorcode and sitename.
         It can be accessed directly by organizing :ref:`global-view-ref` with `pievar=stepname`,
@@ -525,9 +525,13 @@ class WorkflowTools(object):
 
         :param int errorcode: Error to match
         :param str sitename: Site to match
+        :param str workflow: The workflow to match
         :returns: Page listing workflows
         :rtype: str
         """
+
+        if workflow:
+            return 'Work in progressions'
 
         # Retry after ProgrammingError
         try:
