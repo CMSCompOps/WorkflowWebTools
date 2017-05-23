@@ -39,7 +39,7 @@ The Global Error View
 List Workflows
 ~~~~~~~~~~~~~~
 
-.. automethod:: workflowtools.WorkflowTools.listworkflows
+.. automethod:: workflowtools.WorkflowTools.listpage
 
 .. _workflow-view-ref:
 

@@ -542,7 +542,7 @@ class WorkflowTools(object):
             info=listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
         except sqlite3.ProgrammingError:
             time.sleep(5)
-            return self.listworkflows(errorcode, sitename, workflow)
+            return self.listpage(errorcode, sitename, workflow)
 
         return GET_TEMPLATE('listworkflows.html').render(
             workflow=workflow,
