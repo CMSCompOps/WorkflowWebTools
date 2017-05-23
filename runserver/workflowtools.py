@@ -528,23 +528,27 @@ class WorkflowTools(object):
         :param str workflow: The workflow to match
         :returns: Page listing workflows
         :rtype: str
+        :raises: cherrypy.HTTPRedirect to 404 if all variable are filled.
         """
 
-        if workflow:
-            return 'Work in progressions'
+        if errorcode and sitename and workflow:
+            raise cherrypy.HTTPError(404)
+
+        acted = [] if workflow else \
+            manageactions.get_acted_workflows(serverconfig.get_history_length())
 
         # Retry after ProgrammingError
         try:
-            info=listpage.listworkflows(errorcode, sitename, cherrypy.session)
+            info=listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
         except sqlite3.ProgrammingError:
             time.sleep(5)
-            return self.listworkflows(errorcode, sitename)
+            return self.listworkflows(errorcode, sitename, workflow)
 
         return GET_TEMPLATE('listworkflows.html').render(
+            workflow=workflow,
             errorcode=errorcode,
             sitename=sitename,
-            acted_workflows=manageactions.get_acted_workflows(
-                serverconfig.get_history_length()),
+            acted_workflows=acted,
             info=info)
 
 

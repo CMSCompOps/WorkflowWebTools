@@ -2,11 +2,23 @@
 
 <%block name="title">Workflow List</%block>
 
+% if not workflow:
 <h1>Workflows with exit code ${errorcode} at ${sitename}</h1>
+% elif not errorcode:
+<h1>Exit codes for ${workflow} at ${sitename}</h1>
+% else:
+<h1>Sites where ${workflow} has exit code ${errorcode}</h1>
+% endif
 
-% for workflow, numbererr in info:
+% for key, numbererr in info:
+% if not workflow:
 <%
-   acted_class = 'acted' if (workflow in acted_workflows) else 'notacted'
+   acted_class = 'acted' if (key in acted_workflows) else 'notacted'
 %>
-<a class="${acted_class}" href="seeworkflow?workflow=${workflow}">${workflow}</a>: ${numbererr} <br>
+<a class="${acted_class}" href="seeworkflow?workflow=${key}">${key}</a>: ${numbererr} <br>
+% elif not errorcode:
+<a target="blank" href="explainerror?errorcode=${key}&workflowstep=/${workflow}/">${key}</a>: ${numbererr} <br>
+% else:
+${key}: ${numbererr} <br>
+% endif
 % endfor
