@@ -517,7 +517,7 @@ class WorkflowTools(object):
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
-    def listworkflows(self, errorcode='', sitename=''):
+    def listpage(self, errorcode='', sitename='', workflow=''):
         """
         This simply returns a list of workflows that matches an errorcode and sitename.
         It can be accessed directly by organizing :ref:`global-view-ref` with `pievar=stepname`,
@@ -525,22 +525,30 @@ class WorkflowTools(object):
 
         :param int errorcode: Error to match
         :param str sitename: Site to match
+        :param str workflow: The workflow to match
         :returns: Page listing workflows
         :rtype: str
+        :raises: cherrypy.HTTPRedirect to 404 if all variable are filled.
         """
+
+        if errorcode and sitename and workflow:
+            raise cherrypy.HTTPError(404)
+
+        acted = [] if workflow else \
+            manageactions.get_acted_workflows(serverconfig.get_history_length())
 
         # Retry after ProgrammingError
         try:
-            info=listpage.listworkflows(errorcode, sitename, cherrypy.session)
+            info=listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
         except sqlite3.ProgrammingError:
             time.sleep(5)
-            return self.listworkflows(errorcode, sitename)
+            return self.listpage(errorcode, sitename, workflow)
 
         return GET_TEMPLATE('listworkflows.html').render(
+            workflow=workflow,
             errorcode=errorcode,
             sitename=sitename,
-            acted_workflows=manageactions.get_acted_workflows(
-                serverconfig.get_history_length()),
+            acted_workflows=acted,
             info=info)
 
 
