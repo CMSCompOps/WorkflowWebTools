@@ -63,7 +63,8 @@ def extract_reasons_params(action, **kwargs):
                 default = 'AllSteps' if parameter != 'sites' else 'Ban'
                 which_task = kwargs.get('task_%s' % key.split('_')[1], default)
 
-                if tasks_to_do and which_task not in tasks_to_do:
+                if tasks_to_do and which_task != default \
+                        and which_task not in tasks_to_do:
                     continue
 
                 params[which_task] = params.get(which_task, {})
@@ -114,7 +115,10 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             # Fill empty parameters for each step from AllSteps
             for short_step_name, step_name in zip(short_step_list, step_list):
                 # Get any existing thing (most likely not there)
-                step_params = wf_params.get(short_step_name, {})
+                step_params = wf_params.get(short_step_name)
+
+                if step_params is None:
+                    continue
 
                 for key, val in all_steps.iteritems():
                     # This also includes if the key value is set but blank
