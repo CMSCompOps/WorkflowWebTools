@@ -22,13 +22,13 @@ function taskTable(opts, texts, taskNumber) {
     :param int taskNumber: Separates the different parameters for each task in ACDC.
     :returns: The <div> element that contains the table
     */
-    var paramDiv = document.createElement("DIV");
+    var paramDiv = document.createElement('DIV');
     paramDiv.innerHTML = '';
-    paramDiv.style.padding = "10px";
+    paramDiv.style.padding = '10px';
 
     for (key in opts) {
-        var optionDiv = document.createElement("DIV");
-        var keytext = document.createElement("b");
+        var optionDiv = document.createElement('DIV');
+        var keytext = document.createElement('b');
         keytext.innerHTML = key + ':';
         optionDiv.appendChild(keytext);
 
@@ -36,10 +36,10 @@ function taskTable(opts, texts, taskNumber) {
 
             var opttext = document.createTextNode('    ' + opts[key][opt] + '  ');
             optionDiv.appendChild(opttext);
-            var option = document.createElement("INPUT");
-            option.setAttribute("type", "radio");
-            option.setAttribute("name", "param_" + taskNumber + "_" + key);
-            option.setAttribute("value", opts[key][opt]);
+            var option = document.createElement('INPUT');
+            option.setAttribute('type', 'radio');
+            option.setAttribute('name', 'param_' + taskNumber + '_' + key);
+            option.setAttribute('value', opts[key][opt]);
             option.ondblclick = function() {
                 this.checked = false;
             }
@@ -53,15 +53,15 @@ function taskTable(opts, texts, taskNumber) {
 
     for (itext in texts) {
 
-        var inpDiv = document.createElement("DIV");
-        var text = document.createElement("b");
+        var inpDiv = document.createElement('DIV');
+        var text = document.createElement('b');
         text.innerHTML = texts[itext] + ':  ';
-        var inp = document.createElement("INPUT");
-        inp.setAttribute("type", "text");
-        inp.setAttribute("name", "param_" + taskNumber + "_" + texts[itext]);
+        var inp = document.createElement('INPUT');
+        inp.setAttribute('type', 'text');
+        inp.setAttribute('name', 'param_' + taskNumber + '_' + texts[itext]);
         
         if (texts[itext] in param_defaults) {
-            inp.setAttribute("value", param_defaults[texts[itext]]);
+            inp.setAttribute('value', param_defaults[texts[itext]]);
         }
 
         inpDiv.appendChild(text);
@@ -76,7 +76,7 @@ function taskTable(opts, texts, taskNumber) {
 
 function printSiteList(method, task, siteTableDiv) {
     var site_list_message = document.createElement('DIV');
-    site_list_message.style.fontWeight="900";
+    site_list_message.style.fontWeight='900';
     site_list_message.innerHTML = '<span style="color:red">Red sites</span> are sites in drain or disabled.';
     siteTableDiv.appendChild(site_list_message);
 
@@ -136,7 +136,7 @@ function makeParamTable(action) {
 
     var paramDiv = document.getElementById('actionparams');
     paramDiv.innerHTML = '';
-    paramDiv.style.padding = "10px";
+    paramDiv.style.padding = '10px';
 
     var texts = [];
     var opts = {};
@@ -180,7 +180,7 @@ function makeParamTable(action) {
                        'Manual',
                        'Ban'
                        ];
-        var methodsDiv = document.createElement("DIV");
+        var methodsDiv = document.createElement('DIV');
         methodsDiv.innerHTML = '<h4>Site Selection Method:</h4>';
         methodsDiv.innerHTML += '<p>To see which sites are selected for this workflow under Auto, '
             + 'check what is automatically checked under Manual. '
@@ -193,7 +193,7 @@ function makeParamTable(action) {
         }
         paramDiv.appendChild(methodsDiv);
 
-        var all_title = document.createElement("h3");
+        var all_title = document.createElement('h3');
         all_title.innerHTML = 'All Steps (use this or fill all others)';
         paramDiv.appendChild(all_title);
         paramDiv.appendChild(taskTable(opts, texts, task_list.length));
@@ -202,11 +202,27 @@ function makeParamTable(action) {
         paramDiv.appendChild(siteTable);
 
         for (task in task_list) {
-            var title = document.createElement("h3");
+            var taskName = task_list[task].split('/').slice(2).join('/');
+
+            var taskHeader = document.createElement('DIV');
+
+            var title = document.createElement('h3');
             title.innerHTML = '<a href="#' + task_list[task] + '">'
-                + task_list[task].split('/').slice(2).join('/')
-                + '</a>';
-            paramDiv.appendChild(title);
+                + taskName + '</a>';
+
+            var checkThis = document.createElement('SPAN');
+            checkThis.innerHTML = 'Only do this task.';
+
+            var checkBox = document.createElement('INPUT');
+            checkBox.type = 'checkbox';
+            checkBox.name = 'dotasks';
+            checkBox.value = taskName;
+
+            taskHeader.appendChild(title);
+            taskHeader.appendChild(checkBox);
+            taskHeader.appendChild(checkThis);
+
+            paramDiv.appendChild(taskHeader);
             paramDiv.appendChild(taskTable(opts, texts, task));
 
             // This DIV is where the lists of sites will be printed, depending on the method selected
