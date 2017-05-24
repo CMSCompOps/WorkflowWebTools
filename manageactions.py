@@ -1,4 +1,4 @@
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals, too-complex
 
 """Module to manage actions of WorkflowWebTools.
 
