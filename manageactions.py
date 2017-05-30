@@ -6,6 +6,7 @@
 """
 
 import time
+import datetime
 
 import cherrypy
 import pymongo
@@ -100,6 +101,20 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
     error_info = check_session(session)
 
+    # Let's define some lambdas to use to filter our ACDCs (sanity checks)
+    # First a quick shorthand for workflow parameters
+    get_params = lambda wkf: error_info.get_workflow(wkf).get_workflow_parameters()
+
+    # We want request type to be resubmission in our ACDC
+    is_resub = lambda wkf: \
+        get_params(wkf)['RequestType'] == 'Resubmission'
+
+    # We want our ACDC to be submitted after the original request
+    is_new = lambda wkf, workflow: \
+        datetime.datetime(*(get_params(wkf)['RequestDate'])) > \
+        datetime.datetime(*(get_params(workflow)['RequestDate']))
+
+
     if not isinstance(workflows, list):
         workflows = [workflows]
 
@@ -146,7 +161,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             'user': user,
             'ACDCs': [wkf for wkf in error_info.get_prepid(
                 error_info.get_workflow(workflow).get_prep_id()).get_workflows() \
-                          if wkf != workflow]
+                          if wkf != workflow and is_resub(wkf) and is_new(wkf, workflow)]
             }
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, document))
