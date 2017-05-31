@@ -37,18 +37,17 @@ def dump_json(file_name=None):
             else:
                 parameters = actions[workflow]['Parameters']
 
-            if parameters:
-                output[subtask] = {
-                    'errors': {
-                        'good_sites': globalerrors.get_step_table(
-                            subtask, session, readymatch=('green',)),
-                        'bad_sites': globalerrors.get_step_table(
-                            subtask, session, readymatch=('yellow', 'red', 'none'))
-                        },
-                    'actions': [
-                        actions[workflow]['Action'], parameters
-                        ]
-                    }
+            output[subtask] = {
+                'errors': {
+                    'good_sites': globalerrors.get_step_table(
+                        subtask, session, readymatch=('green',)),
+                    'bad_sites': globalerrors.get_step_table(
+                        subtask, session, readymatch=('yellow', 'red', 'none'))
+                    },
+                'parameters':
+                    parameters
+                }
+            output[subtask]['parameters']['action'] = actions[workflow]['Action']
 
     if file_name:
         with open(file_name, 'w') as output_file:
