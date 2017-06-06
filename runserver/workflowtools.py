@@ -21,8 +21,7 @@ from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import serverconfig
 
-if __name__ == '__main__':
-    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
+serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
