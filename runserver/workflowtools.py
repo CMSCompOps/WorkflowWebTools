@@ -21,7 +21,8 @@ from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import serverconfig
 
-serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
+if __name__ == '__main__' or 'mod_wsgi' in sys.modules.keys():
+    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 from WorkflowWebTools import manageusers
 from WorkflowWebTools import manageactions
