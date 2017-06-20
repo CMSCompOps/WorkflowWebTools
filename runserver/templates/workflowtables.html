@@ -143,6 +143,9 @@
                  'recovery' : 'Recovery (not ACDC)',
                  'investigate' : 'Other action'
              }
+             if params['RequestType'] == 'Resubmission':
+                 actions.pop('clone')
+
           %>
           % for val, text in actions.iteritems():
           <input type="radio" name="action" onclick="makeParamTable(this);" value="${val}">${text}
