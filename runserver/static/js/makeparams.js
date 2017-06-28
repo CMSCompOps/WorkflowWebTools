@@ -141,12 +141,14 @@ function makeParamTable(action) {
     var texts = [];
     var opts = {};
 
+    var split_list = ['2x', '3x', '10x', '20x', '50x', '100x', '200x', 'max'];
+
     if (action.value == 'clone') {
         texts = [
                  'memory',
                  ];
         opts = {
-            'splitting': ['2x', '3x', 'max']
+            'splitting': split_list
         };
     } else if (action.value == 'acdc') {
         texts = [
@@ -155,7 +157,7 @@ function makeParamTable(action) {
         opts = {
             'xrootd': ['enabled', 'disabled'],
             'secondary': ['enabled', 'disabled'],
-            'splitting': ['2x', '3x', 'max'],
+            'splitting': split_list
         };
     } else if (action.value == 'recovery') {
         texts = [
@@ -165,7 +167,7 @@ function makeParamTable(action) {
         opts = {
             'xrootd': ['enabled', 'disabled'],
             'secondary': ['enabled', 'disabled'],
-            'splitting': ['2x', '3x', 'max'],
+            'splitting': split_list
         };
     } else if (action.value == 'investigate') {
         texts = [
