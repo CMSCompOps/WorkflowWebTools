@@ -169,7 +169,10 @@ function makeParamTable(action) {
             'secondary': ['enabled', 'disabled'],
             'splitting': split_list
         };
-    } else if (action.value == 'investigate') {
+    } else if (action.value == 'special') {
+        opts = {
+            'action': ['by-pass', 'force-complete']
+        };
         texts = [
                  'other',
                  ];
