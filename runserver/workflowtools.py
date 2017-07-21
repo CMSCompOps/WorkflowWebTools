@@ -293,6 +293,8 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        cherrypy.log('args: {0}'.format(kwargs))
+
         if workflows == '':
             return GET_TEMPLATE('scolduser.html').render(workflow='')
 
