@@ -95,7 +95,11 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     :rtype: list, str, list of dicts, dict
     """
 
+    cherrypy.log('args: {0}'.format(kwargs))
+
     reasons, params = extract_reasons_params(action, **kwargs)
+
+    cherrypy.log('Parameters: {0}'.format(params))
 
     coll = get_actions_collection()
 
@@ -130,10 +134,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             # Fill empty parameters for each step from AllSteps
             for short_step_name, step_name in zip(short_step_list, step_list):
                 # Get any existing thing (most likely not there)
-                step_params = wf_params.get(short_step_name)
-
-                if step_params is None:
-                    continue
+                step_params = wf_params.get(short_step_name, {})
 
                 for key, val in all_steps.iteritems():
                     # This also includes if the key value is set but blank

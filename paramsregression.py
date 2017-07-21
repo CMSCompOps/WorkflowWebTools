@@ -13,10 +13,6 @@ import sys
 import json
 
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
-from sklearn.decomposition import PCA
-from matplotlib import pyplot
-from matplotlib.markers import MarkerStyle
 
 def get_classifier(raw_data, parameter, **kwargs):
     """
@@ -65,13 +61,9 @@ def get_classifier(raw_data, parameter, **kwargs):
             class_labels.append(param)
 
     classifier = MLPClassifier(**kwargs)
-#    classifier = SVC(**kwargs)
     classifier.fit(training_data, training_target)
 
-    pca = PCA(n_components=2)
-    pca.fit(training_data)
-
-    def print_results(data, target, shape):
+    def print_results(data, target):
         """Print the results of predictions.
 
         :param list data: Errors in the format of a matrix
@@ -80,39 +72,25 @@ def get_classifier(raw_data, parameter, **kwargs):
 
         output = classifier.predict(data)
 
-        components = pca.transform(data)
-
         right = 0
 
-        for index, zipped in enumerate(zip(target, output)):
-            want, result = zipped
-            x, y = components[index]
+        for want, result in zip(target, output):
 
             if want == result:
-                color = 'b' if want else 'g'
                 status = 'RIGHT'
                 right += 1
             else:
-                color = 'r' if result else 'm'
                 status = 'WRONG'
             print '[%s] %i : %i -- %s : %s' % \
                 (status, want, result, class_labels[want], class_labels[result])
-            if x < -70 and y < -10:
-                pyplot.scatter(x=x, y=y, marker=shape, facecolors='none', edgecolors=color)
 
         print '%f (%i/%i)' % (100.0 * right/len(target), right, len(target))
 
     print '\nTraining:\n'
-    print_results(training_data, training_target, 'o')
+    print_results(training_data, training_target)
 
     print '\nTesting:\n'
-    print_results(testing_data, testing_target, '^')
-
-    print len(testing_data[0])
-    print len(testing_data[1])
-    print classifier.n_layers_
-
-    pyplot.savefig('/home/dabercro/public_html/full.pdf')
+    print_results(testing_data, testing_target)
 
 def main():
     """This is for testing."""
@@ -124,7 +102,8 @@ def main():
     with open(sys.argv[1], 'r') as input_file:
         raw_data = json.load(input_file)
 
-    get_classifier(raw_data, parameter, solver='lbfgs')
+    get_classifier(raw_data, parameter,
+                   solver='lbfgs', hidden_layer_sizes=(100, 10))
 
 
 if __name__ == '__main__':
