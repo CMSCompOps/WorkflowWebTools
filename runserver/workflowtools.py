@@ -512,6 +512,7 @@ class WorkflowTools(object):
 
         Navigating to ``https://localhost:8080/resetcache``
         resets the error info for the user's session.
+        It also clears out cached JSON files on the server.
         Under normal operation, this cache is only refreshed every half hour.
 
         :returns: a confirmation page
