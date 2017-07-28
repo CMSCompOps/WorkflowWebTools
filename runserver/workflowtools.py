@@ -13,6 +13,7 @@ Script to run the WorkflowWebTools server.
 
 import os
 import sys
+import glob
 import time
 import datetime
 
@@ -516,6 +517,11 @@ class WorkflowTools(object):
         :returns: a confirmation page
         :rtype: str
         """
+
+        # We want to change this directory to something set in workflowinfo soon
+        for cache_file in glob.iglob('/tmp/workflowinfo/*'):
+            os.remove(cache_file)
+
         # Force the cache reset
         if cherrypy.session.get('info'):
             cherrypy.session.get('info').teardown()
