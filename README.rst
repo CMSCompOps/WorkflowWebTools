@@ -7,19 +7,19 @@ Welcome to the documentation for the new Workflow Team Web Tools.
 
 .. contents:: :local:
 
-Using the Web Tools
--------------------
+Using the Web Tools as an Operator
+----------------------------------
 
 Once you are pointed to a proper URL to access the webtools, you will
 come to the home page, with links to different views.
 For each of the examples below, I will use the base URL of ``https://localhost:8080/``,
-since that is the URL you can see if you run the server on your machine.
+since that is likely the URL you can see if you run the server on your machine.
 If you are looking at a production server, the URL will of course be different.
 
-Each page is a function of a ``WorkflowTools`` instance.
-To pass parameters to the function, the usual urlencoding of the parameters
-can be appended to the URL to call each function.
-Most users should be able to interact with the website through their browser though.
+For users familiar with CherryPy, each page is a function of a ``WorkflowTools`` object.
+To pass parameters to the function in a browser,
+the usual urlencoding of the parameters can be appended to the URL to call each function.
+Most users should be able to interact with the website exclusively through links though.
 From the URL root index, users will be able to directly access the following:
 
 - :ref:`global-view-ref`
@@ -223,6 +223,8 @@ Global Errors
 
 .. automodule:: WorkflowWebTools.globalerrors
    :members:
+
+.. _clustering-ref:
 
 Workflow Clustering
 ~~~~~~~~~~~~~~~~~~~
