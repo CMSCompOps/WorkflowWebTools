@@ -230,7 +230,7 @@ class WorkflowTools(object):
                  is not selected.
         """
 
-        if workflow not in globalerrors.check_session(cherrypy.session).return_workflows():
+        if workflow not in globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
             raise cherrypy.HTTPRedirect('/globalerror')
 
         if issuggested:
@@ -513,6 +513,7 @@ class WorkflowTools(object):
         :returns: a confirmation page
         :rtype: str
         """
+        # Force the cache reset
         if cherrypy.session.get('info'):
             cherrypy.session.get('info').teardown()
             cherrypy.session.get('info').setup()
