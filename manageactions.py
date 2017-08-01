@@ -96,6 +96,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     """
 
     cherrypy.log('args: {0}'.format(kwargs))
+    dotasks = kwargs.get('dotasks', [])
 
     reasons, params = extract_reasons_params(action, **kwargs)
 
@@ -153,7 +154,8 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
             # Only keep the workflow parameters with steps that occur in given workflow
             wf_params = {key: wf_params[key] for key in wf_params \
-                             if key in short_step_list}
+                             if key in short_step_list and \
+                             (key in dotasks or not dotasks)}
 
         document = {
             'Action': action,
