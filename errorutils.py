@@ -92,6 +92,9 @@ def add_to_database(curs, data_location):
     number_added = 0
 
     for stepname, errorcodes in indict.items():
+        if 'LogCollect' in stepname or 'Cleanup' in stepname:
+            continue
+
         for errorcode, sitenames in errorcodes.items():
             if errorcode == 'NotReported':
                 errorcode = '-1'
