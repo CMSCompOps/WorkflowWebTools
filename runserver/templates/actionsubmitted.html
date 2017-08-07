@@ -18,7 +18,9 @@ ${wf} <br>
 ${action}
 
 <h3>Parameters</h3>
-${params}
+% for key, val in params.iteritems():
+<b>${key}</b>: ${val} <br>
+% endfor
 
 <h3>Reasons</h3>
 % for reason in reasons:

@@ -31,7 +31,7 @@ def give_logs(query, module='', limit=50):
 
     else:
         output = search_logs(query)
-        if len(output) == 0:
+        if not output:
             return 'No logs were found!<br>' + formtext
 
         texts = set()

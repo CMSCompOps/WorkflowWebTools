@@ -13,14 +13,16 @@ Script to run the WorkflowWebTools server.
 
 import os
 import sys
+import glob
 import time
+import datetime
 
 import cherrypy
 from mako.lookup import TemplateLookup
 
 from WorkflowWebTools import serverconfig
 
-if __name__ == '__main__':
+if __name__ == '__main__' or 'mod_wsgi' in sys.modules.keys():
     serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
 from WorkflowWebTools import manageusers
@@ -107,7 +109,7 @@ class WorkflowTools(object):
         This page, located at ``https://localhost:8080/globalerror``,
         attempts to give an overall view of the errors that occurred
         in each workflow at different sites.
-        The resulting view is a tabel of piecharts.
+        The resulting view is a table of piecharts.
         The rows and columns can be adjusted to contain two of the following:
 
         - Workflow step name
@@ -115,19 +117,22 @@ class WorkflowTools(object):
         - Exit code of the error
 
         The third variable is used to split the pie charts.
-        This variable can be quickly changed by submitting the form in the
-        upper left corner of the page.
-        The piecharts' size depend on the total number of errors in a given cell.
+        This variable inside the pie charts can be quickly changed
+        by submitting the form in the upper left corner of the page.
 
-        Each cell also has a tooltip, containing more information.
-        The piecharts show the exact splitting based on the extra variable.
-        Error codes in the columns give a tooltip with part of their error message
-        from multiple jobs appended.
+        The size of the piecharts depend on the total number of errors in a given cell.
+        Each cell also has a tooltip, giving the total number of errors in the piechart.
+        The colors of the piecharts show the splitting based on the ``pievar``.
+        Clicking on the pie chart will show the splitting explicitly
+        using the :ref:`list-wfs-ref` page.
 
-        If the steps make up the rows, you can follow the link of the step name to view
-        the :ref:`workflow-view-ref`.
-        Following that link will also cause your browser to jump to the corresponding
-        step table on that page.
+        If the steps make up the rows,
+        the default view will show you the errors for each campaign.
+        Clicking on the campaign name will cause the rows to expand
+        to show the original workflow and all ACDCs (whether or not the ACDCs have errors).
+        Following the link of the workflow will bring you to :ref:`workflow-view-ref`.
+        Clicking anywhere else in the workflow box
+        will cause it to expand to show errors for each step.
 
         :param str pievar: The variable that the pie charts are split into.
                            Valid values are:
@@ -140,12 +145,43 @@ class WorkflowTools(object):
         :rtype: str
         """
 
-        return GET_TEMPLATE('globalerror.html').\
-            render(errordata=globalerrors.return_page(pievar, cherrypy.session),
+        # For some reasons, we occasionally have to refresh this global errors page
+
+        errors = globalerrors.get_errors(pievar, cherrypy.session)
+        if pievar != 'stepname':
+
+            # This pulls out the timestamp from the workflow parameters
+            timestamp = lambda wkf: time.mktime(
+                datetime.datetime(
+                    *(globalerrors.check_session(cherrypy.session).\
+                          get_workflow(wkf).get_workflow_parameters()['RequestDate'])).timetuple()
+                )
+
+            errors = globalerrors.group_errors(
+                globalerrors.group_errors(errors, lambda subtask: subtask.split('/')[1],
+                                          timestamp=timestamp),
+                lambda workflow: globalerrors.check_session(cherrypy.session).\
+                    get_workflow(workflow).get_prep_id()
+                )
+
+        # Get the names of the columns
+        cols = globalerrors.check_session(cherrypy.session).\
+            get_allmap()[globalerrors.get_row_col_names(pievar)[1]]
+
+        template = lambda: GET_TEMPLATE('globalerror.html').\
+            render(errors=errors,
+                   columns=cols,
+                   pievar=pievar,
                    acted_workflows=manageactions.get_acted_workflows(
-                       serverconfig.get_history_length()),
+                    serverconfig.get_history_length()),
                    readiness=globalerrors.check_session(cherrypy.session).readiness
-                  )
+                   )
+
+        try:
+            return template()
+        except:
+            time.sleep(2)
+            return template()
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
@@ -157,37 +193,33 @@ class WorkflowTools(object):
         of the error message for jobs having the given exit code.
         This should help operators understand what the error means.
 
-        At the top of the page, there are links back for :ref:`global-view-ref`
-        and :ref:`show-logs-ref`.
-        There is also a form to submit actions.
+        At the top of the page, there are links back for :ref:`global-view-ref`,
+        :ref:`show-logs-ref`, related JIRA tickets,
+        and ReqMgr2 information about the workflow and prep ID.
+
+        The main function of this page is to submit actions.
         Note that you will need to register in order to actually submit actions.
         See :ref:`new-user-ref` for more details.
-        Depending on which action is selected, a menu will appear below to
-        pick how to adjust parameters for the workflows.
-
-        .. todo::
-          Document the different actions and parameters.
-          Try to centralize this list in some nice way.
+        Depending on which action is selected, a menu will appear
+        for the operator to adjust parameters for the workflows.
 
         Under the selection of the action and parameters, there is a button
         to show other workflows that are similar to the selected workflow,
-        if there are other workflows in the same cluster.
-        There will be a link to open a similar workflow view page in a new tab.
+        according to the :ref:`clustering-ref`.
+        Each entry is a link to open a similar workflow view page in a new tab.
         The option to submit actions will not be on this page though
         (so that you can focus on the first workflow).
         If you think that a workflow in the cluster should have the same actions
         applied to it as the parent workflow,
-        then check the box next to the workflow name.
-        Any action submitted will be applied to all checked workflows,
-        in addition to the workflow on the page where the action is submitted from.
+        then check the box next to the workflow name before submitting the action.
 
         Finally, before submitting, you can submit reasons for your action selection.
         Clicking the Add Reason button will give you an additional reason field.
         Reasons submitted are stored based on the short reason you give.
-        You can then select past reasons from the drop down menu in the future,
-        to save some time.
+        You can then select past reasons from the drop down menu to save time in the future.
         If you do not want to store your reason, do not fill in the Short Reason field.
-        The long reason will be used automatically for logging reasons.
+        The long reason will be used for logging
+        and communicating with the workflow requester (eventually).
 
         :param str workflow: is the name of the workflow to look at
         :param str issuggested: is a string to tell if the page
@@ -198,7 +230,7 @@ class WorkflowTools(object):
                  is not selected.
         """
 
-        if workflow not in globalerrors.check_session(cherrypy.session).return_workflows():
+        if workflow not in globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
             raise cherrypy.HTTPRedirect('/globalerror')
 
         if issuggested:
@@ -231,9 +263,24 @@ class WorkflowTools(object):
                    acted_workflows=manageactions.get_acted_workflows(
                     serverconfig.get_history_length()),
                    classification=main_error_class,
-                   site_list=sorted(drain_statuses.keys()),
                    drain_statuses=drain_statuses
                   )
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def sitesfortasks(self, **kwargs):
+        """
+        Accessed through a popup that allows user to submit sites for workflow
+        tasks that did not have any sites to run on.
+        Returns operators back the :py:func:`get_action` output.
+
+        :param kwargs: Set up in a way that manageactions.extract_reasons_params
+                       can extract the sites for each subtask.
+        :rtype: JSON
+        """
+
+        manageactions.fix_sites(**kwargs)
+        return self.getaction(1)
 
     @cherrypy.expose
     def submitaction(self, workflows='', action='', **kwargs):
@@ -246,6 +293,8 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        cherrypy.log('args: {0}'.format(kwargs))
+
         if workflows == '':
             return GET_TEMPLATE('scolduser.html').render(workflow='')
 
@@ -253,7 +302,30 @@ class WorkflowTools(object):
             return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
 
         workflows, reasons, params = manageactions.\
-            submitaction(cherrypy.request.login, workflows, action, **kwargs)
+            submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
+                         **kwargs)
+
+        # Immediately get actions to check the sites list
+        check_actions = manageactions.get_actions()
+        blank_sites_subtask = []
+        sites_to_run = {}
+        # Loop through all workflows just submitted
+        for workflow in workflows:
+            # Check sites of recovered workflows
+            if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
+                for subtask, params in check_actions[workflow]['Parameters'].iteritems():
+                    # Empty sites are noted
+                    if not params.get('sites'):
+                        blank_sites_subtask.append('/%s/%s' % (workflow, subtask))
+                        sites_to_run['/%s/%s' % (workflow, subtask)] = \
+                            globalerrors.check_session(cherrypy.session).\
+                            get_workflow(workflow).site_to_run(subtask)
+
+        if blank_sites_subtask:
+            drain_statuses = {sitename: drain for sitename, _, drain in sitereadiness.i_site_readiness()}
+            return GET_TEMPLATE('picksites.html').render(tasks=blank_sites_subtask,
+                                                         statuses=drain_statuses,
+                                                         sites_to_run=sites_to_run)
 
         return GET_TEMPLATE('actionsubmitted.html').\
             render(workflows=workflows, action=action,
@@ -261,10 +333,13 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def getaction(self, days=0, test=False):
+    def getaction(self, days=0, acted=0):
         """
         The page at ``https://localhost:8080/getaction``
         returns a list of workflows to perform actions on.
+        It may be useful to use this page to immediately check
+        if your submission went through properly.
+        This page will mostly be used by Unified though for acting on operator submissions.
 
         :param int days: The number of past days to check.
                          The default, 0, means to only check today.
@@ -280,34 +355,26 @@ class WorkflowTools(object):
 
         :rtype: JSON
         """
+        acted = int(acted)
+        if acted < 0:
+            acted = None
+        if acted > 1:
+            acted = 1
 
-        # This will also need to somehow note that an action has been gotten by Unified
-
-        if test:
-            return {
-                'test' : {
-                    'Actions': 'test',
-                    'Parameters': {
-                        'test': 'True',
-                        'what': 'test'
-                        },
-                    'Reasons': 'I needed a test'
-                    }
-                }
-
-        return manageactions.get_actions(int(days))
+        return manageactions.get_actions(int(days), acted=acted)
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
     def reportaction(self):
         """
         A POST request to ``https://localhost:8080/reportaction``
-        tells the instance that a set of workflows has been acted on by Unified.
+        tells the WorkflowWebTools that a set of workflows has been acted on by Unified.
         The body of the POST request must include a JSON with the passphrase
         under ``"key"`` and a list of workflows under ``"workflows"``.
 
         An example of making this POST request is provided in the file
-        ``test/report_action.py``, which relies on ``test/key.json``.
+        ``WorkflowWebTools/test/report_action.py``,
+        which relies on ``WorkflowWebTools/test/key.json``.
 
         :returns: Just the phrase 'Done', no matter the results of the request
         :rtype: str
@@ -335,7 +402,8 @@ class WorkflowTools(object):
 
         workflow = workflowstep.split('/')[1]
         if workflow:
-            errs_explained = globalerrors.check_session(cherrypy.session).get_workflow(workflow).get_explanation(errorcode)
+            errs_explained = globalerrors.check_session(cherrypy.session).\
+                get_workflow(workflow).get_explanation(errorcode, workflowstep)
         else:
             errs_explained = globalerrors.check_session(cherrypy.session).\
                 get_errors_explained().get(errorcode, ['No info for this error code'])
@@ -444,41 +512,57 @@ class WorkflowTools(object):
 
         Navigating to ``https://localhost:8080/resetcache``
         resets the error info for the user's session.
+        It also clears out cached JSON files on the server.
         Under normal operation, this cache is only refreshed every half hour.
 
         :returns: a confirmation page
         :rtype: str
         """
+
+        # We want to change this directory to something set in workflowinfo soon
+        for cache_file in glob.iglob('/tmp/workflowinfo/*'):
+            os.remove(cache_file)
+
+        # Force the cache reset
         if cherrypy.session.get('info'):
             cherrypy.session.get('info').teardown()
             cherrypy.session.get('info').setup()
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
-    def listworkflows(self, errorcode='', sitename=''):
+    def listpage(self, errorcode='', sitename='', workflow=''):
         """
-        This simply returns a list of workflows that matches an errorcode and sitename.
-        It can be accessed directly by organizing :ref:`global-view-ref` with `pievar=stepname`,
-        and then clicking on the piechart corresponding to a given site and error code.
+        This returns a list of workflows, site names, or error codes
+        that matches the values given for the other two variables.
+        The page can be accessed directly by clicking on a corresponding pie chart
+        on :ref:`global-view-ref`.
 
         :param int errorcode: Error to match
         :param str sitename: Site to match
-        :returns: Page listing workflows
+        :param str workflow: The workflow to match
+        :returns: Page listing workflows, site names or errors codes
         :rtype: str
+        :raises: cherrypy.HTTPRedirect to 404 if all variables are filled
         """
+
+        if errorcode and sitename and workflow:
+            raise cherrypy.HTTPError(404)
+
+        acted = [] if workflow else \
+            manageactions.get_acted_workflows(serverconfig.get_history_length())
 
         # Retry after ProgrammingError
         try:
-            info=listpage.listworkflows(errorcode, sitename, cherrypy.session)
+            info=listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
         except sqlite3.ProgrammingError:
             time.sleep(5)
-            return self.listworkflows(errorcode, sitename)
+            return self.listpage(errorcode, sitename, workflow)
 
         return GET_TEMPLATE('listworkflows.html').render(
+            workflow=workflow,
             errorcode=errorcode,
             sitename=sitename,
-            acted_workflows=manageactions.get_acted_workflows(
-                serverconfig.get_history_length()),
+            acted_workflows=acted,
             info=info)
 
 
@@ -526,7 +610,7 @@ if __name__ == '__main__':
         'tools.auth_basic.realm': 'localhost',
         'tools.auth_basic.checkpassword': manageusers.validate_password
         }
-    for key in ['/cluster', '/resetcache']:
+    for key in ['/cluster', '/resetcache', '/sitesfortasks']:
         CONF[key] = CONF['/submitaction']
 
     cherrypy.quickstart(WorkflowTools(), '/', CONF)

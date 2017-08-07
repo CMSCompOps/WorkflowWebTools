@@ -108,9 +108,8 @@ def confirmation(code, lookup='validator', return_curs=False):
     if return_curs:
         return user, conn, curs
 
-    else:
-        conn.close()
-        return user
+    conn.close()
+    return user
 
 
 def send_reset_email(email, url):

@@ -60,11 +60,9 @@ def get_list_info(status_list):
     """
 
     indict = {}
-    for status in status_list:
-        cherrypy.log('Getting status %s' % status)
-        for workflow in workflowinfo.list_workflows(status):
-            cherrypy.log('Getting workflow %s' % workflow)
-            indict.update(workflowinfo.errors_for_workflow(workflow))
+    for workflow in status_list:
+        cherrypy.log('Getting workflow %s' % workflow)
+        indict.update(workflowinfo.WorkflowInfo(workflow).get_errors())
 
     return indict
 
@@ -85,25 +83,25 @@ def add_to_database(curs, data_location):
 
     cherrypy.log('About to add data from %s' % data_location)
 
-    if isinstance(data_location, list):
-        indict = get_list_info(data_location)
-
-    else:
-        indict = open_location(data_location) or {}
+    indict = get_list_info(data_location) \
+        if isinstance(data_location, list) else \
+        (open_location(data_location) or {})
 
     number_added = 0
 
     for stepname, errorcodes in indict.items():
+        if 'LogCollect' in stepname or 'Cleanup' in stepname:
+            continue
+
         for errorcode, sitenames in errorcodes.items():
             if errorcode == 'NotReported':
                 errorcode = '-1'
 
-            if not re.match(r'-?\d+', errorcode):
+            elif not re.match(r'\d+', errorcode):
                 continue
 
             for sitename, numbererrors in sitenames.items():
-                if errorcode == '-1':
-                    numbererrors = 1
+                numbererrors = numbererrors or int(errorcode == '-1')
 
                 if not numbererrors:
                     continue

@@ -7,19 +7,19 @@ Welcome to the documentation for the new Workflow Team Web Tools.
 
 .. contents:: :local:
 
-Using the Web Tools
--------------------
+Using the Web Tools as an Operator
+----------------------------------
 
 Once you are pointed to a proper URL to access the webtools, you will
 come to the home page, with links to different views.
 For each of the examples below, I will use the base URL of ``https://localhost:8080/``,
-since that is the URL you can see if you run the server on your machine.
+since that is likely the URL you can see if you run the server on your machine.
 If you are looking at a production server, the URL will of course be different.
 
-Each page is a function of a ``WorkflowTools`` instance.
-To pass parameters to the function, the usual urlencoding of the parameters
-can be appended to the URL to call each function.
-Most users should be able to interact with the website through their browser though.
+For users familiar with CherryPy, each page is a function of a ``WorkflowTools`` object.
+To pass parameters to the function in a browser,
+the usual urlencoding of the parameters can be appended to the URL to call each function.
+Most users should be able to interact with the website exclusively through links though.
 From the URL root index, users will be able to directly access the following:
 
 - :ref:`global-view-ref`
@@ -39,7 +39,7 @@ The Global Error View
 List Workflows
 ~~~~~~~~~~~~~~
 
-.. automethod:: workflowtools.WorkflowTools.listworkflows
+.. automethod:: workflowtools.WorkflowTools.listpage
 
 .. _workflow-view-ref:
 
@@ -107,7 +107,7 @@ Workflows Procedures
 Running the Web Tools
 ---------------------
 
-The webtools are operated behind a cherrypy server.
+The webtools are usually operated behind a cherrypy server.
 Before running the script ``runserver/workflowtools.py``,
 there are a few other things that you should set up first.
 
@@ -145,31 +145,59 @@ Finally, the service can be launched by running::
 
     ./workflowtools.py
 
-.. automodule:: workflowtools
-
 If you need sudo privileges, to access a certain port for example,
 you can use the script::
 
     ./run.sh
 
-.. autoanysrc:: dummy
-   :src: ../WorkflowWebTools/test/config.yml
-   :analyzer: shell-script
+You may need to adjust the values in ``runserver/setenv.sh`` first.
 
 Running the Server Behind WSGI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If running the site in a production environment,
 you will likely need to run behind WSGI to enable CERN's SSO.
-Install ``mod_wsgi`` with the following::
+Install ``mod_wsgi``, which is not listed as a strict requirement for the package.
 
-    pip install mod_wsgi
+In your apache configuration, create a virtual host for the WSGI application.
+You will also need to allow access to the ``runserver/static`` directory.
+An example would be as follows::
 
-This is not listed as a strict requirement for the package.
+    Listen 443
+    <VirtualHost *:443>
+        WSGIScriptAlias / <path_to_WorkflowWebTools>/runserver/workflowtools.py
 
-.. todo::
+        Alias /static <path_to_WorkflowWebTools>/runserver/static
 
-   Place documentation on how to configure the httpd service...
+        <Directory <path_to_WorkflowWebTools>/runserver>
+
+            #
+            # Add Shibboleth authentification here? (Not developed yet)
+            #
+
+            WSGIApplicationGroup %{GLOBAL}
+            <IfVersion >= 2.4>
+                Require all granted
+            </IfVersion>
+            <IfVersion < 2.4>
+                Order allow,deny
+                Allow from all
+            </IfVersion>
+
+        </Directory>
+
+        ServerName 127.0.0.1
+        SSLEngine on
+        SSLCertificateFile <path_to_cert>
+        SSLCertificateKeyFile <path_to_private_key>
+
+    </VirtualHost>
+
+.. Note::
+
+   This is just what I have working on my laptop.
+   This website has not been run behind WSGI in production yet.
+   I would be grateful to learn about any errors in this section of the documentation.
 
 Maintaining the Python Backend
 ------------------------------
@@ -195,6 +223,8 @@ Global Errors
 
 .. automodule:: WorkflowWebTools.globalerrors
    :members:
+
+.. _clustering-ref:
 
 Workflow Clustering
 ~~~~~~~~~~~~~~~~~~~

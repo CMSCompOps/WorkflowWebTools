@@ -1,0 +1,53 @@
+<%inherit file="simple.html"/>
+
+<%block name="title">Action Submitted</%block>
+
+<%block name="scripts">
+<script type="text/javascript">
+  var task_list = [
+  % for task in tasks:
+  "${task}",
+  % endfor
+  ];
+  var sitelist = [
+  % for site in sorted(statuses.keys()):
+  "${site}",
+  % endfor
+  ];
+  var sites_for_task = {
+  % for step, sites in sites_to_run.iteritems():
+  "${step}": [
+  % for site in sites:
+  "${site}",
+  % endfor
+  ],
+  % endfor
+  };
+  var drain_statuses = {
+  % for site, stat in statuses.iteritems():
+  "${site}": "${stat}",
+  % endfor
+  };
+</script>
+<script src="/static/js/makeparams.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/workflow.css">
+</%block>
+
+<h2>Following Subtasks Have No Sites</h2>
+
+Please manually pick sites for each task.
+
+<div id="site_table_${len(tasks)}"></div>
+
+<form method="POST" action="/sitesfortasks">
+% for index, subtask in enumerate(tasks):
+<h3>${subtask}</h3>
+<input type="hidden" name="task_${index}" value="${subtask}">
+<div id="site_table_${index}"></div>
+% endfor
+<input type="submit" value="Submit">
+</form>
+
+<script type="text/javascript">
+  printSiteLists({'value': 'Manual'});
+</script>

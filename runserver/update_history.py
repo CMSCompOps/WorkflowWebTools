@@ -5,8 +5,6 @@
 
 A python script for updating the history database.
 
-:author: Daniel Abercrombie <dabercro@mit.edu>
-
 Can take arguments that are file names or urls.
 If a local file doesn't exist, the url is assumed.
 The input file is then added to the central history
@@ -23,6 +21,8 @@ For example adding the line::
 to your crontab will automatically update the
 central database every hour.
 Duplicate entries will not be added.
+
+:author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
 import os

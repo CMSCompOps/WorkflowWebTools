@@ -3,17 +3,17 @@
 # A number of parameters are set here, and read by the :mod:`WorkflowWebTools.serverconfig`:
 #
 # - The webmaster name and email determines who the registration emails are sent from.
-# - The host name and port tell where to serve the cherrypy application.
+# - The host name and port tell where to serve the cherrypy application if using the CherryPy server.
 # - The data locations are split up into
 #
 #   - Historic information
 #   - Location to fetch the current errors
 #   - Location to fetch the current errors' explanations
 #   - If any of these files are behind Shibboleth,
-#       cookie_file, cookie_pem, and cookie_key should be listed under data too.
-#       These keys are used as kwargs for :py:func:`CMSToolBox.get_json`
+#     cookie_file, cookie_pem, and cookie_key should be listed under data too.
+#     These keys are used as kwargs for :py:func:`CMSToolBox.get_json`
 #
-# - Valid email domains and specific whitelisted emails
+# - Valid registration email domains and specific whitelisted emails
 # - Actions stores the number of days to check the submission history for actions requested
 # - Clustering parameters 
 #
@@ -41,6 +41,7 @@ valid_emails:
 actions:
   submithistory: 2
   key: testkey
+  database: test_workflowwebtools
 cluster:
   n_clusters: 2
   n_init: 30

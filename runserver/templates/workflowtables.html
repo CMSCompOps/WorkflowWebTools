@@ -17,14 +17,12 @@
       % endfor
       };
       var sitelist = [
-        "T1s",
-        "T2s",
-      % for site in site_list:
+      % for site in sorted(drain_statuses.keys()):
         "${site}",
       % endfor
       ];
       var param_defaults = {
-        "group": "DATAOPS",
+        "group": "production",
       };
       var task_list = [
       % for step, _ in workflowdata['steplist']:
@@ -64,6 +62,7 @@
         <a href="/globalerror">Global Errors</a> <br>
         <a href="/showlog?search=${workflow}">Workflow logs</a>
         <a href="/showlog?search=${workflow}&module=error">errors</a>
+        <a href="https://its.cern.ch/jira/secure/QuickSearch.jspa?searchString=${params['PrepID']}">JIRA tickets</a>
       </center>
 
     </div>
@@ -96,7 +95,8 @@
     <div>
 
       <span style="font-weight:bold;">Workflow Parameters:</span>
-      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a> <br>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=${params['PrepID']}&detail=true" target="blank">Prep ID</a> <br>
       % if params:
       Request Type: ${params['RequestType']} <br>
       % if params.get('SubRequestType'):
@@ -140,9 +140,13 @@
           <%
              actions = {
                  'clone' : 'Kill and Clone',
-                 'recover' : 'Recover (ACDC)',
-                 'investigate' : 'Other action'
+                 'acdc' : 'ACDC',
+                 'recovery' : 'Recovery (not ACDC)',
+                 'special' : 'Other action'
              }
+             if params['RequestType'] == 'Resubmission':
+                 actions.pop('clone')
+
           %>
           % for val, text in actions.iteritems():
           <input type="radio" name="action" onclick="makeParamTable(this);" value="${val}">${text}
@@ -217,6 +221,7 @@
       </tr>
       
       % for tablerow, error in table:
+      % if sum(tablerow) != 0:
       <tr>
         <th><a href="/explainerror?errorcode=${error}&workflowstep=${step}">
             ${error}
@@ -231,6 +236,7 @@
         % endif
         % endfor
       </tr>
+      % endif
       % endfor
       
     </table>
