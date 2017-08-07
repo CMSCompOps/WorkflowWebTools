@@ -152,6 +152,14 @@ PROCEDURES = {
     8002: {
         'normal': 'Strong failure, report immediately'
         },
+    71104: {
+        'normal': ('Copy input files from tape (?) or '
+                   'wait for site listed to come out of drain.'),
+        'cause': 'Site containing only available copy of input datasets is in drain.',
+        'additional': {
+            're': re.compile(r'The job can run only at .*(T[12].*)')
+            }
+        }
     }
 
 # Here is a list comprehension to make you cry.
