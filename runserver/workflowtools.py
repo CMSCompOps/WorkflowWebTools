@@ -263,7 +263,8 @@ class WorkflowTools(object):
                    acted_workflows=manageactions.get_acted_workflows(
                     serverconfig.get_history_length()),
                    classification=main_error_class,
-                   drain_statuses=drain_statuses
+                   drain_statuses=drain_statuses,
+                   last_submitted=manageactions.get_datetime_submitted(workflow)
                   )
 
     @cherrypy.expose

@@ -129,7 +129,11 @@
 
       <div>
         <span style="font-weight:bold;">Actions:</span> <br>
+        % if last_submitted is None:
         <form name="actionform" method="POST" action="/submitaction">
+        % else:
+        <form name="actionform" method="POST" action="/submitaction" onsubmit="return confirm('Confirm resubmission!\n\nLast submission at ${last_submitted.strftime('%d %B %Y, %I:%M %p')}')">
+        % endif
           <input type="hidden" name="workflows" value="${workflow}">
           % for task, _ in workflowdata['steplist']:
             <%
