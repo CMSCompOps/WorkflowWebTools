@@ -208,6 +208,23 @@ def get_actions(num_days=None, num_hours=24, acted=0):
     return output
 
 
+def get_datetime_submitted(workflow):
+    """Get the datetime for a submitted workflow
+
+    :param str workflow: A workflow to get the time submitted
+    :returns: A datetime object, or None if the workflow has never been submitted
+    :rtype: datetime.datetime or None
+    """
+
+    coll = get_actions_collection()
+
+    info = coll.find_one({'workflow': workflow})
+    if info:
+        return datetime.datetime.fromtimestamp(info['timestamp'])
+
+    return None
+
+
 def get_acted_workflows(num_days):
     """Get all of the workflows that have actions assigned
 
