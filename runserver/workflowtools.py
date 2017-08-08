@@ -344,7 +344,13 @@ class WorkflowTools(object):
 
         :param int days: The number of past days to check.
                          The default, 0, means to only check today.
-        :param bool test: Used to determine whether or not to return the test JSON.
+        :param int or None acted: Used to determine which actions to return.
+                                  The following values can be used:
+
+                                  - 0 - The default value selects actions that have not been run on
+                                  - 1 - Selects actions reported as submitted by Unified
+                                  - Negative integer - Selects all actions
+
         :returns: JSON-formatted information containing actions to act on.
                   The top-level keys of the JSON are the workflow names.
                   Each of these keys refers to a dictionary specifying:
