@@ -199,6 +199,41 @@ An example would be as follows::
    This website has not been run behind WSGI in production yet.
    I would be grateful to learn about any errors in this section of the documentation.
 
+Troubleshooting
+---------------
+
+This is just a quick guide for anyone trying to troubleshoot or restart the production server.
+
+If the web service is not responding,
+first check that you are accessing the machine using CERN's network
+(either by being physically at CERN or using a proxy).
+If you are certain that you are using the CERN network, then you will have to log into the server.
+The name of the server is not given due to potential security concerns.
+To complete all of the following steps, you need sudo access to the machine.
+
+ #. SSH into a CERN machine.
+ #. Try downloading actions from the machine::
+
+        wget -O test.json --no-check-certificate "https://vocms0113.cern.ch:80/getaction?days=30&acted=-1"
+
+    If the file ``test.json`` is not empty, then the service is likely still running properly.
+    Go back to checking your own connection.
+ #. SSH into the server.
+ #. Check top for the process ``python2.7``.
+    If it is there, but the server is still not responding, kill the process.
+ #. Do the following to start the process again::
+
+        cd /home/dabercro/OpsSpace/WorkflowWebTools/runserver
+        ./run.sh
+
+ #. Check the server status::
+
+        sudo tail -f /home/dabercro/OpsSpace/WorkflowWebTools/runserver/nohup.out
+
+    (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line says something like::
+
+        ENGINE Bus STARTED
+
 Maintaining the Python Backend
 ------------------------------
 
