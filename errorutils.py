@@ -62,7 +62,9 @@ def get_list_info(status_list):
     indict = {}
     for workflow in status_list:
         cherrypy.log('Getting workflow %s' % workflow)
-        indict.update(workflowinfo.WorkflowInfo(workflow).get_errors())
+        indict.update(
+            workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+            )
 
     return indict
 
