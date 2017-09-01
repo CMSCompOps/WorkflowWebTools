@@ -11,13 +11,13 @@ with saved historic information into a json file.
 
 import sys
 
-if __name__ == '__main__' and len(sys.argv) == 1:
-    print '\nUsage:  %s <output_file_name>\n' % sys.argv[0]
-    exit(1)
-
-from WorkflowWebTools import actionshistorylink
-
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print '\nUsage:  %s <output_file_name>\n' % sys.argv[0]
+        exit(1)
 
-    actionshistorylink.serverconfig.LOCATION = '.'
+    from WorkflowWebTools import serverconfig
+    serverconfig.LOCATION = '.'
+
+    from WorkflowWebTools import actionshistorylink
     actionshistorylink.dump_json(sys.argv[1])

@@ -103,7 +103,7 @@
       Sub-Request Type: ${params['SubRequestType']} <br>
       % endif
       Memory: ${params['Memory']} <br>
-      Estimated Number of Jobs: ${params['TotalEstimatedJobs']}
+      Estimated Number of Jobs: ${params.get('TotalEstimatedJobs', '?')}
       % else:
       <span style="color:red;">Problem retrieving info (likely an expired certificate, use link above)</span>
       % endif
