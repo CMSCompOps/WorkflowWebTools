@@ -93,8 +93,12 @@ class ErrorInfo(object):
             self.set_all_lists()
             current_workflows = self.return_workflows()
 
-            self.allsteps.extend(['/%s/' % zero for zero in other_workflows \
-                                      if zero not in current_workflows])
+            # If all ACDCs are to be shown, include the ones with zero errors like this
+            if serverconfig.config_dict().get('include_all_acdcs'):
+                self.allsteps.extend(['/%s/' % zero for zero in other_workflows \
+                                          if zero not in current_workflows])
+                self.allsteps.sort()
+
             self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
 
         self.connection_log('opened')
