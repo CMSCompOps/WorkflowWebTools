@@ -56,7 +56,7 @@ def open_location(data_location):
                     indict.update(
                         workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
                         )
-                        
+
             return indict
 
 
