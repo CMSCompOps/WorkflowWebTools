@@ -43,10 +43,22 @@ def open_location(data_location):
             # Anything we need for the Shibboleth cookie could be in the config file
             cookie_stuff = serverconfig.config_dict()['data']
 
-            return get_json(components.netloc, components.path,
-                            cookie_file=cookie_stuff.get('cookie_file'),
-                            cookie_pem=cookie_stuff.get('cookie_pem'),
-                            cookie_key=cookie_stuff.get('cookie_key'))
+            raw = get_json(components.netloc, components.path,
+                           cookie_file=cookie_stuff.get('cookie_file'),
+                           cookie_pem=cookie_stuff.get('cookie_pem'),
+                           cookie_key=cookie_stuff.get('cookie_key'))
+
+            indict = {}
+
+            for workflow, statuses in raw.iteritems():
+                if 'assistance-manual' in statuses:
+                    cherrypy.log('Getting workflow: %s' % workflow)
+                    indict.update(
+                        workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+                        )
+
+            return indict
+
 
 def get_list_info(status_list):
     """
