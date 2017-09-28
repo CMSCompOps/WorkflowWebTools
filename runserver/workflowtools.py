@@ -509,11 +509,11 @@ class WorkflowTools(object):
         elif not email and code:
             if not password:
                 return GET_TEMPLATE('newpassword.html').render(code=code)
-            else:
-                user = manageusers.resetpassword(code, password)
-                return GET_TEMPLATE('resetpassword.html').render(user=user)
-        else:
-            raise cherrypy.HTTPError(404)
+
+            user = manageusers.resetpassword(code, password)
+            return GET_TEMPLATE('resetpassword.html').render(user=user)
+
+        raise cherrypy.HTTPError(404)
 
     @cherrypy.expose
     def resetcache(self):
