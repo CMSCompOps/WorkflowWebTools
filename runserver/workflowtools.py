@@ -49,8 +49,9 @@ class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
 
     def __init__(self):
-        """Initializes the service by creating clusters"""
-        self.cluster()
+        """Initializes the service by creating clusters, if running webpage"""
+        if __name__ == '__main__':
+            self.cluster()
 
     @cherrypy.expose
     def index(self):

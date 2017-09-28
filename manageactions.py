@@ -97,6 +97,8 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
     cherrypy.log('args: {0}'.format(kwargs))
     dotasks = kwargs.get('dotasks', [])
+    if not isinstance(dotasks, list):
+        dotasks = [dotasks]
 
     reasons, params = extract_reasons_params(action, **kwargs)
 
