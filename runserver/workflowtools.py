@@ -16,6 +16,7 @@ import sys
 import glob
 import time
 import datetime
+import sqlite3
 
 import cherrypy
 from mako.lookup import TemplateLookup
@@ -34,7 +35,6 @@ from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
 
 from CMSToolBox import sitereadiness
-from CMSToolBox.workflowinfo import explain_errors
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'templates')
@@ -49,8 +49,9 @@ class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
 
     def __init__(self):
-        """Initializes the service by creating clusters"""
-        self.cluster()
+        """Initializes the service by creating clusters, if running webpage"""
+        if __name__ == '__main__':
+            self.cluster()
 
     @cherrypy.expose
     def index(self):
@@ -100,8 +101,8 @@ class WorkflowTools(object):
                                                        search=search,
                                                        module=module,
                                                        limit=limit)
-        else:
-            return logdata
+
+        return logdata
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
@@ -173,13 +174,12 @@ class WorkflowTools(object):
                    columns=cols,
                    pievar=pievar,
                    acted_workflows=manageactions.get_acted_workflows(
-                    serverconfig.get_history_length()),
-                   readiness=globalerrors.check_session(cherrypy.session).readiness
-                   )
+                       serverconfig.get_history_length()),
+                   readiness=globalerrors.check_session(cherrypy.session).readiness)
 
         try:
             return template()
-        except:
+        except Exception: # I don't remember what kind of exception this throws...
             time.sleep(2)
             return template()
 
@@ -230,7 +230,8 @@ class WorkflowTools(object):
                  is not selected.
         """
 
-        if workflow not in globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
+        if workflow not in \
+                globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
             raise cherrypy.HTTPRedirect('/globalerror')
 
         if issuggested:
@@ -249,7 +250,8 @@ class WorkflowTools(object):
 
         workflowinfo = globalerrors.check_session(cherrypy.session).get_workflow(workflow)
 
-        drain_statuses = {sitename: drain for sitename, _, drain in sitereadiness.i_site_readiness()}
+        drain_statuses = {sitename: drain for sitename, _, drain in \
+                              sitereadiness.i_site_readiness()}
 
         return GET_TEMPLATE('workflowtables.html').\
             render(workflowdata=workflowdata,
@@ -261,7 +263,7 @@ class WorkflowTools(object):
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    mainerror=max_error,
                    acted_workflows=manageactions.get_acted_workflows(
-                    serverconfig.get_history_length()),
+                       serverconfig.get_history_length()),
                    classification=main_error_class,
                    drain_statuses=drain_statuses,
                    last_submitted=manageactions.get_datetime_submitted(workflow)
@@ -277,6 +279,7 @@ class WorkflowTools(object):
 
         :param kwargs: Set up in a way that manageactions.extract_reasons_params
                        can extract the sites for each subtask.
+        :returns: View of actions submitted
         :rtype: JSON
         """
 
@@ -323,7 +326,8 @@ class WorkflowTools(object):
                             get_workflow(workflow).site_to_run(subtask)
 
         if blank_sites_subtask:
-            drain_statuses = {sitename: drain for sitename, _, drain in sitereadiness.i_site_readiness()}
+            drain_statuses = {sitename: drain for sitename, _, drain in \
+                                  sitereadiness.i_site_readiness()}
             return GET_TEMPLATE('picksites.html').render(tasks=blank_sites_subtask,
                                                          statuses=drain_statuses,
                                                          sites_to_run=sites_to_run)
@@ -344,12 +348,12 @@ class WorkflowTools(object):
 
         :param int days: The number of past days to check.
                          The default, 0, means to only check today.
-        :param int or None acted: Used to determine which actions to return.
-                                  The following values can be used:
+        :param int acted: Used to determine which actions to return.
+                          The following values can be used:
 
-                                  - 0 - The default value selects actions that have not been run on
-                                  - 1 - Selects actions reported as submitted by Unified
-                                  - Negative integer - Selects all actions
+                          - 0 - The default value selects actions that have not been run on
+                          - 1 - Selects actions reported as submitted by Unified
+                          - Negative integer - Selects all actions
 
         :returns: JSON-formatted information containing actions to act on.
                   The top-level keys of the JSON are the workflow names.
@@ -456,8 +460,8 @@ class WorkflowTools(object):
                                    cherrypy.url().split('/newuser')[0])
         if add == 0:
             return GET_TEMPLATE('checkemail.html').render(email=email)
-        else:
-            raise cherrypy.HTTPRedirect('/newuser')
+
+        raise cherrypy.HTTPRedirect('/newuser')
 
     @cherrypy.expose
     def confirmuser(self, code):
@@ -506,11 +510,11 @@ class WorkflowTools(object):
         elif not email and code:
             if not password:
                 return GET_TEMPLATE('newpassword.html').render(code=code)
-            else:
-                user = manageusers.resetpassword(code, password)
-                return GET_TEMPLATE('resetpassword.html').render(user=user)
-        else:
-            raise cherrypy.HTTPError(404)
+
+            user = manageusers.resetpassword(code, password)
+            return GET_TEMPLATE('resetpassword.html').render(user=user)
+
+        raise cherrypy.HTTPError(404)
 
     @cherrypy.expose
     def resetcache(self):
@@ -560,7 +564,7 @@ class WorkflowTools(object):
 
         # Retry after ProgrammingError
         try:
-            info=listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
+            info = listpage.listworkflows(errorcode, sitename, workflow, cherrypy.session)
         except sqlite3.ProgrammingError:
             time.sleep(5)
             return self.listpage(errorcode, sitename, workflow)
