@@ -44,6 +44,7 @@ def open_location(data_location):
             cookie_stuff = serverconfig.config_dict()['data']
 
             raw = get_json(components.netloc, components.path,
+                           use_https=True,
                            cookie_file=cookie_stuff.get('cookie_file'),
                            cookie_pem=cookie_stuff.get('cookie_pem'),
                            cookie_key=cookie_stuff.get('cookie_key'))
@@ -51,7 +52,7 @@ def open_location(data_location):
             indict = {}
 
             for workflow, statuses in raw.iteritems():
-                if 'assistance-manual' in statuses:
+                if True in ['manual' in status for status in statuses]:
                     cherrypy.log('Getting workflow: %s' % workflow)
                     indict.update(
                         workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
