@@ -530,6 +530,8 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        cherrypy.log('Cache reset by: %s' % cherrypy.request.login)
+
         # We want to change this directory to something set in workflowinfo soon
         for cache_file in glob.iglob('/tmp/workflowinfo/*'):
             os.remove(cache_file)
