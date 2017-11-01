@@ -142,35 +142,34 @@ function makeParamTable(action) {
     var opts = {};
 
     var split_list = ['2x', '3x', '10x', '20x', '50x', '100x', '200x', 'max'];
-    var core_list = ['1', '2', '4', '8'];
 
     if (action.value == 'clone') {
         texts = [
                  'memory',
+                 'cores'
                  ];
         opts = {
-            'num_cores': core_list,
             'splitting': split_list
         };
     } else if (action.value == 'acdc') {
         texts = [
                  'memory',
+                 'cores'
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],
             'secondary': ['enabled', 'disabled'],
-            'num_cores': core_list,
             'splitting': split_list
         };
     } else if (action.value == 'recovery') {
         texts = [
                  'memory',
                  'group',
+                 'cores'
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],
             'secondary': ['enabled', 'disabled'],
-            'num_cores': core_list,
             'splitting': split_list
         };
     } else if (action.value == 'special') {
