@@ -112,14 +112,6 @@ def all_errors_path():
 
     return config_dict()['data']['all_errors']
 
-def explain_errors_path():
-    """
-    :returns: the path to errors explanation for recent workflows
-    :rtype: str
-    """
-
-    return config_dict()['data']['explain_errors']
-
 def get_cluster_settings():
     """
     :returns: dictionary containing the settings for clustering

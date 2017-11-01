@@ -408,16 +408,12 @@ class WorkflowTools(object):
         :rtype: str
         """
 
-        if errorcode == '0':
-            return 'Need to specify error. Follow link from workflow tables.'
-
         workflow = workflowstep.split('/')[1]
-        if workflow:
-            errs_explained = globalerrors.check_session(cherrypy.session).\
-                get_workflow(workflow).get_explanation(errorcode, workflowstep)
-        else:
-            errs_explained = globalerrors.check_session(cherrypy.session).\
-                get_errors_explained().get(errorcode, ['No info for this error code'])
+        if errorcode == '0' or not workflow:
+            return 'Need to specify error and workflow. Follow link from workflow tables.'
+
+        errs_explained = globalerrors.check_session(cherrypy.session).\
+            get_workflow(workflow).get_explanation(errorcode, workflowstep)
 
         return GET_TEMPLATE('explainerror.html').\
             render(error=errorcode,
@@ -529,6 +525,8 @@ class WorkflowTools(object):
         :returns: a confirmation page
         :rtype: str
         """
+
+        cherrypy.log('Cache reset by: %s' % cherrypy.request.login)
 
         # We want to change this directory to something set in workflowinfo soon
         for cache_file in glob.iglob('/tmp/workflowinfo/*'):

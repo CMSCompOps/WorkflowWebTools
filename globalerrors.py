@@ -9,7 +9,6 @@ Generates the content for the errors pages
 import os
 import sqlite3
 import time
-import validators
 import cherrypy
 import numpy
 
@@ -140,14 +139,7 @@ class ErrorInfo(object):
         allerrors = get_all('errorcode')
         allerrors.sort(key=safe_int)
 
-        data_location = serverconfig.explain_errors_path()
-
-        if not (os.path.isfile(data_location) or validators.url(data_location)):
-            self.info = self.curs, allsteps, allerrors, allsites, {}
-
-        else:
-            self.info = self.curs, allsteps, allerrors, allsites, \
-                errorutils.open_location(data_location)
+        self.info = self.curs, allsteps, allerrors, allsites
 
         self.allsteps = allsteps
 
@@ -166,13 +158,6 @@ class ErrorInfo(object):
         :param str action: is the action on the connection
         """
         cherrypy.log('Connection {0} with timestamp {1}'.format(action, self.timestamp))
-
-    def get_errors_explained(self):
-        """
-        :returns: Dictionary that maps each error code to a snippet of the error log
-        :rtype: dict
-        """
-        return self.info[4]
 
     def get_allmap(self):
         """
@@ -379,7 +364,7 @@ def see_workflow(workflow, session=None):
     :rtype: dict
     """
 
-    _, _, allerrors, allsites, _ = check_session(session).info
+    _, _, allerrors, allsites = check_session(session).info
     steplist = check_session(session).get_step_list(workflow)
 
     tables = []
