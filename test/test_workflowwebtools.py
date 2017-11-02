@@ -85,19 +85,6 @@ class TestClusteringAndReasons(unittest.TestCase):
         'test3' : []
         }
             
-    explained = {
-        '1': [
-            'Error 1',
-            'Still Error 1'
-            ],
-        '2': [
-            'Error 2'
-            ],
-        '3': [
-            'Different Error'
-            ]
-        }
-
     def setUp(self):
         out_name = sc.all_errors_path()
 
@@ -107,15 +94,11 @@ class TestClusteringAndReasons(unittest.TestCase):
         with open(sc.all_errors_path(), 'w') as output:
             json.dump(self.errors, output)
 
-        with open(sc.explain_errors_path(), 'w') as output:
-            json.dump(self.explained, output)
-
         if sc.workflow_history_path() != sc.all_errors_path():
             uh.main(sc.all_errors_path())
 
     def tearDown(self):
         os.remove(sc.workflow_history_path())
-        os.remove(sc.explain_errors_path())
         if sc.workflow_history_path() != sc.all_errors_path():
             os.remove(sc.all_errors_path())
 

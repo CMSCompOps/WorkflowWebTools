@@ -146,6 +146,7 @@ function makeParamTable(action) {
     if (action.value == 'clone') {
         texts = [
                  'memory',
+                 'cores'
                  ];
         opts = {
             'splitting': split_list
@@ -153,6 +154,7 @@ function makeParamTable(action) {
     } else if (action.value == 'acdc') {
         texts = [
                  'memory',
+                 'cores'
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],
@@ -163,6 +165,7 @@ function makeParamTable(action) {
         texts = [
                  'memory',
                  'group',
+                 'cores'
                  ];
         opts = {
             'xrootd': ['enabled', 'disabled'],

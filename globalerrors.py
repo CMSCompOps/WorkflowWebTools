@@ -9,7 +9,6 @@ Generates the content for the errors pages
 import os
 import sqlite3
 import time
-import validators
 import cherrypy
 import numpy
 
