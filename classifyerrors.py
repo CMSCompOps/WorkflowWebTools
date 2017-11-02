@@ -90,7 +90,7 @@ def get_max_errorcode(workflow, session=None):
     """
 
 
-    curs, _, allerrors, _, _ = check_session(session).info
+    curs, _, allerrors, _ = check_session(session).info
 
     num_errors = []
 

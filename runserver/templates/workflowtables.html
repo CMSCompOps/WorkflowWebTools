@@ -60,9 +60,10 @@
       <center>
         <h1>${workflow}</h1>
         <a href="/globalerror">Global Errors</a> <br>
-        <a href="/showlog?search=${workflow}">Workflow logs</a>
-        <a href="/showlog?search=${workflow}&module=error">errors</a>
-        <a href="https://its.cern.ch/jira/browse/CMSCOMPPR-1015?jql%3Dtext~${params['PrepID']}+AND+project%3DCMSCOMPPR">JIRA tickets</a>
+        <a href="/showlog?search=${workflow}">Workflow logs</a> --
+        <a href="/showlog?search=${workflow}&module=error">errors</a> --
+        <a href="https://its.cern.ch/jira/secure/QuickSearch.jspa?searchString=${params['PrepID']}">JIRA tickets</a> --
+        <a href="https://dmytro.web.cern.ch/dmytro/cmsprodmon/workflows.php?prep_id=${params['PrepID']}">Production Monitor</a>
       </center>
 
     </div>
@@ -103,7 +104,7 @@
       Sub-Request Type: ${params['SubRequestType']} <br>
       % endif
       Memory: ${params['Memory']} <br>
-      Estimated Number of Jobs: ${params['TotalEstimatedJobs']}
+      Estimated Number of Jobs: ${params.get('TotalEstimatedJobs', '?')}
       % else:
       <span style="color:red;">Problem retrieving info (likely an expired certificate, use link above)</span>
       % endif
@@ -129,7 +130,11 @@
 
       <div>
         <span style="font-weight:bold;">Actions:</span> <br>
+        % if last_submitted is None:
         <form name="actionform" method="POST" action="/submitaction">
+        % else:
+        <form name="actionform" method="POST" action="/submitaction" onsubmit="return confirm('Confirm resubmission!\n\nLast submission at ${last_submitted.strftime('%d %B %Y, %I:%M %p')}')">
+        % endif
           <input type="hidden" name="workflows" value="${workflow}">
           % for task, _ in workflowdata['steplist']:
             <%
@@ -142,7 +147,7 @@
                  'clone' : 'Kill and Clone',
                  'acdc' : 'ACDC',
                  'recovery' : 'Recovery (not ACDC)',
-                 'investigate' : 'Other action'
+                 'special' : 'Other action'
              }
              if params['RequestType'] == 'Resubmission':
                  actions.pop('clone')

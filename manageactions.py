@@ -96,6 +96,9 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     """
 
     cherrypy.log('args: {0}'.format(kwargs))
+    dotasks = kwargs.get('dotasks', [])
+    if not isinstance(dotasks, list):
+        dotasks = [dotasks]
 
     reasons, params = extract_reasons_params(action, **kwargs)
 
@@ -153,7 +156,8 @@ def submitaction(user, workflows, action, session=None, **kwargs):
 
             # Only keep the workflow parameters with steps that occur in given workflow
             wf_params = {key: wf_params[key] for key in wf_params \
-                             if key in short_step_list}
+                             if key in short_step_list and \
+                             (key in dotasks or not dotasks)}
 
         document = {
             'Action': action,
@@ -204,6 +208,23 @@ def get_actions(num_days=None, num_hours=24, acted=0):
         output[match['workflow']] = match['parameters']
 
     return output
+
+
+def get_datetime_submitted(workflow):
+    """Get the datetime for a submitted workflow
+
+    :param str workflow: A workflow to get the time submitted
+    :returns: A datetime object, or None if the workflow has never been submitted
+    :rtype: datetime.datetime or None
+    """
+
+    coll = get_actions_collection()
+
+    info = coll.find_one({'workflow': workflow})
+    if info:
+        return datetime.datetime.fromtimestamp(info['timestamp'])
+
+    return None
 
 
 def get_acted_workflows(num_days):

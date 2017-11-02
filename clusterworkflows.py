@@ -67,7 +67,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
     :return: a list of numpy arrays of errors for the workflow
     :rtype: list of numpy.array
     """
-    curs = globalerrors.check_session(session).curs
+    curs = globalerrors.check_session(session, can_refresh=True).curs
     if not allmap:
         allmap = globalerrors.check_session(session).get_allmap()
 
@@ -164,7 +164,7 @@ def get_workflow_groups(clusterer, session=None):
     :rtype: List of sets
     """
 
-    errorinfo = globalerrors.check_session(session)
+    errorinfo = globalerrors.check_session(session, can_refresh=True)
 
     if errorinfo.clusters:
         return errorinfo.clusters

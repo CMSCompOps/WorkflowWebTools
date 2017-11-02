@@ -43,10 +43,23 @@ def open_location(data_location):
             # Anything we need for the Shibboleth cookie could be in the config file
             cookie_stuff = serverconfig.config_dict()['data']
 
-            return get_json(components.netloc, components.path,
-                            cookie_file=cookie_stuff.get('cookie_file'),
-                            cookie_pem=cookie_stuff.get('cookie_pem'),
-                            cookie_key=cookie_stuff.get('cookie_key'))
+            raw = get_json(components.netloc, components.path,
+                           use_https=True,
+                           cookie_file=cookie_stuff.get('cookie_file'),
+                           cookie_pem=cookie_stuff.get('cookie_pem'),
+                           cookie_key=cookie_stuff.get('cookie_key'))
+
+            indict = {}
+
+            for workflow, statuses in raw.iteritems():
+                if True in ['manual' in status for status in statuses]:
+                    cherrypy.log('Getting workflow: %s' % workflow)
+                    indict.update(
+                        workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+                        )
+
+            return indict
+
 
 def get_list_info(status_list):
     """
@@ -62,7 +75,9 @@ def get_list_info(status_list):
     indict = {}
     for workflow in status_list:
         cherrypy.log('Getting workflow %s' % workflow)
-        indict.update(workflowinfo.WorkflowInfo(workflow).get_errors())
+        indict.update(
+            workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+            )
 
     return indict
 
@@ -83,25 +98,25 @@ def add_to_database(curs, data_location):
 
     cherrypy.log('About to add data from %s' % data_location)
 
-    if isinstance(data_location, list):
-        indict = get_list_info(data_location)
-
-    else:
-        indict = open_location(data_location) or {}
+    indict = get_list_info(data_location) \
+        if isinstance(data_location, list) else \
+        (open_location(data_location) or {})
 
     number_added = 0
 
     for stepname, errorcodes in indict.items():
+        if 'LogCollect' in stepname or 'Cleanup' in stepname:
+            continue
+
         for errorcode, sitenames in errorcodes.items():
             if errorcode == 'NotReported':
                 errorcode = '-1'
 
-            if not re.match(r'-?\d+', errorcode):
+            elif not re.match(r'\d+', errorcode):
                 continue
 
             for sitename, numbererrors in sitenames.items():
-                if errorcode == '-1':
-                    numbererrors = 1
+                numbererrors = numbererrors or int(errorcode == '-1')
 
                 if not numbererrors:
                     continue

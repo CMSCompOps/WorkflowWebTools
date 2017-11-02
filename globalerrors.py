@@ -93,8 +93,12 @@ class ErrorInfo(object):
             self.set_all_lists()
             current_workflows = self.return_workflows()
 
-            self.allsteps.extend(['/%s/' % zero for zero in other_workflows \
-                                      if zero not in current_workflows])
+            # If all ACDCs are to be shown, include the ones with zero errors like this
+            if serverconfig.config_dict().get('include_all_acdcs'):
+                self.allsteps.extend(['/%s/' % zero for zero in other_workflows \
+                                          if zero not in current_workflows])
+                self.allsteps.sort()
+
             self.readiness = [sitereadiness.site_readiness(site) for site in self.info[3]]
 
         self.connection_log('opened')
@@ -136,14 +140,7 @@ class ErrorInfo(object):
         allerrors = get_all('errorcode')
         allerrors.sort(key=safe_int)
 
-        data_location = serverconfig.explain_errors_path()
-
-        if not (os.path.isfile(data_location) or validators.url(data_location)):
-            self.info = self.curs, allsteps, allerrors, allsites, {}
-
-        else:
-            self.info = self.curs, allsteps, allerrors, allsites, \
-                errorutils.open_location(data_location)
+        self.info = self.curs, allsteps, allerrors, allsites
 
         self.allsteps = allsteps
 
@@ -162,13 +159,6 @@ class ErrorInfo(object):
         :param str action: is the action on the connection
         """
         cherrypy.log('Connection {0} with timestamp {1}'.format(action, self.timestamp))
-
-    def get_errors_explained(self):
-        """
-        :returns: Dictionary that maps each error code to a snippet of the error log
-        :rtype: dict
-        """
-        return self.info[4]
 
     def get_allmap(self):
         """
@@ -375,7 +365,7 @@ def see_workflow(workflow, session=None):
     :rtype: dict
     """
 
-    _, _, allerrors, allsites, _ = check_session(session).info
+    _, _, allerrors, allsites = check_session(session).info
     steplist = check_session(session).get_step_list(workflow)
 
     tables = []
@@ -442,7 +432,7 @@ def list_matching_pievars(pievar, row, col, session=None):
     :rtype: list
     """
 
-    curs = check_session(session, True).curs
+    curs = check_session(session, can_refresh=True).curs
     rowname, colname = get_row_col_names(pievar)
 
     output = []
@@ -475,7 +465,7 @@ def get_errors(pievar, session=None):
     """
 
     rowname, colname = get_row_col_names(pievar)
-    allmap = check_session(session).get_allmap()
+    allmap = check_session(session, can_refresh=True).get_allmap()
 
     query = 'SELECT numbererrors, {0}, {1}, {2} FROM workflows ' \
         'ORDER BY {0} ASC, {1} ASC, {2} ASC;'.format(rowname, colname, pievar)

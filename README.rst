@@ -7,19 +7,19 @@ Welcome to the documentation for the new Workflow Team Web Tools.
 
 .. contents:: :local:
 
-Using the Web Tools
--------------------
+Using the Web Tools as an Operator
+----------------------------------
 
 Once you are pointed to a proper URL to access the webtools, you will
 come to the home page, with links to different views.
 For each of the examples below, I will use the base URL of ``https://localhost:8080/``,
-since that is the URL you can see if you run the server on your machine.
+since that is likely the URL you can see if you run the server on your machine.
 If you are looking at a production server, the URL will of course be different.
 
-Each page is a function of a ``WorkflowTools`` instance.
-To pass parameters to the function, the usual urlencoding of the parameters
-can be appended to the URL to call each function.
-Most users should be able to interact with the website through their browser though.
+For users familiar with CherryPy, each page is a function of a ``WorkflowTools`` object.
+To pass parameters to the function in a browser,
+the usual urlencoding of the parameters can be appended to the URL to call each function.
+Most users should be able to interact with the website exclusively through links though.
 From the URL root index, users will be able to directly access the following:
 
 - :ref:`global-view-ref`
@@ -199,6 +199,41 @@ An example would be as follows::
    This website has not been run behind WSGI in production yet.
    I would be grateful to learn about any errors in this section of the documentation.
 
+Troubleshooting
+---------------
+
+This is just a quick guide for anyone trying to troubleshoot or restart the production server.
+
+If the web service is not responding,
+first check that you are accessing the machine using CERN's network
+(either by being physically at CERN or using a proxy).
+If you are certain that you are using the CERN network, then you will have to log into the server.
+The name of the server is not given due to potential security concerns.
+To complete all of the following steps, you need sudo access to the machine.
+
+ #. SSH into a CERN machine.
+ #. Try downloading actions from the machine::
+
+        wget -O test.json --no-check-certificate "https://vocms0113.cern.ch:80/getaction?days=30&acted=-1"
+
+    If the file ``test.json`` is not empty, then the service is likely still running properly.
+    Go back to checking your own connection.
+ #. SSH into the server.
+ #. Check top for the process ``python2.7``.
+    If it is there, but the server is still not responding, kill the process.
+ #. Do the following to start the process again::
+
+        cd /home/dabercro/OpsSpace/WorkflowWebTools/runserver
+        ./run.sh
+
+ #. Check the server status::
+
+        sudo tail -f /home/dabercro/OpsSpace/WorkflowWebTools/runserver/nohup.out
+
+    (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line says something like::
+
+        ENGINE Bus STARTED
+
 Maintaining the Python Backend
 ------------------------------
 
@@ -223,6 +258,8 @@ Global Errors
 
 .. automodule:: WorkflowWebTools.globalerrors
    :members:
+
+.. _clustering-ref:
 
 Workflow Clustering
 ~~~~~~~~~~~~~~~~~~~
