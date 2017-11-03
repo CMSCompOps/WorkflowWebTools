@@ -1,4 +1,4 @@
-#pylint: disable=too-many-locals, too-complex
+#pylint: disable=too-many-locals, too-complex, global-statement
 
 """
 Generates the content for the errors pages
@@ -235,7 +235,7 @@ class ErrorInfo(object):
         return steplist
 
 
-GLOBAL_INFO = ErrorInfo()
+GLOBAL_INFO = None
 
 
 def check_session(session, can_refresh=False):
@@ -253,6 +253,10 @@ def check_session(session, can_refresh=False):
             session['info'] = ErrorInfo()
         theinfo = session.get('info')
     else:
+        global GLOBAL_INFO
+        if GLOBAL_INFO is None:
+            GLOBAL_INFO = ErrorInfo()
+
         theinfo = GLOBAL_INFO
 
     # If session ErrorInfo is old, set up another connection
