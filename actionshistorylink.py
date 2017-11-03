@@ -1,5 +1,8 @@
 """
-Module to create files that link the action and history of each task.
+The :py:mod:`actionshistorylink` module creates files that link
+the action and the errors thrown for each task where the action and history
+are both stored on the server.
+The ``config.yml`` file is read to determine the locations of this history databases.
 
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """

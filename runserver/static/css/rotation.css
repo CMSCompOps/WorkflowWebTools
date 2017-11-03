@@ -3,13 +3,13 @@ th {
 }
 
 th.rotate {
-  height: 200px;
+  height: 225px;
   white-space: nowrap;
 }
 
 th.rotate > div {
   transform: 
-    translate(0px, 75px)
+    translate(0px, 100px)
     rotate(270deg);
   width: 20px;
 }
