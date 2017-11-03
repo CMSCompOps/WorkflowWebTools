@@ -352,7 +352,7 @@ List Workflows At Site
 .. _ml-ref:
 
 Machine Learning Functions
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: WorkflowWebTools.actionshistorylink
    :members:
