@@ -1,5 +1,5 @@
 """
-This module uses neural net classifiers and regession to predict parameters
+The :py:mod:`paramsregression` module uses neural net classifiers to predict parameters
 for error handling workflows.
 
 .. Note::
@@ -17,16 +17,21 @@ from sklearn.neural_network import MLPClassifier
 def get_classifier(raw_data, parameter, **kwargs):
     """
     Fit a classifier.
+    If the module is run as a script,
+    just print the training and test data output.
+    Otherwise, return the classifier for farther use.
 
     .. Note::
 
-       Doesn't return anything useful at the moment. In development.
+       In development.
 
     :param dict raw_data: Raw data in the form of output from
                           :py:func:`actionshistorylink.dump_json`.
     :param str parameter: The parameter to classify.
     :param kwargs: These are kwargs for the ``sklearn.neural_network.MLPClassifier``
                    that is running underneath.
+    :returns: Trained classifier model
+    :rtype: sklearn.neural_network.MLPClassifier
     """
 
     primary_ids = sorted(set([key.split('/')[1] for key in raw_data.keys()]))
@@ -62,6 +67,9 @@ def get_classifier(raw_data, parameter, **kwargs):
 
     classifier = MLPClassifier(**kwargs)
     classifier.fit(training_data, training_target)
+
+    if __name__ != '__main__':
+        return classifier
 
     def print_results(data, target):
         """Print the results of predictions.
