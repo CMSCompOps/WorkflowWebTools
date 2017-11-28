@@ -10,6 +10,9 @@ import cherrypy
 from WorkflowWebTools.serverconfig import LOCATION
 
 
+DEFAULT_SHORT =  '---- No Short Reason Given, Not Saved to Database! ----'
+
+
 def get_reasons():
     """Gets the reasons database in the local directory.
 
@@ -45,6 +48,8 @@ def update_reasons(reasons):
 
     try:
         for reason in reasons:
+            if reason['short'] == DEFAULT_SHORT:
+                continue
             curs.execute('SELECT shortreason FROM reasons WHERE shortreason=?', (reason['short'],))
             if not curs.fetchone():
                 curs.execute('INSERT INTO reasons VALUES (?,?)', (reason['short'], reason['long'],))

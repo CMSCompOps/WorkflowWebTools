@@ -36,7 +36,7 @@ def get_classifier(raw_data, parameter, **kwargs):
 
     primary_ids = sorted(set([key.split('/')[1] for key in raw_data.keys()]))
 
-    training_ids = primary_ids[0::2]
+    training_ids = primary_ids[0::2] if __name__ == '__main__' else primary_ids
 
     training_data = []
     training_target = []
