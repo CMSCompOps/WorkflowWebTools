@@ -10,7 +10,7 @@ import cherrypy
 from WorkflowWebTools.serverconfig import LOCATION
 
 
-DEFAULT_SHORT =  '---- No Short Reason Given, Not Saved to Database! ----'
+DEFAULT_SHORT = '---- No Short Reason Given, Not Saved to Database! ----'
 
 
 def get_reasons():
