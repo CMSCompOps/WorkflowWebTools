@@ -530,7 +530,8 @@ class WorkflowTools(object):
 
         # We want to change this directory to something set in workflowinfo soon
         for cache_file in glob.iglob('/tmp/workflowinfo/*'):
-            os.remove(cache_file)
+            if 'bak' not in cache_file:
+                os.rename(cache_file, cache_file.replace('/tmp/workflowinfo/', '/tmp/workflowinfo/bak/'))
 
         # Force the cache reset
         if cherrypy.session.get('info'):
