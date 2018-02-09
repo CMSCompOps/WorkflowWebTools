@@ -13,6 +13,7 @@ Script to run the WorkflowWebTools server.
 
 import os
 import sys
+import json
 import glob
 import time
 import datetime
@@ -169,18 +170,23 @@ class WorkflowTools(object):
         cols = globalerrors.check_session(cherrypy.session).\
             get_allmap()[globalerrors.get_row_col_names(pievar)[1]]
 
+        get_names = lambda x: [globalerrors.TITLEMAP[name] for name in globalerrors.get_row_col_names(x)]
+
         template = lambda: GET_TEMPLATE('globalerror.html').\
             render(errors=errors,
+                   decoder=json.dumps,
                    columns=cols,
                    pievar=pievar,
                    acted_workflows=manageactions.get_acted_workflows(
                        serverconfig.get_history_length()),
-                   readiness=globalerrors.check_session(cherrypy.session).readiness)
+                   readiness=globalerrors.check_session(cherrypy.session).readiness,
+                   get_names=get_names
+                   )
 
         try:
             return template()
         except Exception: # I don't remember what kind of exception this throws...
-            time.sleep(2)
+            time.sleep(1)
             return template()
 
     @cherrypy.expose

@@ -58,3 +58,13 @@ function drawPieCharts() {
         }
     }
 }
+
+frst_colors = {};
+scnd_colors = {};
+
+function drawIcicles (element) {
+    var input = JSON.parse(element.innerHTML);
+    console.log(element);
+    console.log(input);
+    element.innerHTML = 'CLICKED';
+}

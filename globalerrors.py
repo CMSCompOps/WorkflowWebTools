@@ -11,6 +11,9 @@ import sqlite3
 import time
 import cherrypy
 import numpy
+import json
+
+from collections import defaultdict
 
 from CMSToolBox import sitereadiness
 from CMSToolBox import workflowinfo
@@ -267,11 +270,24 @@ def check_session(session, can_refresh=False):
     return theinfo
 
 
+def default_errors_format():
+    """
+    Gives a defaultdict with the format::
+
+      {group1: {'errors': {group1_1: {group1_1_1: errors, group1_1_2: errors}}, group2: ...}}
+
+    :returns: A defaultdict for building errors
+    :rtype: collections.defaultdict
+    """
+
+    return defaultdict(lambda: {'errors': defaultdict(lambda: defaultdict(lambda: 0)), 'sub': {}, 'total': 0})
+
+
 def group_errors(input_errors, grouping_function, **kwargs):
     """
     Takes inputs errors with the format::
 
-      {group1: {'errors': [[]], 'sub': {}}, group2: ...}
+      {group1: {'errors': {group1_1: {group1_1_1: errors, group1_1_2: errors}}, group2: ...}}
 
     and sums the errors into a larger group.
     This second grouping is done by the output of the grouping_function.
@@ -284,31 +300,26 @@ def group_errors(input_errors, grouping_function, **kwargs):
                    That keyword will be added to the dictionary of each group.
                    It's value will be the function output with the group as an argument.
     :returns: A dictionary with the same format as the input, but with groupings.
-    :rtype: dict
+    :rtype: defaultdict
     """
 
-    output = {}
+    output = default_errors_format()
 
     for subgroup, values in input_errors.iteritems():
 
         group = grouping_function(subgroup)
 
-        if group in output.keys():
-            output[group]['errors'] += numpy.matrix(values['errors'])
-            output[group]['sub'][subgroup] = values
-        else:
-            output[group] = {
-                'errors': numpy.matrix(values['errors']),
-                'sub': {
-                    subgroup: values
-                    }
-                }
+        # We have three variables for everything, so we can write this by hand
+        # Not ideal
+        for row, row_val in values['errors'].iteritems():
+            for col, numerrors in row_val.iteritems():
+                output[group]['errors'][row][col] += numerrors
+
+        output[group]['sub'][subgroup] = values
+        output[group]['total'] += values['total']
 
         for key, func in kwargs.iteritems():
             output[group][key] = func(group)
-
-    for group in output:
-        output[group]['errors'] = output[group]['errors'].tolist()
 
     return output
 
@@ -415,9 +426,9 @@ def get_row_col_names(pievar):
 
 
 TITLEMAP = {
-    'errorcode': 'code ',
-    'stepname':  'step ',
-    'sitename':  'site ',
+    'errorcode': 'error code',
+    'stepname':  'workflow',
+    'sitename':  'site name',
     }
 """Dictionary that determines how a chosen pievar shows up in the pie chart titles"""
 
@@ -454,7 +465,7 @@ def get_errors(pievar, session=None):
     """
     Gets the number of errors with the format::
 
-      {group1: {'errors': [[]]}, group2: ...}
+      {group1: {'errors': {group1_1: {group1_1_1: errors, group1_1_2: errors}}, group2: ...}}
 
     where each group is a different value for the variables that
     go into the row of the global errors table.
@@ -464,7 +475,7 @@ def get_errors(pievar, session=None):
     :param str pievar: The variable that each piechart is split into.
     :param cherrypy.Session session: Stores the information for a session
     :returns: A dictionary of 2D list of errors.
-    :rtype: dict
+    :rtype: defaultdict
     """
 
     rowname, colname = get_row_col_names(pievar)
@@ -476,30 +487,13 @@ def get_errors(pievar, session=None):
     curs = check_session(session).curs
     curs.execute(query)
 
-    numerrors, this_row, this_col, this_pievar = curs.fetchone() or (0, '', '', '')
+    output = default_errors_format()
 
-    output = {}
-    total_pie_vars = [0] * len(allmap[pievar])
+    numerrors, row, col, pievar = curs.fetchone() or (0, '', '', '')
 
-    for row in allmap[rowname]:
-        output[row] = {
-            'errors': [[0] * len(allmap[pievar]) for _ in allmap[colname]]
-            }
-
-        for icol, col in enumerate(allmap[colname]):
-            for ipie, pie in enumerate(allmap[pievar]):
-                if (row, col, pie) == (this_row, this_col, this_pievar):
-                    output[row]['errors'][icol][ipie] = numerrors
-                    total_pie_vars[ipie] += numerrors
-                    numerrors, this_row, this_col, this_pievar = \
-                        curs.fetchone() or (0, '', '', '')
-
-    # Sort the pievars
-    indices_for_pievars = [index for index, _ in sorted(
-        enumerate(total_pie_vars), key=(lambda x: x[1]), reverse=True)]
-
-    for key, errors in output.iteritems():
-        for icol, col in enumerate(errors['errors']):
-            output[key]['errors'][icol] = [col[index] for index in indices_for_pievars]
+    while numerrors:
+        output[row]['errors'][col][pievar] = numerrors
+        output[row]['total'] += numerrors
+        numerrors, row, col, pievar = curs.fetchone() or (0, '', '', '')
 
     return output

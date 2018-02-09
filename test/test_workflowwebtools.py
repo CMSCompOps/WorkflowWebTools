@@ -21,15 +21,25 @@ class TestGlobalError(unittest.TestCase):
 
     dictionary = {
         '/test1/a/1': {
-            'errors': [[1, 0, 0], [0, 1, 1]],
+            'errors': {
+                'row1': {'col1' : 1}, 
+                'row2': {'col2': 1, 
+                         'col3': 1}
+                },
             'sub': {}
             },
         '/test1/a/2': {
-            'errors': [[1, 1, 0], [0, 0, 1]],
+            'errors': {
+                'row1': {'col1' : 1,
+                         'col2' : 1}, 
+                'row2': {'col3': 1}
+                },
             'sub': {}
             },
         '/test2/a/1': {
-            'errors': [[0, 0, 0], [1, 0, 0]],
+            'errors': {
+                'row2': {'col1': 1}
+                },
             'sub': {}
             }
         }
@@ -41,8 +51,8 @@ class TestGlobalError(unittest.TestCase):
         self.assertEqual(len(check_this.keys()), 2)
         self.assertTrue('test1' in check_this.keys())
         self.assertTrue('test2' in check_this.keys())
-        self.assertEqual(check_this['test1']['errors'], [[2, 1, 0], [0, 1, 2]])
-        self.assertEqual(check_this['test2']['errors'], [[0, 0, 0], [1, 0, 0]])
+        self.assertEqual(check_this['test1']['errors'], {'row1': {'col1': 2, 'col2': 1}, 'row2': {'col2': 1, 'col3': 2}})
+        self.assertEqual(check_this['test2']['errors'], {'row2': {'col1': 1}})
         self.assertEqual(check_this['test1']['sub']['/test1/a/1'], self.dictionary['/test1/a/1'])
 
 
