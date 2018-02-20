@@ -248,5 +248,28 @@ class TestActions(unittest.TestCase):
                 })
         self.run_test(request, {'test': 'test_param'})
 
+class TestBlankReasons(TestActions):
+    def test_blank_short(self):
+        request = {
+            'workflows': 'test_workflow',
+            'action': 'clone',
+            'shortreason0': '',
+            'longreason0': 'Long reason'
+            }
+
+        wf, reasons, params = ma.submitaction('test', **request)
+        self.assertEqual(reasons[0]['short'], rm.DEFAULT_SHORT)
+
+    def test_blank_long(self):
+        request = {
+            'workflows': 'test_workflow',
+            'action': 'clone',
+            'shortreason0': 'Short Reason',
+            'longreason0': ''
+            }
+
+        wf, reasons, params = ma.submitaction('test', **request)
+        self.assertEqual(reasons[0]['short'], reasons[0]['long'])
+
 if __name__ == '__main__':
     unittest.main()

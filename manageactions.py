@@ -36,15 +36,13 @@ def extract_reasons_params(action, **kwargs):
     for key, item in kwargs.iteritems():
 
         if 'shortreason' in key:
-            long_re = kwargs[key.replace('short', 'long')].strip().replace('\n', '<br>')
+            short_re = item or reasonsmanip.DEFAULT_SHORT
+            long_re = kwargs[key.replace('short', 'long')].strip().replace('\n', '<br>') or item
 
-            if long_re:
-                short_re = item or '---- No Short Reason Given, Not Saved to Database! ----'
-
-                reasons.append({
-                    'short': short_re,
-                    'long': long_re,
-                })
+            reasons.append({
+                'short': short_re,
+                'long': long_re,
+            })
 
         elif 'selectedreason' in key:
 
