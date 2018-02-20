@@ -53,10 +53,13 @@ def open_location(data_location):
 
             for workflow, statuses in raw.iteritems():
                 if True in ['manual' in status for status in statuses]:
-                    cherrypy.log('Getting workflow: %s' % workflow)
-                    indict.update(
-                        workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
-                        )
+                    base = workflowinfo.WorkflowInfo(workflow)
+                    prep_id = base.get_prep_id()
+                    for wf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
+                        cherrypy.log('Getting workflow: %s' % wf)
+                        indict.update(
+                            workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+                            )
 
             return indict
 
