@@ -36,29 +36,32 @@ def open_location(data_location):
 
         return output
 
-    else:
-        if validators.url(data_location):
-            components = urlparse.urlparse(data_location)
+    indict = {}
 
-            # Anything we need for the Shibboleth cookie could be in the config file
-            cookie_stuff = serverconfig.config_dict()['data']
+    if validators.url(data_location):
+        components = urlparse.urlparse(data_location)
 
-            raw = get_json(components.netloc, components.path,
-                           use_https=True,
-                           cookie_file=cookie_stuff.get('cookie_file'),
-                           cookie_pem=cookie_stuff.get('cookie_pem'),
-                           cookie_key=cookie_stuff.get('cookie_key'))
+        # Anything we need for the Shibboleth cookie could be in the config file
+        cookie_stuff = serverconfig.config_dict()['data']
 
-            indict = {}
+        raw = get_json(components.netloc, components.path,
+                       use_https=True,
+                       cookie_file=cookie_stuff.get('cookie_file'),
+                       cookie_pem=cookie_stuff.get('cookie_pem'),
+                       cookie_key=cookie_stuff.get('cookie_key'))
 
-            for workflow, statuses in raw.iteritems():
-                if True in ['manual' in status for status in statuses]:
-                    cherrypy.log('Getting workflow: %s' % workflow)
+
+        for workflow, statuses in raw.iteritems():
+            if True in ['manual' in status for status in statuses]:
+                base = workflowinfo.WorkflowInfo(workflow)
+                prep_id = base.get_prep_id()
+                for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
+                    cherrypy.log('Getting workflow: %s' % wkf)
                     indict.update(
-                        workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
+                        workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
                         )
 
-            return indict
+    return indict
 
 
 def get_list_info(status_list):
