@@ -36,6 +36,7 @@ def get_classifier(raw_data, parameter, **kwargs):
 
     primary_ids = sorted(set([key.split('/')[1] for key in raw_data.keys()]))
 
+    # Only split samples when running interactive tests
     training_ids = primary_ids[0::2] if __name__ == '__main__' else primary_ids
 
     training_data = []
@@ -68,37 +69,39 @@ def get_classifier(raw_data, parameter, **kwargs):
     classifier = MLPClassifier(**kwargs)
     classifier.fit(training_data, training_target)
 
-    if __name__ != '__main__':
-        return classifier
+    if __name__ == '__main__':
+        # Only does the following if running an interactive test
+        def print_results(data, target):
+            """Print the results of predictions.
 
-    def print_results(data, target):
-        """Print the results of predictions.
+            :param list data: Errors in the format of a matrix
+            :param list target: The values that the data should correspond to
+            """
 
-        :param list data: Errors in the format of a matrix
-        :param list target: The values that the data should correspond to
-        """
+            output = classifier.predict(data)
 
-        output = classifier.predict(data)
+            right = 0
 
-        right = 0
+            for want, result in zip(target, output):
 
-        for want, result in zip(target, output):
+                if want == result:
+                    status = 'RIGHT'
+                    right += 1
+                else:
+                    status = 'WRONG'
+                print '[%s] %i : %i -- %s : %s' % \
+                    (status, want, result, class_labels[want], class_labels[result])
 
-            if want == result:
-                status = 'RIGHT'
-                right += 1
-            else:
-                status = 'WRONG'
-            print '[%s] %i : %i -- %s : %s' % \
-                (status, want, result, class_labels[want], class_labels[result])
+            print '%f (%i/%i)' % (100.0 * right/len(target), right, len(target))
 
-        print '%f (%i/%i)' % (100.0 * right/len(target), right, len(target))
+        print '\nTraining:\n'
+        print_results(training_data, training_target)
 
-    print '\nTraining:\n'
-    print_results(training_data, training_target)
+        print '\nTesting:\n'
+        print_results(testing_data, testing_target)
 
-    print '\nTesting:\n'
-    print_results(testing_data, testing_target)
+    return classifier
+
 
 def main():
     """This is for testing."""
