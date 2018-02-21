@@ -9,11 +9,10 @@ Generates the content for the errors pages
 import os
 import sqlite3
 import time
-import cherrypy
-import numpy
-import json
 
 from collections import defaultdict
+
+import cherrypy
 
 from CMSToolBox import sitereadiness
 from CMSToolBox import workflowinfo
@@ -280,7 +279,8 @@ def default_errors_format():
     :rtype: collections.defaultdict
     """
 
-    return defaultdict(lambda: {'errors': defaultdict(lambda: defaultdict(lambda: 0)), 'sub': {}, 'total': 0})
+    return defaultdict(lambda: {'errors': defaultdict(lambda: defaultdict(lambda: 0)),
+                                'sub': {}, 'total': 0})
 
 
 def group_errors(input_errors, grouping_function, **kwargs):
@@ -324,7 +324,8 @@ def group_errors(input_errors, grouping_function, **kwargs):
     return output
 
 
-def get_step_table(step, session=None, allmap=None, readymatch=None):
+def get_step_table(step, session=None, allmap=None, readymatch=None,
+                   sparse=False):
     """Gathers the errors for a step into a 2-D table of ints
 
     :param str step: name of the step to get the table for
@@ -332,14 +333,13 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
     :param dict allmap: a globalerrors.ErrorInfo allmap to override the
                         session's allmap
     :param tuple readymatch: Match the readiness statuses in this tuple, if set
+    :param bool sparse: Determines whether or not a sparse matrix is returned
     :returns: A table of errors for the step
-    :rtype: list of lists of ints
+    :rtype: list of lists of ints or a sparse dictionary of entries
     """
     curs = check_session(session).curs
     if not allmap:
         allmap = check_session(session).get_allmap()
-
-    steptable = []
 
     query = 'SELECT numbererrors, sitename, errorcode FROM workflows ' \
         'WHERE stepname=?'
@@ -352,6 +352,19 @@ def get_step_table(step, session=None, allmap=None, readymatch=None):
     curs.execute(query, params)
 
     numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
+
+    if sparse:
+        output = defaultdict(lambda: defaultdict(lambda: 0))
+
+        while numbererrors:
+            output[errorcode][sitename] = numbererrors
+            numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
+
+        return output
+
+    # If not sparse
+
+    steptable = []
 
     for error in allmap['errorcode']:
 
@@ -479,7 +492,6 @@ def get_errors(pievar, session=None):
     """
 
     rowname, colname = get_row_col_names(pievar)
-    allmap = check_session(session, can_refresh=True).get_allmap()
 
     query = 'SELECT numbererrors, {0}, {1}, {2} FROM workflows ' \
         'ORDER BY {0} ASC, {1} ASC, {2} ASC;'.format(rowname, colname, pievar)

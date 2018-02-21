@@ -43,9 +43,11 @@ def dump_json(file_name=None):
             output[subtask] = {
                 'errors': {
                     'good_sites': globalerrors.get_step_table(
-                        subtask, session, readymatch=('green',)),
+                        subtask, session, readymatch=('green',),
+                        sparse=True),
                     'bad_sites': globalerrors.get_step_table(
-                        subtask, session, readymatch=('yellow', 'red', 'none'))
+                        subtask, session, readymatch=('yellow', 'red', 'none'),
+                        sparse=True)
                     },
                 'parameters':
                     parameters

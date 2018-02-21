@@ -56,7 +56,6 @@ def open_location(data_location):
                 base = workflowinfo.WorkflowInfo(workflow)
                 prep_id = base.get_prep_id()
                 for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
-                    cherrypy.log('Getting workflow: %s' % wkf)
                     indict.update(
                         workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
                         )
@@ -77,7 +76,6 @@ def get_list_info(status_list):
 
     indict = {}
     for workflow in status_list:
-        cherrypy.log('Getting workflow %s' % workflow)
         indict.update(
             workflowinfo.WorkflowInfo(workflow).get_errors(get_unreported=True)
             )
@@ -99,7 +97,8 @@ def add_to_database(curs, data_location):
     :type data_location: str or list
     """
 
-    cherrypy.log('About to add data from %s' % data_location)
+    if not isinstance(data_location, list):
+        cherrypy.log('About to add data from %s' % data_location)
 
     indict = get_list_info(data_location) \
         if isinstance(data_location, list) else \

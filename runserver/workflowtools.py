@@ -14,7 +14,6 @@ Script to run the WorkflowWebTools server.
 import os
 import sys
 import json
-import glob
 import time
 import datetime
 import sqlite3
@@ -170,7 +169,8 @@ class WorkflowTools(object):
         cols = globalerrors.check_session(cherrypy.session).\
             get_allmap()[globalerrors.get_row_col_names(pievar)[1]]
 
-        get_names = lambda x: [globalerrors.TITLEMAP[name] for name in globalerrors.get_row_col_names(x)]
+        get_names = lambda x: [globalerrors.TITLEMAP[name]
+                               for name in globalerrors.get_row_col_names(x)]
 
         template = lambda: GET_TEMPLATE('globalerror.html').\
             render(errors=errors,
@@ -181,7 +181,7 @@ class WorkflowTools(object):
                        serverconfig.get_history_length()),
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    get_names=get_names
-                   )
+                  )
 
         try:
             return template()
@@ -519,7 +519,7 @@ class WorkflowTools(object):
         raise cherrypy.HTTPError(404)
 
     @cherrypy.expose
-    def resetcache(self):
+    def resetcache(self, prepid='', workflow=''):
         """
         The function is only accessible to someone with a verified account.
 
@@ -533,16 +533,25 @@ class WorkflowTools(object):
         """
 
         cherrypy.log('Cache reset by: %s' % cherrypy.request.login)
-
-        # We want to change this directory to something set in workflowinfo soon
-        for cache_file in glob.iglob('/tmp/workflowinfo/*'):
-            if 'bak' not in cache_file:
-                os.rename(cache_file, cache_file.replace('/tmp/workflowinfo/', '/tmp/workflowinfo/bak/'))
+        info = globalerrors.check_session(cherrypy.session)
 
         # Force the cache reset
-        if cherrypy.session.get('info'):
-            cherrypy.session.get('info').teardown()
-            cherrypy.session.get('info').setup()
+        if info:
+            prepids = [prepid] if prepid else info.prepidinfos.keys()
+            workflows = [workflow] if workflow else \
+                [wf for pid in prepids for wf in info.prepidinfos[pid].get_workflows()
+                 if wf in info.workflowinfos]
+
+            for wkf in workflows:
+                info.workflowinfos[wkf].reset()
+
+            if not workflow:
+                for pid in prepids:
+                    info.prepidinfos[pid].reset()
+
+            info.teardown()
+            info.setup()
+
         return GET_TEMPLATE('complete.html').render()
 
     @cherrypy.expose
