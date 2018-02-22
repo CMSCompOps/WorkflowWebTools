@@ -26,7 +26,8 @@ class TestGlobalError(unittest.TestCase):
                 'row2': {'col2': 1, 
                          'col3': 1}
                 },
-            'sub': {}
+            'sub': {},
+            'total': 3
             },
         '/test1/a/2': {
             'errors': {
@@ -34,13 +35,15 @@ class TestGlobalError(unittest.TestCase):
                          'col2' : 1}, 
                 'row2': {'col3': 1}
                 },
-            'sub': {}
+            'sub': {},
+            'total': 3
             },
         '/test2/a/1': {
             'errors': {
                 'row2': {'col1': 1}
                 },
-            'sub': {}
+            'sub': {},
+            'total': 1
             }
         }
 
