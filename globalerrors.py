@@ -159,7 +159,8 @@ class ErrorInfo(object):
 
         :param str action: is the action on the connection
         """
-        cherrypy.log('Connection {0} with timestamp {1}'.format(action, self.timestamp))
+        if cherrypy is not None:  # This happens while everything is being deleted
+            cherrypy.log('Connection {0} with timestamp {1}'.format(action, self.timestamp))
 
     def get_allmap(self):
         """
