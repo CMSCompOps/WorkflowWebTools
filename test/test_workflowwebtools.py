@@ -16,6 +16,7 @@ import WorkflowWebTools.reasonsmanip as rm
 import WorkflowWebTools.manageactions as ma
 import WorkflowWebTools.globalerrors as ge
 
+from CMSToolBox.workflowinfo import WorkflowInfo
 
 class TestGlobalError(unittest.TestCase):
 
@@ -97,7 +98,7 @@ class TestClusteringAndReasons(unittest.TestCase):
         'test2' : ['test1'],
         'test3' : []
         }
-            
+
     def setUp(self):
         out_name = sc.all_errors_path()
 
@@ -110,10 +111,24 @@ class TestClusteringAndReasons(unittest.TestCase):
         if sc.workflow_history_path() != sc.all_errors_path():
             uh.main(sc.all_errors_path())
 
+        ge.check_session(None).data_location = out_name
+        ge.check_session(None).setup()
+
+        for wkf in ge.check_session(None).return_workflows():
+            file_name = WorkflowInfo(wkf).cache_filename('workflow_params')
+            with open(file_name, 'w') as cache:
+                json.dump({}, cache)
+
     def tearDown(self):
         os.remove(sc.workflow_history_path())
         if sc.workflow_history_path() != sc.all_errors_path():
             os.remove(sc.all_errors_path())
+
+        for wkf in ge.check_session(None).return_workflows():
+            file_name = WorkflowInfo(wkf).cache_filename('workflow_params')
+            os.remove(file_name)
+
+        ge.check_session(None).teardown()
 
     def test_updatehistory(self):
         import WorkflowWebTools.globalerrors as ge
@@ -132,6 +147,34 @@ class TestClusteringAndReasons(unittest.TestCase):
             self.assertEqual(cw.get_clustered_group(workflow, clusterer),
                              self.should_cluster[workflow],
                              'Clustering acting unexpectedly.')
+
+    def test_steptable(self):
+        # This isn't particularly well written,
+        # but we should expect a table with
+        # rows corresponding to error codes 1, 2, 3 and
+        # columns corresponding to site names site_a, site_b, site_c
+
+        allmap = ge.check_session(None).get_allmap()
+
+        for step in self.errors:
+            error_table = ge.get_step_table(step)
+
+            # One by hand because weird stuff is happening while writing this test
+            if step == '/test1/a/1':
+                self.assertEqual(error_table[0][0], 100)
+
+            self.assertTrue(error_table)
+            for row in error_table:
+                self.assertTrue(row)
+
+            # Check number of rows and errors
+            self.assertEqual(len(allmap['errorcode']), len(error_table))
+            for e_index, error in enumerate(allmap['errorcode']):
+                # Make sure all of the sites have a column
+                self.assertEqual(len(allmap['sitename']), len(error_table[e_index]))
+                for s_index, site in enumerate(allmap['sitename']):
+                    self.assertEqual(error_table[e_index][s_index],
+                                     self.errors[step].get(str(error), {}).get(site, 0))
 
 
 class TestReasons(unittest.TestCase):
@@ -162,8 +205,6 @@ class TestReasons(unittest.TestCase):
 
         self.assertRaises(TypeError, rm.update_reasons, 'test')
         self.assertRaises(KeyError, rm.update_reasons, [{'wrong': 'key'}])
-        print rm.reasons_list()
-        print {reas['short']: reas['long'] for reas in self.reasons}
         self.assertEqual(rm.reasons_list(),
                          {reas['short']: reas['long'] for reas in self.reasons},
                          'Reasons list return is not same as sent')
@@ -210,30 +251,28 @@ class TestActions(unittest.TestCase):
             print 'Test database not empty, abort!!'
             exit(123)
 
+        file_name = WorkflowInfo(self.request_base['workflows']).cache_filename('workflow_params')
+        with open(file_name, 'w') as cache:
+            json.dump({}, cache)
+
     def tearDown(self):
         shutil.rmtree(rm.LOCATION)
         rm.LOCATION = sc.LOCATION
         ma.get_actions_collection().drop()
 
+        file_name = WorkflowInfo(self.request_base['workflows']).cache_filename('workflow_params')
+        os.remove(file_name)
+
     def run_test(self, request, params_out):
 
         wf, reasons, params = ma.submitaction('test', **request)
 
-        print wf
-        print [self.request_base['workflows']]
-
         self.assertEqual(wf, [self.request_base['workflows']],
                          'Workflows is not expected output')
         
-        print reasons
-        print [{'short': 'short reason %i' % i, 'long': 'long reason %i' % i} for i in [2, 3, 1]]
-
         self.assertEqual(reasons,
                          [{'short': 'short reason %i' % i, 'long': 'long reason %i' % i} for i in [2, 3, 1]],
                          'Output reasons are not what are expected')
-
-        print params
-        print params_out
 
         self.assertEqual(params, params_out,
                          'Parameters out are not expected')
