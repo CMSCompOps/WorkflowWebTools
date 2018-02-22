@@ -335,8 +335,8 @@ def get_step_table(step, session=None, allmap=None, readymatch=None,
                         session's allmap
     :param tuple readymatch: Match the readiness statuses in this tuple, if set
     :param bool sparse: Determines whether or not a sparse matrix is returned
-    :returns: A table of errors for the step
-    :rtype: list of lists of ints or a sparse dictionary of entries
+    :returns: A table (made of lists) of errors for the step or a sparse dictionary of entries
+    :rtype: list of lists or dict of dicts of ints
     """
     curs = check_session(session).curs
     if not allmap:
