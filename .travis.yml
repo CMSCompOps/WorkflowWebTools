@@ -9,10 +9,8 @@ addons:
   apt:
     sources: debian-sid
     packages: shellcheck
-env:
-  - CHECKDOC=true
-  - TMPDIR=$PWD/tmp
+env: CHECKDOC=true TMPDIR=$PWD/tmp
 install:
-  - test -d $TMPDIR || mkdir $TMPDIR
+  - test -d $TMPDIR/workflowinfo || mkdir -p $TMPDIR/workflowinfo
   - git clone https://github.com/CMSCompOps/OpsSpace.git
 script: OpsSpace/test/package_test.sh
