@@ -4,66 +4,34 @@
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
-    <script>
-      $(document).tooltip({
-        content: function () {
-          return $(this).prop('title')
-        }
-      })
-    </script>
-    <script type="text/javascript" src="static/js/piechart.js"></script>
     <script type="text/javascript" src="static/js/expandtable.js"></script>
+    <script type="text/javascript" src="static/js/piechart.js"></script>
   </head>
-  <%
-     stringpieinfo = []
-     for _, info in sorted(errors.items()):
-         for pie in info['errors']:
-             stringpieinfo.append(str(pie))
-         for _, info_1 in sorted(info.get('sub', {}).items()):
-             for pie in info_1['errors']:
-                 stringpieinfo.append(str(pie))
-             for _, info_2 in sorted(info_1.get('sub', {}).items()):
-                 for pie in info_2['errors']:
-                     stringpieinfo.append(str(pie))
-  %>
-  <body onload="drawPieCharts(${','.join(stringpieinfo)});">
-    <table border="3" style="border-collapse: collapse;">
-      <tr>
-        <th style="font-size:125%; text-align:left; padding:15px;">
-          <span style="color:#0000ff;">Select a variable for the pie chart <br>(the other two make up the axes):</span>
-          <form>
-            <%
-               pievars = {
-                   'stepname' : 'Step Name',
-                   'sitename' : 'Site Name',
-                   'errorcode' : 'Error Code'
-               }
-            %>
-            % for val, text in pievars.iteritems():
-              <input type="radio" name="pievar" value="${val}">${text}<br>
-            % endfor
-            <input type="submit" value="Submit">
-          </form>
-        </th>
-
-        % for icol, col in enumerate(columns):
-            <% 
-               status = ''
-               if pievar != 'sitename':
-                   status = readiness[icol]
-               tot_errors = sum(sum([error['errors'][icol] for error in errors.values()], []))
-            %>
-            <th class="rotate ${status}" title="Total Errors: ${tot_errors}"><div><span>${col}</span></div></th>
+  <body>
+    <span style="color:#0000ff;">Select orientation:</span>
+    <form>
+      <%
+         pievars = {key: get_names(key) for key in ['stepname', 'sitename', 'errorcode']}
+         %>
+      <table style="border-collapse: separate; border-spacing: 0.5em;">
+        <tr>
+          <td></td><th>Row</th><th>Group By</th>
+        </tr>
+        % for val, text in pievars.iteritems():
+        <tr>
+          <td><input type="radio" name="pievar" value="${val}"></td><td>${text[0]}</td><td>${text[1]}</td>
+        </tr>
         % endfor
-
+      </table>
+      <input type="submit" value="Submit">
+    </form>
+    <table border="3" style="border-collapse: collapse;">
       <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
         <%
            sub_rows = False
            if pievar != 'stepname':
                sub_rows = True
 
-           tot_errors = sum([sum(pie) for pie in row['errors']])
-           
            bg_type = ''
            if is_wf:
                if row_name in acted_workflows:
@@ -90,15 +58,24 @@
       <tr style="display:none;">
       % endif
           % if sub_rows:
-        <th class="${bg_type}" title="Total Errors: ${tot_errors}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
+        <th class="${bg_type}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
           <table>
             <tr>
+              <td>
+                <%
+                   info_type = 'workflow' if this_row_level else 'prepid'
+                %>
+                <a href="/resetcache?${info_type}=${row_name}" id="${row_name}_reset">Reset</a>
+                <script>
+                  $('#${row_name}_reset').click(function(event){event.stopPropagation();});
+                </script>
+              </td>
               <th>
                 <span id="${row_name}_span">&#x25B6;</span>
               </th>
               <th>
           % else:
-        <th class="${bg_type}" title="Total Errors: ${tot_errors}">
+        <th class="${bg_type}">
           % endif
           % if is_wf:
           <a href="/seeworkflow/?workflow=${row_name}" id="${row_name}_a">
@@ -116,20 +93,12 @@
           </table>
           % endif
         </th>
-
-        % for index, pie in enumerate(row['errors']):
-          <th title="Total Errors: ${sum(pie)}">
-            % if pievar == 'stepname':
-              <a href="listpage?errorcode=${row_name}&sitename=${columns[index]}" target="blank">
-            % elif pievar == 'errorcode':
-              <a href="listpage?workflow=${row_name}&sitename=${columns[index]}" target="blank">
-            % else:
-              <a href="listpage?workflow=${row_name}&errorcode=${columns[index]}" target="blank">
-            % endif
-            <canvas width="20" height="20" class="piechart"></canvas>
-            </a>
-          </th>
-        % endfor
+        <td align="center">
+          ${row['total']}
+        </td>
+        <td>
+          <canvas height="60" onclick="drawIcicles(this);">{"total": ${row['total']}, "errors": ${decoder(row['errors'])}}</canvas>
+        </td>
       </tr>
       </%def>
       % for row_name, row in sorted(errors.items()):
