@@ -238,12 +238,25 @@ def get_acted_workflows(num_days):
     return list(get_actions(num_days, acted=None))
 
 
-def report_actions(workflows):
+def report_actions(workflows, output=None):
     """Mark actions as acted on
 
     :param list workflows: is the list of workflows to no longer show
+    :param dict output: If set, a reference to a dictionary to update
+                        with details of what was and wasn't set to acted
     """
     coll = get_actions_collection()
+
+    if output is not None:
+        records = list(coll.find({'workflow': {'$in': workflows}}))
+        output['success'] = [record['workflow'] for record in records
+                             if record['acted'] == 0]
+        output['already_reported'] = [record['workflow'] for record in records
+                                      if record['acted'] != 0]
+
+        record_names = [record['workflow'] for record in records]
+        output['does_not_exist'] = [wrkf for wrkf in workflows if
+                                    wrkf not in record_names]
 
     coll.update_many({'workflow': {'$in': workflows}, 'acted': 0},
                      {'$set': {'acted': 1}})

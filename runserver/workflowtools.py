@@ -382,6 +382,7 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
     def reportaction(self):
         """
         A POST request to ``https://localhost:8080/reportaction``
@@ -393,16 +394,31 @@ class WorkflowTools(object):
         ``WorkflowWebTools/test/report_action.py``,
         which relies on ``WorkflowWebTools/test/key.json``.
 
-        :returns: Just the phrase 'Done', no matter the results of the request
-        :rtype: str
+        :returns: A JSON summarizing results of the request. Keys and values include:
+
+                  - `'valid_key'` - If this is false, the passphrase passed was wrong,
+                                    and no action is changed
+                  - `'valid_format'` - If false, the input format is unexpected
+                  - `'success'` - List of actions that have been marked as acted on
+                  - `'already_reported'` - List of workflows that were already removed
+                  - `'does_not_exist'` - List of workflows that the database does not know
+
+        :rtype: JSON
         """
 
         input_json = cherrypy.request.json
 
-        if input_json['key'] == serverconfig.config_dict()['actions']['key']:
-            manageactions.report_actions(input_json['workflows'])
+        # Is the input good?
+        goodkey = (input_json['key'] == serverconfig.config_dict()['actions']['key'])
+        goodformat = isinstance(input_json['workflows'], list)
 
-        return 'Done'
+        output = {'valid_key': goodkey, 'valid_format': goodformat}
+
+        if goodkey and goodformat:
+            # This output is added to by passing reference to manageactions.report_actions
+            manageactions.report_actions(input_json['workflows'], output)
+
+        return output
 
     @cherrypy.expose
     def explainerror(self, errorcode='0', workflowstep='/'):
