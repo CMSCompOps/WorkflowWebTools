@@ -16,16 +16,21 @@ def report(*args):
     with open('key.json', 'r') as key_file:
         key_info = json.load(key_file)
 
-    conn = httplib.HTTPSConnection(key_info['url'], key_info['port'],
-                                   context=ssl._create_unverified_context())
+    try:
+        conn = httplib.HTTPSConnection(key_info['url'], key_info['port'],
+                                       context=ssl._create_unverified_context())
+    except AttributeError:
+        conn = httplib.HTTPSConnection(key_info['url'], key_info['port'])
 
     conn.request(
         'POST', key_info['path'],
         json.dumps({'key': key_info['key'], 'workflows': args}),
         {'Content-type': 'application/json'})
 
-    print conn.getresponse().read()
+    output = json.loads(conn.getresponse().read())
     conn.close()
+
+    return output
 
 
 if __name__ == '__main__':
@@ -33,4 +38,4 @@ if __name__ == '__main__':
         print 'Usage: ./report_action.py workflow1 [workflow2 ...]'
         exit()
 
-    report(*sys.argv[1:])
+    print report(*sys.argv[1:])
