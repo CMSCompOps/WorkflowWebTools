@@ -358,7 +358,7 @@ def get_step_table(step, session=None, allmap=None, readymatch=None,
         output = defaultdict(lambda: defaultdict(lambda: 0))
 
         while numbererrors:
-            output[errorcode][sitename] = numbererrors
+            output[str(errorcode)][sitename] = numbererrors
             numbererrors, sitename, errorcode = curs.fetchone() or (0, '', '')
 
         return output

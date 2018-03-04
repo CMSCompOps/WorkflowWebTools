@@ -16,6 +16,8 @@ import WorkflowWebTools.reasonsmanip as rm
 import WorkflowWebTools.manageactions as ma
 import WorkflowWebTools.globalerrors as ge
 
+from WorkflowWebTools.paramsregression import convert_to_dense
+
 from CMSToolBox.workflowinfo import WorkflowInfo
 
 class TestGlobalError(unittest.TestCase):
@@ -175,6 +177,18 @@ class TestClusteringAndReasons(unittest.TestCase):
                 for s_index, site in enumerate(allmap['sitename']):
                     self.assertEqual(error_table[e_index][s_index],
                                      self.errors[step].get(str(error), {}).get(site, 0))
+
+    def test_sparsetodense(self):
+        dense = {}
+        sparse = {}
+        for step in self.errors:
+            sparse[step] = ge.get_step_table(step, sparse=True)
+            dense[step] = ge.get_step_table(step)
+
+        to_dense = convert_to_dense(sparse, self.errors.keys())
+
+        for step in self.errors:
+            self.assertEqual(dense[step], to_dense[step])
 
 
 class TestReasons(unittest.TestCase):

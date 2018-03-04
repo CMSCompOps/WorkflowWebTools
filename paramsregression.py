@@ -1,3 +1,5 @@
+#pylint: disable=too-many-locals, too-complex
+
 """
 The :py:mod:`paramsregression` module uses neural net classifiers to predict parameters
 for error handling workflows.
@@ -14,16 +16,55 @@ import json
 
 from sklearn.neural_network import MLPClassifier
 
+def convert_to_dense(errors, keys=None, allerrors=None, allsites=None):
+    """
+    Take a dictionary of sparse matrices,
+    where the sparse matrices have keys of error code and them site names,
+    and return the equivalent dense matrices.
+
+    :param dict errors: The container for sparse matrices.
+    :param list keys: Keys for each of the matrices.
+                      Defaults to `'good_sites'` and `'bad_sites'`
+    :param list allerrors: An ordered list of all the errors to consider
+                           If both this and `allsites` are blank,
+                           this function will just pull lists from the sparse matrices
+    :param list allsites: An ordered list of all the sites to consider
+    :returns: Container for two dense matrices
+    :rtype: dict of lists of lists
+    """
+    keys = keys or ['good_sites', 'bad_sites']
+
+    if not allerrors and not allsites:
+        # First get all errors and all sites
+        allerrors = set()
+        allsites = set()
+
+        for status in keys:
+            for error, sites in errors[status].iteritems():
+                allerrors.add(int(error))
+                for site in sites:
+                    allsites.add(site)
+
+        allerrors = sorted(allerrors)
+        allsites = sorted(allsites)
+
+    # Build the dense output
+    output = {}
+    for status in keys:
+        output[status] = [[0] * len(allsites) for _ in xrange(len(allerrors))]
+        for i_error, error in enumerate(allerrors):
+            for i_site, site in enumerate(allsites):
+                output[status][i_error][i_site] += errors[status].get(str(error), {}).get(site, 0)
+
+    return output
+
+
 def get_classifier(raw_data, parameter, **kwargs):
     """
     Fit a classifier.
     If the module is run as a script,
     just print the training and test data output.
     Otherwise, return the classifier for farther use.
-
-    .. Note::
-
-       In development.
 
     :param dict raw_data: Raw data in the form of output from
                           :py:func:`actionshistorylink.dump_json`.
@@ -47,6 +88,23 @@ def get_classifier(raw_data, parameter, **kwargs):
     class_labels = []
 
     # Prepare the data
+
+    allerrors = set()
+    allsites = set()
+
+    for key in sorted(raw_data):
+        for status in ['good_sites', 'bad_sites']:
+            matrix = raw_data[key]['errors'][status]
+            # Only do this for sparse matrices
+            if not isinstance(matrix, list):
+                for error, sites in matrix.iteritems():
+                    allerrors.add(int(error))
+                    for site in sites:
+                        allsites.add(site)
+
+    allerrors = sorted(allerrors)
+    allsites = sorted(allsites)
+
     for key in sorted(raw_data):
         if key.split('/')[1] in training_ids:
             data = training_data
@@ -56,6 +114,8 @@ def get_classifier(raw_data, parameter, **kwargs):
             target = testing_target
 
         errors = raw_data[key]['errors']
+        if not isinstance(errors['good_sites'], list):
+            errors = convert_to_dense(errors, allerrors=allerrors, allsites=allsites)
 
         data.append(sum(errors['good_sites'] + errors['bad_sites'], []))
 
