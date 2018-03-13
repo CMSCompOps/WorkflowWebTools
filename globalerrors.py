@@ -497,7 +497,7 @@ def get_errors(pievar, session=None):
     query = 'SELECT numbererrors, {0}, {1}, {2} FROM workflows ' \
         'ORDER BY {0} ASC, {1} ASC, {2} ASC;'.format(rowname, colname, pievar)
 
-    curs = check_session(session).curs
+    curs = check_session(session, True).curs
     curs.execute(query)
 
     output = default_errors_format()
