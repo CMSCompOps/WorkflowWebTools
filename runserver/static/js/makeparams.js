@@ -174,7 +174,7 @@ function makeParamTable(action) {
         };
     } else if (action.value == 'special') {
         opts = {
-            'action': ['by-pass', 'force-complete']
+            'action': ['by-pass', 'force-complete', 'on-hold']
         };
         texts = [
                  'other',
