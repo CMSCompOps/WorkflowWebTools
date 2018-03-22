@@ -152,7 +152,7 @@ function drawPies () {
                         default:
                             anchor.href = 'listpage?workflow=' + row.id + '&errorcode=' + col;
                         }
-                        anchor.target = 'blank';
+                        anchor.target = '_blank';
                     }
                     else
                         anchor.innerHTML = '';
