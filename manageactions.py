@@ -269,8 +269,14 @@ def get_actions_collection():
     :rtype: pymongo.collection.Collection
     """
 
-    client = pymongo.MongoClient()
-    coll = client[serverconfig.config_dict()['actions']['database']].actions
+    config_dict = serverconfig.config_dict()['actions']
+    uri = config_dict.get('uri')
+    if uri:
+        client = pymongo.MongoClient(uri)
+    else:
+        client = pymongo.MongoClient()
+
+    coll = client[config_dict['database']].actions
 
     if coll.count() == 0 or 'workflow' not in list(coll.index_information()):
         coll.create_index([('workflow', pymongo.TEXT)],

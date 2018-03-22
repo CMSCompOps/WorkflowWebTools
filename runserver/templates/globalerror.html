@@ -6,26 +6,19 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
     <script type="text/javascript" src="static/js/expandtable.js"></script>
     <script type="text/javascript" src="static/js/piechart.js"></script>
+    <script>
+      var pievar = "${pievar}";
+      % if pievar != 'sitename':
+      var ready = {
+      % for icol, col in enumerate(columns):
+      ${col} : "${readiness[icol]}",
+      % endfor
+      };
+      % endif
+    </script>
   </head>
-  <body>
-    <span style="color:#0000ff;">Select orientation:</span>
-    <form>
-      <%
-         pievars = {key: get_names(key) for key in ['stepname', 'sitename', 'errorcode']}
-         %>
-      <table style="border-collapse: separate; border-spacing: 0.5em;">
-        <tr>
-          <td></td><th>Row</th><th>Group By</th>
-        </tr>
-        % for val, text in pievars.iteritems():
-        <tr>
-          <td><input type="radio" name="pievar" value="${val}"></td><td>${text[0]}</td><td>${text[1]}</td>
-        </tr>
-        % endfor
-      </table>
-      <input type="submit" value="Submit">
-    </form>
-    <table border="3" style="border-collapse: collapse;">
+  <body onload="drawPies()">
+    <table id="errortable" border="3" style="border-collapse: collapse;">
       <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
         <%
            sub_rows = False
@@ -53,7 +46,7 @@
       % if row_class and row_name:
       <tr class="${row_class}" style="display:none;" id="${row_name}">
       % elif row_name:
-      <tr>
+      <tr id="${row_name}">
       % else:
       <tr style="display:none;">
       % endif
@@ -95,9 +88,7 @@
         </th>
         <td align="center">
           ${row['total']}
-        </td>
-        <td>
-          <canvas height="60" onclick="drawIcicles(this);">{"total": ${row['total']}, "errors": ${decoder(row['errors'])}}</canvas>
+          <span style="display: none;">{"total": ${row['total']}, "errors": ${decoder(row['errors'])}}</span>
         </td>
       </tr>
       </%def>

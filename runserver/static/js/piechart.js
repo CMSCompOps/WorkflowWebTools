@@ -59,12 +59,109 @@ function drawPieCharts() {
     }
 }
 
-frst_colors = {};
-scnd_colors = {};
 
-function drawIcicles (element) {
-    var input = JSON.parse(element.innerHTML);
-    console.log(element);
-    console.log(input);
-    element.innerHTML = 'CLICKED';
+function drawPies () {
+    // Not really a set, but we'll sort it at the end to get unique values
+    var columns = new Array();
+    var pies = new Array();
+    // Get the tbody element inside of the <table> tags
+    var table = document.getElementById("errortable").firstElementChild;
+    for (var row in table.children) {
+        // Only child elements
+        if (table.children[row].lastElementChild) {
+            // Get the span at the end of the row, and load the JSON object
+            var row_obj = JSON.parse(table.children[row].lastElementChild.lastElementChild.innerHTML);
+            for (var col in row_obj.errors) {
+                columns.push(col);
+                for (var pie in row_obj.errors[col])
+                    pies.push(pie);
+            }
+            continue;
+        }
+    }
+
+    var uniq = function (full) {
+        var output = new Array();
+        full.sort().forEach(function(val) {
+                if (val != output[output.length - 1])
+                    output.push(val);
+            });
+        return output;
+    }
+
+    var uniq_cols = uniq(columns);
+    var uniq_pies = uniq(pies);
+
+    // Insert a header for the table
+    var head = table.insertBefore(document.createElement('tr'), table.firstElementChild);
+    head.appendChild(document.createElement('td')).innerHTML = '' +
+        '<span style="color:#0000ff;">Select orientation:</span>' +
+        '<form>' +
+        '<table style="border-collapse: separate; border-spacing: 0.5em;">' +
+        '<tr>' +
+        '<td></td><th>Row</th><th>Group By</th>' +
+        '</tr>' +
+        '<tr>' +
+        '<td><input type="radio" name="pievar" value="stepname"></td><td>errorcode</td><td>site name</td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td><input type="radio" name="pievar" value="sitename"></td><td>workflow</td><td>error code</td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td><input type="radio" name="pievar" value="errorcode"></td><td>workflow</td><td>site name</td>' +
+        '</tr>' +
+        '</table>' +
+        '<input type="submit" value="Submit">' +
+        '</form>';
+    head.appendChild(document.createElement('th'));
+
+    uniq_cols.forEach(function(col) {
+            var collabel = head.appendChild(document.createElement('th'));
+            collabel.className = 'rotate';
+            if (ready[col])
+                collabel.className += ' ' + ready[col];
+            var innerspan = collabel.appendChild(document.createElement('div')).appendChild(document.createElement('span'));
+            innerspan.innerHTML = col;
+        });
+
+    for (var i_row in table.children) {
+        var row = table.children[i_row];
+        if (row.id) {
+            var row_obj = JSON.parse(row.lastElementChild.lastElementChild.innerHTML);
+            uniq_cols.forEach(function(col) {
+                    var anchor = document.createElement('a');
+                    // var canvas = document.createElement('canvas')
+                    // canvas.width = '20';
+                    // canvas.height = '20';
+
+                    anchor.innerHTML = function (obj) {
+                        output = 0;
+                        for (var pie in obj)
+                            output += obj[pie];
+                        return output;
+                    } (row_obj.errors[col]);
+
+                    if (anchor.innerHTML != 0) {
+                        switch(pievar) {
+                        case 'stepname':
+                            anchor.href = 'listpage?errorcode=' + row.id + '&sitename=' + col;
+                            break;
+                        case 'errorcode':
+                            anchor.href = 'listpage?workflow=' + row.id + '&sitename=' + col;
+                            break;
+                        default:
+                            anchor.href = 'listpage?workflow=' + row.id + '&errorcode=' + col;
+                        }
+                        anchor.target = 'blank';
+                    }
+                    else
+                        anchor.innerHTML = '';
+
+                    var td = row.appendChild(document.createElement('td'));
+                    td.align = 'center';
+                    td.appendChild(anchor); //.appendChild(canvas);
+
+                });
+        }
+    }
 }

@@ -43,6 +43,8 @@ actions:
   key: testkey
 # These are the parameters for connecting to the mongodb instance that holds actions
   database: test_workflowwebtools
+# Optional URI connection string
+#  uri: mongodb://user:password@host[:port]/database?ssl=true
 cluster:
   n_clusters: 2
   n_init: 30
