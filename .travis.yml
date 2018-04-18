@@ -5,10 +5,10 @@ sudo: required
 dist: trusty
 services:
   - mongodb
-addons:
-  apt:
-    sources: debian-sid
-    packages: shellcheck
+#addons:
+#  apt:
+#    sources: debian-sid
+#    packages: shellcheck
 env: CHECKDOC=true TMPDIR=$PWD/tmp
 install:
   - test -d $TMPDIR/workflowinfo || mkdir -p $TMPDIR/workflowinfo
