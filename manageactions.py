@@ -7,6 +7,7 @@
 
 import time
 import datetime
+import ssl
 
 import cherrypy
 import pymongo
@@ -272,7 +273,7 @@ def get_actions_collection():
     config_dict = serverconfig.config_dict()['actions']
     uri = config_dict.get('uri')
     if uri:
-        client = pymongo.MongoClient(uri)
+        client = pymongo.MongoClient(uri, ssl_cert_reqs=ssl.CERT_NONE)
     else:
         client = pymongo.MongoClient()
 

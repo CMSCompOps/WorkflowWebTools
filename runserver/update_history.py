@@ -46,6 +46,9 @@ def main(*args):
     if not curs.fetchone():
         errorutils.create_table(curs)
 
+    if not args:
+        args = [serverconfig.all_errors_path()]
+
     for arg in args:
         print "Adding " + arg
         errorutils.add_to_database(curs, arg)
