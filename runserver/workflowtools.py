@@ -555,11 +555,11 @@ class WorkflowTools(object):
         if info:
             prepids = [prepid] if prepid else info.prepidinfos.keys()
             workflows = [workflow] if workflow else \
-                [wf for pid in prepids for wf in info.prepidinfos[pid].get_workflows()
-                 if wf in info.workflowinfos]
+                [wf for pid in prepids for wf in info.prepidinfos[pid].get_workflows()]
 
             for wkf in workflows:
-                info.workflowinfos[wkf].reset()
+                info.get_workflow(wkf).get_errors()
+                info.get_workflow(wkf).reset()
 
             if not workflow:
                 for pid in prepids:
