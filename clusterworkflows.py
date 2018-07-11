@@ -45,7 +45,7 @@ can be some separation for the number of errors in a workflow
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
-import sqlite3
+import threading
 
 import cherrypy
 import numpy
@@ -67,7 +67,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
     :return: a list of numpy arrays of errors for the workflow
     :rtype: list of numpy.array
     """
-    curs = globalerrors.check_session(session, can_refresh=True).curs
+    curs = globalerrors.check_session(session, can_refresh=True)
     if not allmap:
         allmap = globalerrors.check_session(session).get_allmap()
 
@@ -79,20 +79,24 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
         settings = serverconfig.get_cluster_settings()[column]
         column_output[column] = [numpy.zeros(len(allmap[column])) for _ in workflows]
 
-        curs.execute("SELECT SUM(numbererrors), {0}, stepname "
-                     "FROM workflows "
-                     "GROUP BY stepname, {0} "
-                     "ORDER BY {0} ASC, stepname ASC;".format(column))
+        curs.db_lock.acquire()
+        curs.curs.execute("SELECT SUM(numbererrors), {0}, stepname "
+                          "FROM workflows "
+                          "GROUP BY stepname, {0} "
+                          "ORDER BY {0} ASC, stepname ASC;".format(column))
 
-        numerrors, colval, stepname = curs.fetchone() or (0, '', '//')
+        numerrors, colval, stepname = curs.curs.fetchone() or (0, '', '')
         wfname = stepname.split('/')[1]
 
         for icol, value in enumerate(allmap[column]):
             for iwkf, workflow in enumerate(workflows):
                 while colval == value and workflow == wfname:
                     column_output[column][iwkf][icol] += numerrors
-                    numerrors, colval, stepname = curs.fetchone() or (0, '', '//')
-                    wfname = stepname.split('/')[1]
+                    numerrors, colval, stepname = curs.curs.fetchone() or (0, '', '')
+                    if stepname:
+                        wfname = stepname.split('/')[1]
+
+        curs.db_lock.release()
 
         # Preprocessing here
         for output in column_output[column]:
@@ -128,7 +132,7 @@ def get_clusterer(history_path, errors_path=''):
 
     # If the path to additional errors is given, add that to the clustering data.
     if errors_path:
-        errorutils.add_to_database(globalerrors.check_session(fake_session).curs, errors_path)
+        errorutils.add_to_database(globalerrors.check_session(fake_session), errors_path)
         globalerrors.check_session(fake_session).set_all_lists()
 
     # Get the data by getting table for each workflow
@@ -160,8 +164,8 @@ def get_workflow_groups(clusterer, session=None):
                            historic data and the allmap to generate it.
                            This matches the output of :func:`get_clusterer`.
     :param cherrypy.Session session: Stores the information for a session
-    :returns: Lists of workflows grouped together
-    :rtype: List of sets
+    :returns: A dictionary pointing workflows to a group
+    :rtype: dict
     """
 
     errorinfo = globalerrors.check_session(session, can_refresh=True)
@@ -178,20 +182,8 @@ def get_workflow_groups(clusterer, session=None):
 
     cherrypy.log(str(predictions))
 
-    conn = sqlite3.connect(':memory:', check_same_thread=False)
-    curs = conn.cursor()
-
-    curs.execute(
-        'CREATE TABLE groups (workflow varchar(255), cluster int)')
-
     for index, workflow in enumerate(workflows):
-        curs.execute('INSERT INTO groups VALUES (\'{0}\',{1})'.\
-                         format(workflow, predictions[index]))
-
-    errorinfo.clusters = {
-        'conn': conn,
-        'curs': curs
-        }
+        errorinfo.clusters[workflow] = predictions[index]
 
     return errorinfo.clusters
 
@@ -206,22 +198,22 @@ def get_clustered_group(workflow, clusterer, session=None):
     :returns: List of other workflows in the same group
     :rtype: set
     """
+
     output = []
 
-    curs = get_workflow_groups(clusterer, session)['curs']
+    predictions = get_workflow_groups(clusterer, session)
 
-    curs.execute('SELECT cluster, ROWID FROM groups WHERE workflow=?',
-                 (workflow,))
-
-    group = curs.fetchall()
+    group = predictions.get(workflow)
 
     if group:
-        curs.execute('SELECT workflow FROM groups WHERE cluster=? AND ROWID!=?',
-                     (group[0][0], group[0][1]))
-
-        workflows = curs.fetchall()
-
-        for wkf in workflows:
-            output.append(wkf[0])
+        for wkf, cluster in predictions.iteritems():
+            if cluster == group and wkf != workflow:
+                output.append(wkf)
 
     return output
+
+
+CLUSTER_LOCK = threading.Lock()
+"""
+Lock that should be acquired before running clustering functions in here
+"""

@@ -30,13 +30,12 @@ def open_location(data_location):
     :returns: information in the JSON file
     :rtype: dict
     """
+    raw = None
+    indict = {}
+
     if os.path.isfile(data_location):
         with open(data_location, 'r') as input_file:
-            output = json.load(input_file)
-
-        return output
-
-    indict = {}
+            raw = json.load(input_file)
 
     if validators.url(data_location):
         components = urlparse.urlparse(data_location)
@@ -51,14 +50,14 @@ def open_location(data_location):
                        cookie_key=cookie_stuff.get('cookie_key'))
 
 
-        for workflow, statuses in raw.iteritems():
-            if True in ['manual' in status for status in statuses]:
-                base = workflowinfo.WorkflowInfo(workflow)
-                prep_id = base.get_prep_id()
-                for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
-                    indict.update(
-                        workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
-                        )
+    for workflow, statuses in raw.iteritems():
+        if True in ['manual' in status for status in statuses]:
+            base = workflowinfo.WorkflowInfo(workflow)
+            prep_id = base.get_prep_id()
+            for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
+                indict.update(
+                    workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
+                    )
 
     return indict
 
@@ -126,7 +125,7 @@ def add_to_database(curs, data_location):
                 full_key = '_'.join([stepname, sitename, errorcode])
                 if not curs.execute(
                         'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
-                        (full_key,)).fetchone()[0]:
+                        (full_key,))[0][0]:
                     number_added += 1
                     curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
                                  (full_key, stepname, errorcode,
