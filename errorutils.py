@@ -15,10 +15,10 @@ import urlparse
 import validators
 import cherrypy
 
-from CMSToolBox import workflowinfo
 from CMSToolBox import sitereadiness
 from CMSToolBox.webtools import get_json
 
+from . import workflowinfo
 from . import serverconfig
 
 def open_location(data_location):
@@ -30,15 +30,14 @@ def open_location(data_location):
     :returns: information in the JSON file
     :rtype: dict
     """
-    if os.path.isfile(data_location):
-        with open(data_location, 'r') as input_file:
-            output = json.load(input_file)
-
-        return output
-
+    raw = None
     indict = {}
 
-    if validators.url(data_location):
+    if os.path.isfile(data_location):
+        with open(data_location, 'r') as input_file:
+            raw = json.load(input_file)
+
+    elif validators.url(data_location):
         components = urlparse.urlparse(data_location)
 
         # Anything we need for the Shibboleth cookie could be in the config file
@@ -50,15 +49,21 @@ def open_location(data_location):
                        cookie_pem=cookie_stuff.get('cookie_pem'),
                        cookie_key=cookie_stuff.get('cookie_key'))
 
+    if raw is None:
+        return raw
 
-        for workflow, statuses in raw.iteritems():
-            if True in ['manual' in status for status in statuses]:
-                base = workflowinfo.WorkflowInfo(workflow)
-                prep_id = base.get_prep_id()
-                for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
-                    indict.update(
-                        workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
-                        )
+    keys = raw.keys()
+    if not (keys and isinstance(raw[keys[0]], list)):
+        return raw
+
+    for workflow, statuses in raw.iteritems():
+        if True in ['manual' in status for status in statuses]:
+            base = workflowinfo.WorkflowInfo(workflow)
+            prep_id = base.get_prep_id()
+            for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
+                indict.update(
+                    workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
+                    )
 
     return indict
 
@@ -66,7 +71,7 @@ def open_location(data_location):
 def get_list_info(status_list):
     """
     Get the list of workflows that match the statuses listed
-    via :py:mod:`CMSToolBox.workflowinfo`.
+    via :py:mod:`workflowinfo`.
 
     :param list status_list: The list of workflow statuses to get the info for
     :returns: The workflow info dictionary, which matches the format of
@@ -124,9 +129,9 @@ def add_to_database(curs, data_location):
                     continue
 
                 full_key = '_'.join([stepname, sitename, errorcode])
-                if not curs.execute(
+                if not list(curs.execute(
                         'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
-                        (full_key,)).fetchone()[0]:
+                        (full_key,)))[0][0]:
                     number_added += 1
                     curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
                                  (full_key, stepname, errorcode,

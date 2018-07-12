@@ -307,6 +307,12 @@ Global Errors
 
 .. _clustering-ref:
 
+Workflow Info
+~~~~~~~~~~~~~
+
+.. automodule:: WorkflowWebTools.workflowinfo
+   :members:
+
 Workflow Clustering
 ~~~~~~~~~~~~~~~~~~~
 

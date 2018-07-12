@@ -240,11 +240,15 @@ class WorkflowTools(object):
                 globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
             raise cherrypy.HTTPRedirect('/globalerror')
 
+        clusterworkflows.CLUSTER_LOCK.acquire()
+
         if issuggested:
             similar_wfs = []
         else:
             similar_wfs = clusterworkflows.\
                 get_clustered_group(workflow, self.clusterer, cherrypy.session)
+
+        clusterworkflows.CLUSTER_LOCK.release()
 
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
@@ -645,6 +649,9 @@ if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
         })
 
 if __name__ == '__main__':
+
+    with open('pid', 'w') as pid_file:
+        pid_file.write(str(os.getpid()))
 
     CONF['/submitaction'] = {
         'tools.auth_basic.on': True,
