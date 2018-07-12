@@ -102,8 +102,7 @@ def add_to_database(curs, data_location):
     :type data_location: str or list
     """
 
-    if not isinstance(data_location, list):
-        cherrypy.log('About to add data from %s' % data_location)
+    cherrypy.log('About to add data from %s' % data_location)
 
     indict = get_list_info(data_location) \
         if isinstance(data_location, list) else \
@@ -125,18 +124,16 @@ def add_to_database(curs, data_location):
             for sitename, numbererrors in sitenames.items():
                 numbererrors = numbererrors or int(errorcode == '-1')
 
-                if not numbererrors:
-                    continue
-
-                full_key = '_'.join([stepname, sitename, errorcode])
-                if not list(curs.execute(
-                        'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
-                        (full_key,)))[0][0]:
-                    number_added += 1
-                    curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
-                                 (full_key, stepname, errorcode,
-                                  sitename, numbererrors,
-                                  sitereadiness.site_readiness(sitename)))
+                if numbererrors:
+                    full_key = '_'.join([stepname, sitename, errorcode])
+                    if not list(curs.execute(
+                            'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
+                            (full_key,)))[0][0]:
+                        number_added += 1
+                        curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
+                                     (full_key, stepname, errorcode,
+                                      sitename, numbererrors,
+                                      sitereadiness.site_readiness(sitename)))
 
     # This is to prevent the ErrorInfo objects from locking the database
     if 'conn' in dir(curs):
