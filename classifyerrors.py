@@ -95,10 +95,9 @@ def get_max_errorcode(workflow, session=None):
     num_errors = []
 
     for errorcode in allerrors:
-        curs.execute("SELECT SUM(numbererrors) FROM workflows WHERE "
-                     "stepname LIKE '/{0}/%' AND errorcode={1}".\
-                         format(workflow, errorcode))
-        output = curs.fetchall()
+        output = curs.execute("SELECT SUM(numbererrors) FROM workflows WHERE "
+                              "stepname LIKE '/{0}/%' AND errorcode={1}".\
+                                  format(workflow, errorcode))
 
         num_errors.append(output[0])
 

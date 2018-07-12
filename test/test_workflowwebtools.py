@@ -6,6 +6,9 @@ import shutil
 import os
 import sys
 
+import CMSToolBox.webtools
+CMSToolBox.webtools.get_json = lambda *a, **k: {}
+
 import WorkflowWebTools.serverconfig as sc
 sc.LOCATION = os.path.dirname(os.path.realpath(__file__))
 

@@ -8,6 +8,9 @@ import os
 import time
 import unittest
 
+import CMSToolBox.webtools
+CMSToolBox.webtools.get_json = lambda *a, **k: {}
+
 from WorkflowWebTools import serverconfig
 serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
