@@ -138,6 +138,10 @@ def add_to_database(curs, data_location):
                                   sitename, numbererrors,
                                   sitereadiness.site_readiness(sitename)))
 
+    # This is to prevent the ErrorInfo objects from locking the database
+    if 'conn' in dir(curs):
+        curs.conn.commit()
+
     cherrypy.log('Number of points added to the database: %i' % number_added)
 
 
