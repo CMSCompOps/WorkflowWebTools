@@ -16,6 +16,7 @@ from functools import wraps
 from CMSToolBox.webtools import get_json
 from CMSToolBox.sitereadiness import site_list
 
+from . import serverconfig
 
 def cached_json(attribute, timeout=None):
     """
@@ -45,6 +46,8 @@ def cached_json(attribute, timeout=None):
             :returns: Output of the originally decorated function
             :rtype: dict
             """
+            tmout = timeout or serverconfig.config_dict()['CacheRefresh'].get(attribute)
+
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
 
@@ -53,7 +56,7 @@ def cached_json(attribute, timeout=None):
             if check_var is None:
                 file_name = self.cache_filename(attribute)
                 if os.path.exists(file_name) and \
-                        (timeout is None or time.time() - timeout < os.stat(file_name).st_mtime):
+                        (tmout is None or time.time() - tmout < os.stat(file_name).st_mtime):
                     try:
                         with open(file_name, 'r') as cache_file:
                             check_var = json.load(cache_file)
@@ -253,7 +256,7 @@ class WorkflowInfo(Info):
         return None
 
 
-    @cached_json('errors', timeout=3600 * 24 * 2)
+    @cached_json('errors')
     def get_errors(self, get_unreported=False):
         """
         A wrapper for :py:func:`errors_for_workflow` if you happen to have

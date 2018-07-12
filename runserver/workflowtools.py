@@ -650,6 +650,9 @@ if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
 
 if __name__ == '__main__':
 
+    with open('pid', 'w') as pid:
+        pid.write(str(os.getpid()))
+
     CONF['/submitaction'] = {
         'tools.auth_basic.on': True,
         'tools.auth_basic.realm': 'localhost',

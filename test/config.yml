@@ -56,3 +56,5 @@ cluster:
     distance: 2.0
     width: 0.4
     midpoint: 50
+cache_refresh:
+  errors: 345600
