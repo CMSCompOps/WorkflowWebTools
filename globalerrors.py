@@ -16,8 +16,8 @@ from collections import defaultdict
 import cherrypy
 
 from CMSToolBox import sitereadiness
-from CMSToolBox import workflowinfo
 
+from . import workflowinfo
 from . import errorutils
 from . import serverconfig
 from .reasonsmanip import reasons_list
@@ -223,7 +223,7 @@ class ErrorInfo(object):
 
         :param str workflow: The prep ID for a workflow
         :returns: Cached WorkflowInfo from the ToolBox.
-        :rtype: CMSToolBox.workflowinfo.WorkflowInfo
+        :rtype: WorkflowWebTools.workflowinfo.WorkflowInfo
         """
         if not self.workflowinfos.get(workflow):
             self.workflowinfos[workflow] = workflowinfo.WorkflowInfo(workflow)
@@ -234,7 +234,7 @@ class ErrorInfo(object):
         """
         :param str prep_id: The name of the Prep ID to check cache for
         :returns: Either cached PrepIDInfo, or a new one
-        :rtype: CMSToolBox.workflowinfo.PrepIDInfo
+        :rtype: WorkflowWebTools.workflowinfo.PrepIDInfo
         """
         if not self.prepidinfos.get(prep_id):
             self.prepidinfos[prep_id] = workflowinfo.PrepIDInfo(prep_id)

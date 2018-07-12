@@ -15,10 +15,10 @@ import urlparse
 import validators
 import cherrypy
 
-from CMSToolBox import workflowinfo
 from CMSToolBox import sitereadiness
 from CMSToolBox.webtools import get_json
 
+from . import workflowinfo
 from . import serverconfig
 
 def open_location(data_location):
@@ -71,7 +71,7 @@ def open_location(data_location):
 def get_list_info(status_list):
     """
     Get the list of workflows that match the statuses listed
-    via :py:mod:`CMSToolBox.workflowinfo`.
+    via :py:mod:`workflowinfo`.
 
     :param list status_list: The list of workflow statuses to get the info for
     :returns: The workflow info dictionary, which matches the format of
