@@ -86,7 +86,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
                           "ORDER BY {0} ASC, stepname ASC;".format(column))
 
         numerrors, colval, stepname = curs.curs.fetchone() or (0, '', '')
-        wfname = stepname.split('/')[1]
+        wfname = stepname.split('/')[1] if stepname else ''
 
         for icol, value in enumerate(allmap[column]):
             for iwkf, workflow in enumerate(workflows):
@@ -205,7 +205,7 @@ def get_clustered_group(workflow, clusterer, session=None):
 
     group = predictions.get(workflow)
 
-    if group:
+    if group is not None:
         for wkf, cluster in predictions.iteritems():
             if cluster == group and wkf != workflow:
                 output.append(wkf)

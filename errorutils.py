@@ -37,7 +37,7 @@ def open_location(data_location):
         with open(data_location, 'r') as input_file:
             raw = json.load(input_file)
 
-    if validators.url(data_location):
+    elif validators.url(data_location):
         components = urlparse.urlparse(data_location)
 
         # Anything we need for the Shibboleth cookie could be in the config file
@@ -49,6 +49,12 @@ def open_location(data_location):
                        cookie_pem=cookie_stuff.get('cookie_pem'),
                        cookie_key=cookie_stuff.get('cookie_key'))
 
+    if raw is None:
+        return raw
+
+    keys = raw.keys()
+    if not (keys and isinstance(raw[keys[0]], list)):
+        return raw
 
     for workflow, statuses in raw.iteritems():
         if True in ['manual' in status for status in statuses]:
@@ -123,9 +129,9 @@ def add_to_database(curs, data_location):
                     continue
 
                 full_key = '_'.join([stepname, sitename, errorcode])
-                if not curs.execute(
+                if not list(curs.execute(
                         'SELECT EXISTS(SELECT 1 FROM workflows WHERE fullkey=? LIMIT 1)',
-                        (full_key,))[0][0]:
+                        (full_key,)))[0][0]:
                     number_added += 1
                     curs.execute('INSERT INTO workflows VALUES (?,?,?,?,?,?)',
                                  (full_key, stepname, errorcode,
