@@ -46,7 +46,7 @@ def cached_json(attribute, timeout=None):
             :returns: Output of the originally decorated function
             :rtype: dict
             """
-            tmout = timeout or serverconfig.config_dict()['CacheRefresh'].get(attribute)
+            tmout = timeout or serverconfig.config_dict()['cache_refresh'].get(attribute)
 
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
