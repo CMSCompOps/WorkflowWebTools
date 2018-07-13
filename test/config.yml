@@ -20,34 +20,53 @@
 # See :mod:`WorkflowWebTools.clusterworkflows` for more details on the clustering parameters.
 ##!
 webmaster:
-  name: Daniel Abercrombie
-  email: dabercro@mit.edu
+  name: Daniel Abercrombie  # Will show up in certain emails
+  email: dabercro@mit.edu   # cc'd on those emails
 host:
-  name: 127.0.0.1
-  port: 8080
+  name: 127.0.0.1           # Where we are hosting the service
+  port: 8080                # Which port the service shows up
 data:
+  # All of the errors to cluster with and link to actions
+  # Use runserver/update_history.py to keep this up to date
   workflow_history: test/history.db
+  # The location of where to get the workflows with errors      
+  # See errorutils module for how this file is read:
+  # http://cms-comp-ops-tools.readthedocs.io/en/latest/workflowwebtools.html#module-WorkflowWebTools.errorutils
   all_errors: test/errors.json
+  # Not actually used anymore. Should probably be removed soon
   explain_errors: test/explained.json
-# These are just here to show the proper location within the configuration
+  # Used to locate certificates for cern-get-sso-cookie
+  # See CMSToolBox.webtools.get_cookie_header for details:
+  # http://cms-comp-ops-tools.readthedocs.io/en/latest/toolbox.html#CMSToolBox.webtools.get_cookie_header
 #  cookie_file: optional
 #  cookie_pem: optional
 #  cookie_key: optional
+# These are emails that are allowed be used to sign up for the service
 valid_emails:
+  # Either domains must match
   domains:
     - cern.ch
+#    - fnal.gov    # Maybe good to add these guys too
+  # Or we have explicit emails to whitelist, if people prefer
   whitelist:
     - dabercro@mit.edu
 actions:
+  # Used to highlight workflows that have been acted on in this many days
   submithistory: 2
+  # The key that must match when reported with report_action.py
   key: testkey
-# These are the parameters for connecting to the mongodb instance that holds actions
+  # These are the parameters for connecting to the mongodb instance that holds actions
   database: test_workflowwebtools
-# Optional URI connection string
+  # Optional URI connection string
 #  uri: mongodb://user:password@host[:port]/database?ssl=true
 cluster:
+  # Clustering parameters for k-means
+  # See WorkflowWebTools.clusterworkflows.get_clusterer :
+  # http://cms-comp-ops-tools.readthedocs.io/en/latest/_modules/WorkflowWebTools/clusterworkflows.html#get_clusterer
   n_clusters: 2
   n_init: 30
+  # Explanation attempted here:
+  # http://cms-comp-ops-tools.readthedocs.io/en/latest/workflowwebtools.html#module-WorkflowWebTools.clusterworkflows
   sitename:
     distance: 1.0
     width: 0.2
@@ -56,5 +75,7 @@ cluster:
     distance: 2.0
     width: 0.4
     midpoint: 50
+# Refresh cached jsons in WorkflowWebTools.workflowinfo jsons
+# This is maximum age in seconds
 cache_refresh:
   errors: 345600
