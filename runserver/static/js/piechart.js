@@ -29,19 +29,10 @@ function prepareRows() {
             if (pievar != 'stepname')
                 sub_rows = true;
 
-            var bg_type = '';
-            if (obj.is_wf) {
-                if (acted_workflows.indexOf(row_name) >= 0)
-                    bg_type = 'done';
-                else
-                    bg_type = 'todo';
-            } else if (hiddenstuff) {
-                bg_type = 'step';
-                row_name = row_name.split('/').slice(2).join('/');
-                sub_rows = false;
-            }
-
             if (hiddenstuff) {
+		if (!obj.is_wf)
+		    sub_rows = false;
+
                 var this_row_level = hiddenstuff[0] + 1;
                 row_obj.className = 'child_of_' + hiddenstuff[0] + '_' + hiddenstuff[1];
             } else {
@@ -56,7 +47,7 @@ function prepareRows() {
                 row_obj.style = 'display: none;';
 
             var header = row_obj.appendChild(document.createElement('th'));
-            header.className = bg_type;
+            header.className = obj.bg;
 
             if (sub_rows) {
                 header.onclick = function () {

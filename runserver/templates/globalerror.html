@@ -1,9 +1,35 @@
 <!DOCTYPE html>
 <html>
-  <%!
-     import json
-     table_data = []
-     %>
+<%!
+import json
+table_data = []
+%>
+<%
+def errors_row(row_name, row, is_wf, hiddenstuff=None):
+    bg = ''
+    if is_wf:
+        if row_name in acted_workflows:
+            bg = 'done'
+        else:
+            bg = 'todo'
+    elif hiddenstuff:
+        bg = 'step'
+        row_name = '/'.join(row_name.split('/')[2:])
+
+    table_data.append({'name': row_name,
+                       'row': {'total': row['total'],
+                               'errors': row['errors']},
+                       'is_wf': is_wf,
+                       'hid': hiddenstuff,
+                       'bg': bg})
+
+for row_name, row in sorted(errors.items()):
+    errors_row(row_name, row, False)
+    for row_name_1, row_1 in sorted(row.get('sub', {}).items(), key=lambda x: x[1]['timestamp']):
+        errors_row(row_name_1, row_1, True, [0, row_name])
+        for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
+            errors_row(row_name_2, row_2, False, [1, row_name_1])
+%>
   <head>
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
@@ -12,7 +38,6 @@
     <script type="text/javascript" src="static/js/piechart.js"></script>
     <script>
       var pievar = "${pievar}";
-      var acted_workflows = ${json.dumps(acted_workflows)};
       % if pievar != 'sitename':
       var ready = {
       % for icol, col in enumerate(columns):
@@ -27,20 +52,6 @@
     <table id="errortable" border="3" style="border-collapse: collapse;">
     </table>
 
-    <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
-    <%
-       table_data.append({'name': row_name, 'row': row, 'is_wf': is_wf, 'hid': hiddenstuff})
-       %>
-    </%def>
-    % for row_name, row in sorted(errors.items()):
-       ${errors_row(row_name, row, False)}
-       % for row_name_1, row_1 in sorted(row.get('sub', {}).items(), key=lambda x: x[1]['timestamp']):
-         ${errors_row(row_name_1, row_1, True, (0, row_name))}
-         % for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
-           ${errors_row(row_name_2, row_2, False, (1, row_name_1))}
-         % endfor
-       % endfor
-    % endfor
     <span id="table-data" style="display:none;">
     ${json.dumps(table_data)}
     </span>
