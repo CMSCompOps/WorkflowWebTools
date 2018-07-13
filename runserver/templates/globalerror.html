@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html>
+  <%!
+     import json
+     table_data = []
+     %>
   <head>
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
@@ -8,6 +12,7 @@
     <script type="text/javascript" src="static/js/piechart.js"></script>
     <script>
       var pievar = "${pievar}";
+      var acted_workflows = ${json.dumps(acted_workflows)};
       % if pievar != 'sitename':
       var ready = {
       % for icol, col in enumerate(columns):
@@ -17,10 +22,6 @@
       % endif
     </script>
   </head>
-  <%!
-     import json
-     table_data = []
-     %>
 
   <body onload="pieProduction()">
     <table id="errortable" border="3" style="border-collapse: collapse;">
@@ -28,7 +29,7 @@
 
     <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
     <%
-       table_data.append({'row_name': row_name, 'row': row, 'is_wf': is_wf, 'hiddenstuff': hiddenstuff})
+       table_data.append({'name': row_name, 'row': row, 'is_wf': is_wf, 'hid': hiddenstuff})
        %>
     </%def>
     % for row_name, row in sorted(errors.items()):

@@ -17,77 +17,89 @@ var colors = ["#ff0000", "#00ff00", "#0000ff", "#00ffff", "#ff00ff", "#ffff00",
 function prepareRows() {
 
     var data = JSON.parse(document.getElementById('table-data').innerHTML);
+    var table = document.getElementById("errortable");
 
-    var sub_rows = false;
-           if pievar != 'stepname':
-               sub_rows = True
+    data.forEach(function (obj) {
+            var row_name = obj.name;
+            var hiddenstuff = obj.hid;
 
-           bg_type = ''
-           if is_wf:
-               if row_name in acted_workflows:
-                   bg_type = 'done'
-               else:
-                   bg_type = 'todo'
-           elif hiddenstuff:
-               bg_type = 'step'
-               row_name = '/'.join(row_name.split('/')[2:])
-               sub_rows = False
+            var row_obj = table.insertRow();
 
-           if hiddenstuff:
-               this_row_level = hiddenstuff[0] + 1
-               row_class = 'child_of_%i_%s' % hiddenstuff
-           else:
-               this_row_level = 0
-               row_class = ''
-        %>
-      % if row_class and row_name:
-      <tr class="${row_class}" style="display:none;" id="${row_name}">
-      % elif row_name:
-      <tr id="${row_name}">
-      % else:
-      <tr style="display:none;">
-      % endif
-          % if sub_rows:
-        <th class="${bg_type}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
-          <table>
-            <tr>
-              <td>
-                <%
-                   info_type = 'workflow' if this_row_level else 'prepid'
-                %>
-                <a href="/resetcache?${info_type}=${row_name}" id="${row_name}_reset">Reset</a>
-                <script>
-                  $('#${row_name}_reset').click(function(event){event.stopPropagation();});
-                </script>
-              </td>
-              <th>
-                <span id="${row_name}_span">&#x25B6;</span>
-              </th>
-              <th>
-          % else:
-        <th class="${bg_type}">
-          % endif
-          % if is_wf:
-          <a href="/seeworkflow/?workflow=${row_name}" id="${row_name}_a">
-            ${row_name}
-          </a>
-          <script>
-            $('#${row_name}_a').click(function(event){event.stopPropagation();});
-          </script>
-          % else:
-            ${row_name}
-          % endif
-          % if sub_rows:
-              </th>
-            </tr>
-          </table>
-          % endif
-        </th>
-        <td align="center">
-          ${row['total']}
-          <span style="display: none;">{"total": ${row['total']}, "errors": ${decoder(row['errors'])}}</span>
-        </td>
-      </tr>
+            var sub_rows = false;
+            if (pievar != 'stepname')
+                sub_rows = true;
+
+            var bg_type = '';
+            if (obj.is_wf) {
+                if (acted_workflows.indexOf(row_name) >= 0)
+                    bg_type = 'done';
+                else
+                    bg_type = 'todo';
+            } else if (hiddenstuff) {
+                bg_type = 'step';
+                row_name = row_name.split('/').slice(2).join('/');
+                sub_rows = false;
+            }
+
+            if (hiddenstuff) {
+                var this_row_level = hiddenstuff[0] + 1;
+                row_obj.className = 'child_of_' + hiddenstuff[0] + '_' + hiddenstuff[1];
+            } else {
+                this_row_level = 0;
+                row_class = '';
+            }
+
+            if (row_name)
+                row_obj.id = row_name;
+
+            if (!row_name || row_obj.classList.length)
+                row_obj.style = 'display: none;';
+
+            var header = row_obj.appendChild(document.createElement('th'));
+            header.className = bg_type;
+
+            if (sub_rows) {
+                header.onclick = function () {
+                    expand_children(this_row_level, row_name, false);
+                };
+
+                var tab_row = header.
+                    appendChild(document.createElement('table')).
+                    appendChild(document.createElement('tr'));
+
+                var info_type = this_row_level ? 'workflow' : 'prepid';
+
+                var reset_button = tab_row.
+                    appendChild(document.createElement('td')).
+                    appendChild(document.createElement('a'));
+
+                reset_button.href = '/resetcache?' + info_type + '=' + row_name;
+                reset_button.innerHTML = 'Reset';
+                reset_button.onclick = function (event) {
+                    event.stopPropagation();
+                };
+
+                tab_row.appendChild(document.createElement('th')).innerHTML =
+                    '<span id="' + row_name + '_span">&#x25B6;</span>';
+                header = tab_row.appendChild(document.createElement('th'));
+            }
+
+            if (obj.is_wf) {
+                var ahref = header.appendChild(document.createElement('a'));
+                ahref.href = '/seeworkflow/?workflow=' + row_name;
+                ahref.innerHTML = row_name;
+                ahref.onclick = function (event) {
+                    event.stopPropagation();
+                };
+            } else
+                header.innerHTML = row_name;
+
+            var data = row_obj.appendChild(document.createElement('td'));
+            var row = obj.row;
+            data.align = 'center';
+            data.innerHTML = row['total'] +
+                '<span style="display: none;">' + JSON.stringify(row) + '</span>';
+        });
 
 }
 
