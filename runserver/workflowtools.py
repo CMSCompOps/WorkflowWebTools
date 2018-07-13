@@ -16,6 +16,7 @@ import sys
 import json
 import time
 import datetime
+import threading
 import sqlite3
 
 import cherrypy
@@ -47,6 +48,8 @@ GET_TEMPLATE = TemplateLookup(directories=[TEMPLATES_DIR],
 
 class WorkflowTools(object):
     """This class holds all of the exposed methods for the Workflow Webpage"""
+
+    RESET_LOCK = threading.Lock()
 
     def __init__(self):
         """Initializes the service by creating clusters, if running webpage"""
@@ -232,13 +235,20 @@ class WorkflowTools(object):
                                 has been linked from another workflow page
         :returns: the error tables page for a given workflow
         :rtype: str
-        :raises: cherrypy.HTTPRedirect to :ref:`global-view-ref` if a workflow
-                 is not selected.
+        :raises: 404 if a workflow doesn't seem to be in assistance anymore
+                 Resets personal cache in the meanwhile, just in case
         """
 
         if workflow not in \
                 globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
-            raise cherrypy.HTTPRedirect('/globalerror')
+            WorkflowTools.RESET_LOCK.acquire()
+            info = globalerrors.check_session(cherrypy.session)
+            if info:
+                info.teardown()
+                info.setup()
+            WorkflowTools.RESET_LOCK.release()
+
+            raise cherrypy.HTTPError(404)
 
         clusterworkflows.CLUSTER_LOCK.acquire()
 
@@ -552,6 +562,8 @@ class WorkflowTools(object):
         :rtype: str
         """
 
+        WorkflowTools.RESET_LOCK.acquire()
+
         cherrypy.log('Cache reset by: %s' % cherrypy.request.login)
         info = globalerrors.check_session(cherrypy.session)
 
@@ -571,6 +583,8 @@ class WorkflowTools(object):
 
             info.teardown()
             info.setup()
+
+        WorkflowTools.RESET_LOCK.release()
 
         return GET_TEMPLATE('complete.html').render()
 
