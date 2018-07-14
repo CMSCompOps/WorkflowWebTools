@@ -2,6 +2,9 @@
 <html>
 <%!
 import json
+import zlib
+import base64
+
 table_data = []
 %>
 <%
@@ -34,6 +37,7 @@ for row_name, row in sorted(errors.items()):
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
+    <script type="text/javascript" src="static/js/pako_inflate.min.js"></script>
     <script type="text/javascript" src="static/js/expandtable.js"></script>
     <script type="text/javascript" src="static/js/piechart.js"></script>
     <script>
@@ -52,9 +56,7 @@ for row_name, row in sorted(errors.items()):
     <table id="errortable" border="3" style="border-collapse: collapse;">
     </table>
 
-    <span id="table-data" style="display:none;">
-    ${json.dumps(table_data)}
-    </span>
+    <span id="table-data" style="display:none;">${base64.b64encode(zlib.compress(json.dumps(table_data)))}</span>
 
   <a href="/resetcache">Reset Cache</a> (refresh page after coming back here)
 

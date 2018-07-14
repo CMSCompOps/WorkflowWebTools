@@ -16,7 +16,18 @@ var colors = ["#ff0000", "#00ff00", "#0000ff", "#00ffff", "#ff00ff", "#ffff00",
 
 function prepareRows() {
 
-    var data = JSON.parse(document.getElementById('table-data').innerHTML);
+    // Send JSON information compressed, and uncompress it here!
+
+    // https://stackoverflow.com/a/22675078/5941270
+    // Decode base64 (convert ascii to binary)
+    var strData     = atob(document.getElementById('table-data').innerHTML);
+    // Convert binary string to character-number array
+    var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
+    // Turn number array into byte-array
+    var binData     = new Uint8Array(charData);
+
+    var data = JSON.parse(pako.inflate(binData, {to: 'string'}));
+
     var table = document.getElementById("errortable");
 
     data.forEach(function (obj) {
