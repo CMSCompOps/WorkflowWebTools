@@ -5,9 +5,12 @@ import json
 import zlib
 import base64
 
-table_data = []
+def my_dump(data):
+   return base64.b64encode(zlib.compress(json.dumps(data)))
 %>
 <%
+table_data = []
+
 def errors_row(row_name, row, is_wf, hiddenstuff=None):
     bg = ''
     if is_wf:
@@ -56,7 +59,7 @@ for row_name, row in sorted(errors.items()):
     <table id="errortable" border="3" style="border-collapse: collapse;">
     </table>
 
-    <span id="table-data" style="display:none;">${base64.b64encode(zlib.compress(json.dumps(table_data)))}</span>
+    <span id="table-data" style="display:none;">${my_dump(table_data)}</span>
 
     <div id="wait-message">
       <p>
