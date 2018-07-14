@@ -58,7 +58,16 @@ for row_name, row in sorted(errors.items()):
 
     <span id="table-data" style="display:none;">${base64.b64encode(zlib.compress(json.dumps(table_data)))}</span>
 
-  <a href="/resetcache">Reset Cache</a> (refresh page after coming back here)
+    <div id="wait-message">
+      <p>
+	Please wait while your browser builds the table.
+      </p>
+
+      <p>
+	If this takes more than a minute after this message appears, you might have an old version of this page's javascript.
+	You can refresh your browser or clear your cache to fix this. You shouldn't have to do that more than once.
+      </p>
+    </div>
 
   </body>
 </html>

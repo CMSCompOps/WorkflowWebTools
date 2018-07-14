@@ -289,4 +289,5 @@ function drawPies () {
 function pieProduction () {
     prepareRows();
     drawPies();
+    document.getElementById('wait-message').style.display = 'none';
 }
