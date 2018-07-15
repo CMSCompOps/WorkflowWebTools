@@ -1,9 +1,46 @@
 <!DOCTYPE html>
 <html>
+<%!
+import json
+import zlib
+import base64
+
+def my_dump(data):
+   return base64.b64encode(zlib.compress(json.dumps(data)))
+%>
+<%
+table_data = []
+
+def errors_row(row_name, row, is_wf, hiddenstuff=None):
+    bg = ''
+    if is_wf:
+        if row_name in acted_workflows:
+            bg = 'done'
+        else:
+            bg = 'todo'
+    elif hiddenstuff:
+        bg = 'step'
+        row_name = '/'.join(row_name.split('/')[2:])
+
+    table_data.append({'name': row_name,
+                       'row': {'total': row['total'],
+                               'errors': row['errors']},
+                       'is_wf': is_wf,
+                       'hid': hiddenstuff,
+                       'bg': bg})
+
+for row_name, row in sorted(errors.items()):
+    errors_row(row_name, row, False)
+    for row_name_1, row_1 in sorted(row.get('sub', {}).items(), key=lambda x: x[1]['timestamp']):
+        errors_row(row_name_1, row_1, True, [0, row_name])
+        for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
+            errors_row(row_name_2, row_2, False, [1, row_name_1])
+%>
   <head>
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
+    <script type="text/javascript" src="static/js/pako_inflate.min.js"></script>
     <script type="text/javascript" src="static/js/expandtable.js"></script>
     <script type="text/javascript" src="static/js/piechart.js"></script>
     <script>
@@ -17,93 +54,23 @@
       % endif
     </script>
   </head>
-  <body onload="drawPies()">
+
+  <body onload="pieProduction()">
     <table id="errortable" border="3" style="border-collapse: collapse;">
-      <%def name="errors_row(row_name, row, is_wf, hiddenstuff=None)">
-        <%
-           sub_rows = False
-           if pievar != 'stepname':
-               sub_rows = True
-
-           bg_type = ''
-           if is_wf:
-               if row_name in acted_workflows:
-                   bg_type = 'done'
-               else:
-                   bg_type = 'todo'
-           elif hiddenstuff:
-               bg_type = 'step'
-               row_name = '/'.join(row_name.split('/')[2:])
-               sub_rows = False
-
-           if hiddenstuff:
-               this_row_level = hiddenstuff[0] + 1
-               row_class = 'child_of_%i_%s' % hiddenstuff
-           else:
-               this_row_level = 0
-               row_class = ''
-        %>
-      % if row_class and row_name:
-      <tr class="${row_class}" style="display:none;" id="${row_name}">
-      % elif row_name:
-      <tr id="${row_name}">
-      % else:
-      <tr style="display:none;">
-      % endif
-          % if sub_rows:
-        <th class="${bg_type}" onclick="expand_children('${this_row_level}', '${row_name}', false)">
-          <table>
-            <tr>
-              <td>
-                <%
-                   info_type = 'workflow' if this_row_level else 'prepid'
-                %>
-                <a href="/resetcache?${info_type}=${row_name}" id="${row_name}_reset">Reset</a>
-                <script>
-                  $('#${row_name}_reset').click(function(event){event.stopPropagation();});
-                </script>
-              </td>
-              <th>
-                <span id="${row_name}_span">&#x25B6;</span>
-              </th>
-              <th>
-          % else:
-        <th class="${bg_type}">
-          % endif
-          % if is_wf:
-          <a href="/seeworkflow/?workflow=${row_name}" id="${row_name}_a">
-            ${row_name}
-          </a>
-          <script>
-            $('#${row_name}_a').click(function(event){event.stopPropagation();});
-          </script>
-          % else:
-            ${row_name}
-          % endif
-          % if sub_rows:
-              </th>
-            </tr>
-          </table>
-          % endif
-        </th>
-        <td align="center">
-          ${row['total']}
-          <span style="display: none;">{"total": ${row['total']}, "errors": ${decoder(row['errors'])}}</span>
-        </td>
-      </tr>
-      </%def>
-      % for row_name, row in sorted(errors.items()):
-         ${errors_row(row_name, row, False)}
-         % for row_name_1, row_1 in sorted(row.get('sub', {}).items(), key=lambda x: x[1]['timestamp']):
-           ${errors_row(row_name_1, row_1, True, (0, row_name))}
-           % for row_name_2, row_2 in sorted(row_1.get('sub', {}).items()):
-             ${errors_row(row_name_2, row_2, False, (1, row_name_1))}
-           % endfor
-         % endfor
-      % endfor
     </table>
 
-  <a href="/resetcache">Reset Cache</a> (refresh page after coming back here)
+    <span id="table-data" style="display:none;">${my_dump(table_data)}</span>
+
+    <div id="wait-message">
+      <p>
+	Please wait while your browser builds the table.
+      </p>
+
+      <p>
+	If this takes more than a minute after this message appears, you might have an old version of this page's javascript.
+	You can refresh your browser or clear your cache to fix this. You shouldn't have to do that more than once.
+      </p>
+    </div>
 
   </body>
 </html>

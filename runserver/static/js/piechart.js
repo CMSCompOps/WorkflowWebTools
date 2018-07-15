@@ -14,6 +14,98 @@ var colors = ["#ff0000", "#00ff00", "#0000ff", "#00ffff", "#ff00ff", "#ffff00",
               "#ff8000", "#ff0080", "#80ff00", "#00ff80", "#8000ff", "#0080ff",
               "#ff8080", "#80ff80", "#8080ff", "#ffff80", "#ff80ff", "#80ffff"];
 
+function prepareRows() {
+
+    // Send JSON information compressed, and uncompress it here!
+
+    // https://stackoverflow.com/a/22675078/5941270
+    // Decode base64 (convert ascii to binary)
+    var strData     = atob(document.getElementById('table-data').innerHTML);
+    // Convert binary string to character-number array
+    var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
+    // Turn number array into byte-array
+    var binData     = new Uint8Array(charData);
+
+    var data = JSON.parse(pako.inflate(binData, {to: 'string'}));
+
+    var table = document.getElementById("errortable");
+
+    data.forEach(function (obj) {
+            var row_name = obj.name;
+            var hiddenstuff = obj.hid;
+
+            var row_obj = table.insertRow();
+
+            var sub_rows = false;
+            if (pievar != 'stepname')
+                sub_rows = true;
+
+            if (hiddenstuff) {
+		if (!obj.is_wf)
+		    sub_rows = false;
+
+                var this_row_level = hiddenstuff[0] + 1;
+                row_obj.className = 'child_of_' + hiddenstuff[0] + '_' + hiddenstuff[1];
+            } else {
+                this_row_level = 0;
+                row_class = '';
+            }
+
+            if (row_name)
+                row_obj.id = row_name;
+
+            if (!row_name || row_obj.classList.length)
+                row_obj.style = 'display: none;';
+
+            var header = row_obj.appendChild(document.createElement('th'));
+            header.className = obj.bg;
+
+            if (sub_rows) {
+                header.onclick = function () {
+                    expand_children(this_row_level, row_name, false);
+                };
+
+                var tab_row = header.
+                    appendChild(document.createElement('table')).
+                    appendChild(document.createElement('tr'));
+
+                var info_type = this_row_level ? 'workflow' : 'prepid';
+
+                var reset_button = tab_row.
+                    appendChild(document.createElement('td')).
+                    appendChild(document.createElement('a'));
+
+                reset_button.href = '/resetcache?' + info_type + '=' + row_name;
+                reset_button.innerHTML = 'Reset';
+                reset_button.onclick = function (event) {
+                    event.stopPropagation();
+                };
+
+                tab_row.appendChild(document.createElement('th')).innerHTML =
+                    '<span id="' + row_name + '_span">&#x25B6;</span>';
+                header = tab_row.appendChild(document.createElement('th'));
+            }
+
+            if (obj.is_wf) {
+                var ahref = header.appendChild(document.createElement('a'));
+                ahref.href = '/seeworkflow/?workflow=' + row_name;
+                ahref.innerHTML = row_name;
+                ahref.onclick = function (event) {
+                    event.stopPropagation();
+                };
+            } else
+                header.innerHTML = row_name;
+
+            var data = row_obj.appendChild(document.createElement('td'));
+            var row = obj.row;
+            data.align = 'center';
+            data.innerHTML = row['total'] +
+                '<span style="display: none;">' + JSON.stringify(row) + '</span>';
+        });
+
+}
+
+
 function drawPies () {
     /*"""
     .. function:: drawPies()
@@ -192,4 +284,10 @@ function drawPies () {
             }
         });
 
+}
+
+function pieProduction () {
+    prepareRows();
+    drawPies();
+    document.getElementById('wait-message').style.display = 'none';
 }
