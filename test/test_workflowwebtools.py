@@ -75,6 +75,16 @@ class TestGlobalError(unittest.TestCase):
         self.assertEqual(info.get_step_list('test2'), ['/test2/a/1'])
         self.assertFalse(info.get_step_list('test3'))
 
+    def test_reset(self):
+        info = ge.ErrorInfo(self.testdat)
+        # Let's load the new one
+        info.data_location = self.testdat.replace('.json', '2.json')
+        self.assertFalse(info.get_step_list('test3'))
+        info.teardown()
+        info.setup()
+        self.assertEqual(info.get_step_list('test3'), ['/test3/test/2'])
+        self.assertFalse(info.get_step_list('test1'))
+
 
 class TestClusteringAndReasons(unittest.TestCase):
 
