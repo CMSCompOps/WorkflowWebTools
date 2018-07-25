@@ -47,6 +47,10 @@ class ErrorInfo(object):
         self.workflowinfos = {}
         # These are set in get_prepid()
         self.prepidinfos = {}
+        # Filled by _get_step_tables
+        self._step_tables = None
+        # Filled by get_step_list
+        self._step_list = None
 
         self.setup()
 
@@ -172,6 +176,9 @@ class ErrorInfo(object):
 
     def teardown(self):
         """Close the database when cache expires"""
+        self._step_tables = None
+        self._step_list = None
+
         self.conn.close()
         self.connection_log('closed')
 
@@ -249,18 +256,57 @@ class ErrorInfo(object):
         :rtype: list
         """
 
-        steplist = list(     # Make a list of all the steps so we can sort them
-            set(
-                [stepgets[0] for stepgets in self.execute(
-                    "SELECT stepname FROM workflows WHERE stepname LIKE '/{0}/%'".format(workflow)
-                    )
-                ]
-                )
-            )
+        if self._step_list is None:
+            self._step_list = defaultdict(list)
+            self.db_lock.acquire()
+            self.curs.execute('SELECT stepname FROM workflows ORDER BY stepname')
+            for tup in self.curs.fetchall():
+                stepname = tup[0]
+                self._step_list[stepname.split('/')[1]].append(stepname)
+            self.db_lock.release()
 
-        steplist.sort()
+        return self._step_list[workflow]
 
-        return steplist
+    def _get_step_tables(self):
+        """Sets the internal step tables for fast fetching"""
+
+        # The keys are stepname, then sitereadiness
+        self._step_tables = defaultdict(lambda: defaultdict(list))
+
+        for step, ready, errors, site, code in self.execute(
+                """
+                SELECT stepname, sitereadiness, numbererrors, sitename, errorcode FROM workflows
+                ORDER BY errorcode ASC, sitename ASC
+                """):
+            # Append everything to 'all' to keep the order
+            self._step_tables[step]['all'].append((errors, site, code))
+            # Order is not as important when we are getting sparse for different readiness
+            self._step_tables[step][ready].append((errors, site, code))
+
+    def get_step_table(self, step, readymatch=None):
+        """
+        Get the sparse representation of the step table.
+        Fetches from an internal dictionary, so faster than database access
+
+        :param str step: The step name for the table
+        :param list readymatch: The list of site readiness statuses to match
+        :returns: The list used to build the step table.
+                  Each element of the list is a tuple of
+                  ``(number of errors, site name, exit code)``
+        :rtype: list of tuples
+        """
+
+        if self._step_tables is None:
+            cherrypy.log('Setting up step tables')
+            self._get_step_tables()
+
+        keys = readymatch or ['all']
+
+        output = []
+        for key in keys:
+            output.extend(self._step_tables[step][key])
+
+        return output
 
 
 GLOBAL_INFO = None
@@ -377,19 +423,11 @@ def get_step_table(step, session=None, allmap=None, readymatch=None,
     :returns: A table (made of lists) of errors for the step or a sparse dictionary of entries
     :rtype: list of lists or dict of dicts of ints
     """
-    curs = check_session(session)
+    info = check_session(session)
     if not allmap:
-        allmap = check_session(session).get_allmap()
+        allmap = info.get_allmap()
 
-    query = 'SELECT numbererrors, sitename, errorcode FROM workflows ' \
-        'WHERE stepname=?'
-    params = (step,)
-    if readymatch:
-        query += ' AND ({0})'.format(' OR '.join(['sitereadiness=?']*len(readymatch)))
-        params += readymatch
-
-    query += ' ORDER BY errorcode ASC, sitename ASC'
-    contents = curs.execute(query, params)
+    contents = info.get_step_table(step, readymatch)
 
     if sparse:
         output = defaultdict(lambda: defaultdict(lambda: 0))

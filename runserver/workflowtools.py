@@ -34,6 +34,7 @@ from WorkflowWebTools import listpage
 from WorkflowWebTools import globalerrors
 from WorkflowWebTools import clusterworkflows
 from WorkflowWebTools import classifyerrors
+from WorkflowWebTools import actionshistorylink
 
 from CMSToolBox import sitereadiness
 
@@ -305,6 +306,17 @@ class WorkflowTools(object):
 
         manageactions.fix_sites(**kwargs)
         return self.getaction(1)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def actionshistory(self):
+        """
+        This API gives the sparse matrix that can be used for training.
+
+        :returns: History of actions on workflows
+        :rtype: JSON
+        """
+        return actionshistorylink.dump_json()
 
     @cherrypy.expose
     def submitaction(self, workflows='', action='', **kwargs):
