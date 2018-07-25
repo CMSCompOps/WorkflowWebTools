@@ -49,6 +49,8 @@ class ErrorInfo(object):
         self.prepidinfos = {}
         # Filled by _get_step_tables
         self._step_tables = None
+        # Filled by get_step_list
+        self._step_list = None
 
         self.setup()
 
@@ -175,6 +177,8 @@ class ErrorInfo(object):
     def teardown(self):
         """Close the database when cache expires"""
         self._step_tables = None
+        self._step_list = None
+
         self.conn.close()
         self.connection_log('closed')
 
@@ -252,18 +256,16 @@ class ErrorInfo(object):
         :rtype: list
         """
 
-        steplist = list(     # Make a list of all the steps so we can sort them
-            set(
-                [stepgets[0] for stepgets in self.execute(
-                    "SELECT stepname FROM workflows WHERE stepname LIKE '/{0}/%'".format(workflow)
-                    )
-                ]
-                )
-            )
+        if self._step_list is None:
+            self._step_list = defaultdict(list)
+            self.db_lock.acquire()
+            self.curs.execute('SELECT stepname FROM workflows ORDER BY stepname')
+            for tup in self.curs.fetchall():
+                stepname = tup[0]
+                self._step_list[stepname.split('/')[1]].append(stepname)
+            self.db_lock.release()
 
-        steplist.sort()
-
-        return steplist
+        return self._step_list[workflow]
 
     def _get_step_tables(self):
         """Sets the internal step tables for fast fetching"""
@@ -272,10 +274,10 @@ class ErrorInfo(object):
         self._step_tables = defaultdict(lambda: defaultdict(list))
 
         for step, ready, errors, site, code in self.execute(
-              """
-              SELECT stepname, sitereadiness, numbererrors, sitename, errorcode FROM workflows
-              ORDER BY errorcode ASC, sitename ASC
-              """):
+                """
+                SELECT stepname, sitereadiness, numbererrors, sitename, errorcode FROM workflows
+                ORDER BY errorcode ASC, sitename ASC
+                """):
             # Append everything to 'all' to keep the order
             self._step_tables[step]['all'].append((errors, site, code))
             # Order is not as important when we are getting sparse for different readiness
@@ -295,6 +297,7 @@ class ErrorInfo(object):
         """
 
         if self._step_tables is None:
+            cherrypy.log('Setting up step tables')
             self._get_step_tables()
 
         keys = readymatch or ['all']
