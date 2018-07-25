@@ -25,6 +25,10 @@ from CMSToolBox.workflowinfo import WorkflowInfo
 
 class TestGlobalError(unittest.TestCase):
 
+    testdat = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'testdat.json')
+
     dictionary = {
         '/test1/a/1': {
             'errors': {
@@ -63,6 +67,13 @@ class TestGlobalError(unittest.TestCase):
         self.assertEqual(check_this['test1']['errors'], {'row1': {'col1': 2, 'col2': 1}, 'row2': {'col2': 1, 'col3': 2}})
         self.assertEqual(check_this['test2']['errors'], {'row2': {'col1': 1}})
         self.assertEqual(check_this['test1']['sub']['/test1/a/1'], self.dictionary['/test1/a/1'])
+
+    def test_steplist(self):
+        info = ge.ErrorInfo(self.testdat)
+
+        self.assertEqual(info.get_step_list('test1'), ['/test1/a/1', '/test1/a/2'])
+        self.assertEqual(info.get_step_list('test2'), ['/test2/a/1'])
+        self.assertFalse(info.get_step_list('test3'))
 
 
 class TestClusteringAndReasons(unittest.TestCase):
