@@ -259,7 +259,7 @@ class ErrorInfo(object):
         if self._step_list is None:
             self._step_list = defaultdict(list)
             self.db_lock.acquire()
-            self.curs.execute('SELECT stepname FROM workflows ORDER BY stepname')
+            self.curs.execute('SELECT DISTINCT(stepname) FROM workflows ORDER BY stepname')
             for tup in self.curs.fetchall():
                 stepname = tup[0]
                 self._step_list[stepname.split('/')[1]].append(stepname)
