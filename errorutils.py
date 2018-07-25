@@ -102,8 +102,6 @@ def add_to_database(curs, data_location):
     :type data_location: str or list
     """
 
-    cherrypy.log('About to add data from %s' % data_location)
-
     indict = get_list_info(data_location) \
         if isinstance(data_location, list) else \
         (open_location(data_location) or {})
