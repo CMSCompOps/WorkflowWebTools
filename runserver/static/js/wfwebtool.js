@@ -30,7 +30,7 @@ var wfwebtool = {
                         head.style['font-weight'] = 'bold';
                         head.innerHTML = 'AdditionalParameters:';
                         info.appendChild(document.createElement('br'));
-                        info.appendChild(document.createTextNode(error.params));
+                        info.appendChild(document.createElement('span')).innerHTML = error.params;
                     }
                 }
             });
