@@ -36,41 +36,45 @@ var wfwebtool = {
             });
     },
 
-    writeSimilar: function (acted_wfs) {
+    writeSimilar: function (similar) {
+	if (!similar.length)
+	    return;
+
         var url = new URL(location.toString());
         var wf = url.searchParams.get('workflow');
 
         var wftoggle = $("#multiwfs");
 
         // This should be called from the seeworkflow page, which has this parameter
-        $.ajax({url: '/similarwfs',
-                data: {workflow: wf},
-                success: function (data) {
-                    if (data.length) {
-                        var button = document.getElementById("showmulti");
-                        button.style.display = '';
-                        var wfdiv = document.getElementById("wflist");
+        $.post({url: '/actedwfs',
+		data: JSON.stringify({filtered: similar}),
+		dataType: 'json',
+		contentType: 'application/json',
+		processData: false,
+		success: function (acted_wfs) {
+		    var button = document.getElementById("showmulti");
+		    button.style.display = '';
+		    var wfdiv = document.getElementById("wflist");
 
-                        data.forEach(function (wf) {
-                                // Create an input box
-                                var input = wfdiv.appendChild(document.createElement('input'));
-                                input.type = 'checkbox';
-                                input.name = 'workflows';
-                                input.value = wf;
+		    similar.forEach(function (wf) {
+			    // Create an input box
+			    var input = wfdiv.appendChild(document.createElement('input'));
+			    input.type = 'checkbox';
+			    input.name = 'workflows';
+			    input.value = wf;
 
-                                // Add a link after it
-                                var wflink = wfdiv.appendChild(document.createElement('a'));
-                                wflink.innerHTML = wf;
-                                wflink.target = 'blank';
-                                wflink.href = '?workflow=' + wf + '&issuggested=1';
-                                wflink.className = acted_wfs.indexOf(wf) >= 0 ? 'acted' : 'notacted';
+			    // Add a link after it
+			    var wflink = wfdiv.appendChild(document.createElement('a'));
+			    wflink.innerHTML = wf;
+			    wflink.target = 'blank';
+			    wflink.href = '?workflow=' + wf + '&issuggested=1';
+			    wflink.className = acted_wfs.indexOf(wf) >= 0 ? 'acted' : 'notacted';
 
-                                // New line
-                                wfdiv.appendChild(document.createElement('br'));
-                            });
+			    // New line
+			    wfdiv.appendChild(document.createElement('br'));
+			});
 
-                        button.onclick = wftoggle.toggle;
-                    }
+		    button.onclick = wftoggle.toggle;
                 }
             });
     },
@@ -81,10 +85,12 @@ var wfwebtool = {
         if (url.searchParams.get('issuggested'))
             return;
 
+        var wf = url.searchParams.get('workflow');
+
         $.ajax({
             // First we need to get the acted workflows
-            url: '/actedwfs',
-            // Then we fill the list of multiple workflows
+	    url: '/similarwfs',
+            data: {workflow: wf},            // Then we fill the list of multiple workflows
             success: this.writeSimilar
         })
     },

@@ -334,14 +334,27 @@ class WorkflowTools(object):
 
 
     @cherrypy.expose
+    @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def actedwfs(self):
         """
+        Takes a list of workflows to filter on as POST data.
+        This list must be under the key ``"filtered"``.
+
         :returns: A list of workflows recently acted on
         :type: JSON
         """
-        return manageactions.get_acted_workflows(
+
+        filtered = cherrypy.request.json
+
+        output = manageactions.get_acted_workflows(
             serverconfig.get_history_length())
+
+        if isinstance(filtered.get('filtered'), list):
+            filterset = set(filtered['filtered'])
+            output = [wf for wf in output if wf in filterset]
+
+        return output
 
 
     @cherrypy.expose
