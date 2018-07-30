@@ -47,11 +47,12 @@
     </script>
     <script src="/static/js/addreason.js"></script>
     <script src="/static/js/makeparams.js"></script>
+    <script src="/static/js/wfwebtool.js"></script>
     <style type="text/css">
       td { text-align: center; }
     </style>
   </head>
-  <body>
+  <body onload="wfwebtool.workflowTable()">
     <%
        sendtotop = '<p><a href="#top">To top</a></p>'
     %>
@@ -70,26 +71,16 @@
 
     <hr>
 
-    <div style="float:left; width:50%">
+    <div style="float:left; width:50%" id="errorinfo">
 
       <span style="font-weight:bold;">Dominant Error Code:</span>
-      <a href="/explainerror?errorcode=${mainerror}&workflowstep=/${workflow}">${mainerror}</a>
+      <span id="maxerror">Loading...</span>
       <br>
       <span style="font-weight:bold;">Types Of Errors:</span> <br>
-      % if classification[0]:
-      ${classification[0]}
-      % else:
-      Not Reported
-      % endif
+      <span id="errortypes">Loading...</span>
       <br>
       <span style="font-weight:bold;">Recommended Action:</span> <br>
-      ${classification[1]}
-
-      % if classification[2]:
-      <br>
-      <span style="font-weight:bold;">Additional Parameters:</span> <br>
-      ${classification[2]}
-      % endif
+      <span id="errorrecommend">Loading...</span>
 
     </div>
 
@@ -160,39 +151,30 @@
           
           <div id="actionparams"></div>
 
-          % if len(similar_wfs) != 0:
-            <button id="showmulti" type="button">Apply to multiple?</button> <br>
-            <div id="multiwfs" style="display:none;">
-              <!-- 
+          <button id="showmulti" type="button" style="display:none;">Apply to multiple?</button> <br>
+          <div id="multiwfs" style="display:none;">
+            <!-- 
 
-               This is something we want to add, but we don't have the information yet!!!
-               This way, we can look at groups based on filters if the clustering doesn't look that good.
+             This is something we want to add, but we don't have the information yet!!!
+             This way, we can look at groups based on filters if the clustering doesn't look that good.
 
-              <button id="addfilter" type="button" onClick"addFilter()">Add Manual Filter</button> <br>
-              <div id="filter" style="display:none;">
-                <input type="text" name="wffilter">
-                <select name="wffiltertype">
-                  <option value="none">Filter Type</option>
-                  <option value="campaign">Campaign</option>
-                  <option value="type">Type of Workflow</option>
-                  <option value="whitelise">Site Whitelist</option>
-                  <option value="agent">Agent</option>
-                  <option value="wfname">Workflow Name</option>
-                </select> <br>
-                <button type="button">Apply filter</button> <br>
-              </div>
-              -->
-
-              <div id="wflist">
-                % for wf in similar_wfs:
-                <%
-                   acted_class = 'acted' if (wf in acted_workflows) else 'notacted'
-                %>
-                <input type="checkbox" name="workflows" value="${wf}"><a class="${acted_class}" target="blank" href="?workflow=${wf}&issuggested=1">${wf}</a> <br>
-                % endfor
-              </div>
+            <button id="addfilter" type="button" onClick"addFilter()">Add Manual Filter</button> <br>
+            <div id="filter" style="display:none;">
+              <input type="text" name="wffilter">
+              <select name="wffiltertype">
+                <option value="none">Filter Type</option>
+                <option value="campaign">Campaign</option>
+                <option value="type">Type of Workflow</option>
+                <option value="whitelise">Site Whitelist</option>
+                <option value="agent">Agent</option>
+                <option value="wfname">Workflow Name</option>
+              </select> <br>
+              <button type="button">Apply filter</button> <br>
             </div>
-          % endif
+            -->
+
+            <div id="wflist"></div>
+          </div>
 
           <button id="addreason" type="button" onClick="addReason('reasons');">Add Reason</button> <br>
           <div id="reasons"></div>

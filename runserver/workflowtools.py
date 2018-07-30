@@ -251,23 +251,7 @@ class WorkflowTools(object):
 
             raise cherrypy.HTTPError(404)
 
-        clusterworkflows.CLUSTER_LOCK.acquire()
-
-        if issuggested:
-            similar_wfs = []
-        else:
-            similar_wfs = clusterworkflows.\
-                get_clustered_group(workflow, self.clusterer, cherrypy.session)
-
-        clusterworkflows.CLUSTER_LOCK.release()
-
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
-
-        max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-        main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
-
-        print max_error
-        print main_error_class
 
         workflowinfo = globalerrors.check_session(cherrypy.session).get_workflow(workflow)
 
@@ -278,17 +262,87 @@ class WorkflowTools(object):
             render(workflowdata=workflowdata,
                    workflow=workflow,
                    issuggested=issuggested,
-                   similar_wfs=similar_wfs,
                    workflowinfo=workflowinfo,
                    params=workflowinfo.get_workflow_parameters(),
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
-                   mainerror=max_error,
-                   acted_workflows=manageactions.get_acted_workflows(
-                       serverconfig.get_history_length()),
-                   classification=main_error_class,
                    drain_statuses=drain_statuses,
                    last_submitted=manageactions.get_datetime_submitted(workflow)
                   )
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def drainstatuses(self):
+        """
+        :returns: An object (dictionary) of drain statuses of sites
+        :rtype: JSON
+        """
+        return {sitename: drain for sitename, _, drain in \
+                    sitereadiness.i_site_readiness()}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def similarwfs(self, workflow):
+        """
+        Gives back a list of workflows that are clustered with the queried workflow.
+        This is just an array of strings.
+
+        :param str workflow: The workflow to find the group.
+        :returns: List of similar workflows.
+                  If the quey is not a valid workflow in the system, an empty list is returned
+        :rtype: JSON
+        """
+        if workflow not in \
+                globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
+            return []
+
+        clusterworkflows.CLUSTER_LOCK.acquire()
+
+        similar_wfs = clusterworkflows.\
+            get_clustered_group(workflow, self.clusterer, cherrypy.session)
+
+        clusterworkflows.CLUSTER_LOCK.release()
+
+        return sorted(list(similar_wfs))
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def classifyerror(self, workflow):
+        """
+        :returns: An object full of informaton about the workflow errors.
+                  The keys are the following:
+
+                    - ``maxerror`` -- The error code that occurred most frequently for the workflow
+                    - ``types`` -- Types of errors and exit codes
+                    - ``recommended`` -- Recommended actions
+                    - ``params`` -- Additional parameters to do actions
+
+        :rtype: JSON
+        """
+
+        max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
+        main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
+
+        return {
+            'maxerror': max_error,
+            'types': main_error_class[0],
+            'recommended': main_error_class[1],
+            'params': main_error_class[2]
+            }
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def actedwfs(self):
+        """
+        :returns: A list of workflows recently acted on
+        :type: JSON
+        """
+        return manageactions.get_acted_workflows(
+            serverconfig.get_history_length())
+
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
