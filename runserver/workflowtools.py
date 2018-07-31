@@ -272,12 +272,13 @@ class WorkflowTools(object):
     def wkfparams(self, workflow):
         """
         Get the workflow parameters
-        :param str workflow: 
+        :param str workflow: The workflow that we need parameters for
         :returns: Parameters for this workflow
         :rtype: JSON
         """
 
-        return globalerrors.check_session(cherrypy.session).get_workflow(workflow).get_workflow_parameters()
+        return globalerrors.check_session(cherrypy.session).\
+            get_workflow(workflow).get_workflow_parameters()
 
 
     @cherrypy.expose
@@ -314,8 +315,10 @@ class WorkflowTools(object):
 
         clusterworkflows.CLUSTER_LOCK.release()
 
-        acted = [wf for wf in manageactions.get_acted_workflows(
-                serverconfig.get_history_length()) if wf in similar_wfs]
+        acted = [
+            wf for wf in manageactions.get_acted_workflows(
+                serverconfig.get_history_length()) if wf in similar_wfs
+        ]
 
         return {'similar': sorted(list(similar_wfs)),
                 'acted': acted}
