@@ -2,9 +2,12 @@ var wfwebtool = function () {
     // This function deterimines which page is open
     // and what function to run
     // to fill it properly
-    {
+
+    var functions = {
         '/seeworkflow' : this.workflowTable
-    } [this.url.pathname] ();
+    };
+
+    functions[this.url.pathname] ();
 }
 
 wfwebtool.url = new URL(location.toString());
