@@ -253,8 +253,6 @@ class WorkflowTools(object):
 
         workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
-        workflowinfo = globalerrors.check_session(cherrypy.session).get_workflow(workflow)
-
         drain_statuses = {sitename: drain for sitename, _, drain in \
                               sitereadiness.i_site_readiness()}
 
@@ -262,12 +260,24 @@ class WorkflowTools(object):
             render(workflowdata=workflowdata,
                    workflow=workflow,
                    issuggested=issuggested,
-                   workflowinfo=workflowinfo,
-                   params=workflowinfo.get_workflow_parameters(),
+                   workflowinfo=globalerrors.check_session(cherrypy.session).get_workflow(workflow),
                    readiness=globalerrors.check_session(cherrypy.session).readiness,
                    drain_statuses=drain_statuses,
                    last_submitted=manageactions.get_datetime_submitted(workflow)
                   )
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def wkfparams(self, workflow):
+        """
+        Get the workflow parameters
+        :param str workflow: 
+        :returns: Parameters for this workflow
+        :rtype: JSON
+        """
+
+        return globalerrors.check_session(cherrypy.session).get_workflow(workflow).get_workflow_parameters()
 
 
     @cherrypy.expose
@@ -304,7 +314,11 @@ class WorkflowTools(object):
 
         clusterworkflows.CLUSTER_LOCK.release()
 
-        return sorted(list(similar_wfs))
+        acted = [wf for wf in manageactions.get_acted_workflows(
+                serverconfig.get_history_length()) if wf in similar_wfs]
+
+        return {'similar': sorted(list(similar_wfs)),
+                'acted': acted}
 
 
     @cherrypy.expose
@@ -314,10 +328,10 @@ class WorkflowTools(object):
         :returns: An object full of informaton about the workflow errors.
                   The keys are the following:
 
-                    - ``maxerror`` -- The error code that occurred most frequently for the workflow
-                    - ``types`` -- Types of errors and exit codes
-                    - ``recommended`` -- Recommended actions
-                    - ``params`` -- Additional parameters to do actions
+                  - ``maxerror`` -- The error code that occurred most frequently for the workflow
+                  - ``types`` -- Types of errors and exit codes
+                  - ``recommended`` -- Recommended actions
+                  - ``params`` -- Additional parameters to do actions
 
         :rtype: JSON
         """
@@ -331,30 +345,6 @@ class WorkflowTools(object):
             'recommended': main_error_class[1],
             'params': main_error_class[2]
             }
-
-
-    @cherrypy.expose
-    @cherrypy.tools.json_in()
-    @cherrypy.tools.json_out()
-    def actedwfs(self):
-        """
-        Takes a list of workflows to filter on as POST data.
-        This list must be under the key ``"filtered"``.
-
-        :returns: A list of workflows recently acted on
-        :type: JSON
-        """
-
-        filtered = cherrypy.request.json
-
-        output = manageactions.get_acted_workflows(
-            serverconfig.get_history_length())
-
-        if isinstance(filtered.get('filtered'), list):
-            filterset = set(filtered['filtered'])
-            output = [wf for wf in output if wf in filterset]
-
-        return output
 
 
     @cherrypy.expose

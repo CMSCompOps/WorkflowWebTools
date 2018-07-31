@@ -1,11 +1,43 @@
 var wfwebtool = {
 
+    writeParams: function () {
+        var url = new URL(location.toString());
+        var wf = url.searchParams.get('workflow');
+
+        $.ajax({url: '/wkfparams',
+                data: {workflow: wf},
+                success: function (params) {
+		    var toWrite = document.getElementById('wkfparams');
+		    if (params.RequestType) {
+			toWrite.innerHTML = 
+			    'Request Type: ' + params.RequestType + '<br>' +
+			    'Sub-Request Type: ' + params.SubRequestType + '<br>' +
+			    'Memory: ' + params.Memory + '<br>' +
+			    'Estimated Number of Jobs: ' + (params.TotalEstimatedJobs || '?');
+			if (params.RequestType == 'Resubmission')
+			    $('#optclone').remove();
+
+			$('a').each(function () {
+				var newUrl = $(this).attr('href').replace("PREPID", params.PrepID);
+				$(this).attr('href', newUrl);
+			    });
+
+		    } else {
+			toWrite.style.color = 'red';
+			toWrite.innerHTML = 'Problem retrieving info (likely an expired certificate, use link above)';
+		    }
+		}
+	    });
+    },
+
+
     describeError: function () {
         var url = new URL(location.toString());
         var wf = url.searchParams.get('workflow');
 
         $.ajax({url: '/classifyerror',
                 data: {workflow: wf},
+		timeout: 0,  // This one can be long
                 success: function (error) {
                     // Maximum error and link to report
                     document.getElementById('maxerror').innerHTML =
@@ -36,39 +68,37 @@ var wfwebtool = {
             });
     },
 
-    writeSimilar: function (similar) {
-	if (!similar.length)
-	    return;
-
+    fillSimilar: function () {
         var url = new URL(location.toString());
-        var wf = url.searchParams.get('workflow');
 
+        if (url.searchParams.get('issuggested'))
+            return;
+
+        var wf = url.searchParams.get('workflow');
         var wftoggle = $("#multiwfs");
 
-        // This should be called from the seeworkflow page, which has this parameter
-        $.post({url: '/actedwfs',
-		data: JSON.stringify({filtered: similar}),
-		dataType: 'json',
-		contentType: 'application/json',
-		processData: false,
-		success: function (acted_wfs) {
+        $.ajax({
+            // First we need to get the acted workflows
+	    url: '/similarwfs',
+            data: {workflow: wf},            // Then we fill the list of multiple workflows
+            success: function (data) {
 		    var button = document.getElementById("showmulti");
 		    button.style.display = '';
 		    var wfdiv = document.getElementById("wflist");
 
-		    similar.forEach(function (wf) {
+		    data.similar.forEach(function (simwf) {
 			    // Create an input box
 			    var input = wfdiv.appendChild(document.createElement('input'));
 			    input.type = 'checkbox';
 			    input.name = 'workflows';
-			    input.value = wf;
+			    input.value = simwf;
 
 			    // Add a link after it
 			    var wflink = wfdiv.appendChild(document.createElement('a'));
-			    wflink.innerHTML = wf;
+			    wflink.innerHTML = simwf;
 			    wflink.target = 'blank';
-			    wflink.href = '?workflow=' + wf + '&issuggested=1';
-			    wflink.className = acted_wfs.indexOf(wf) >= 0 ? 'acted' : 'notacted';
+			    wflink.href = '?workflow=' + simwf + '&issuggested=1';
+			    wflink.className = data.acted.indexOf(simwf) >= 0 ? 'acted' : 'notacted';
 
 			    // New line
 			    wfdiv.appendChild(document.createElement('br'));
@@ -79,24 +109,10 @@ var wfwebtool = {
             });
     },
 
-    fillSimilar: function () {
-        var url = new URL(location.toString());
-
-        if (url.searchParams.get('issuggested'))
-            return;
-
-        var wf = url.searchParams.get('workflow');
-
-        $.ajax({
-            // First we need to get the acted workflows
-	    url: '/similarwfs',
-            data: {workflow: wf},            // Then we fill the list of multiple workflows
-            success: this.writeSimilar
-        })
-    },
-
     workflowTable: function () {
+	// These are a bunch of separate functions to fill in the page
         this.describeError();
+	this.writeParams();
         this.fillSimilar();  
     }
 };

@@ -63,8 +63,8 @@
         <a href="/globalerror">Global Errors</a> <br>
         <a href="http://cms-unified.web.cern.ch/cms-unified/showlog/?search=${workflow}">Workflow logs</a> --
         <a href="http://cms-unified.web.cern.ch/cms-unified/showlog/?search=${workflow}&module=error">errors</a> --
-        <a href="https://its.cern.ch/jira/secure/QuickSearch.jspa?searchString=${params['PrepID']}">JIRA tickets</a> --
-        <a href="https://dmytro.web.cern.ch/dmytro/cmsprodmon/workflows.php?prep_id=${params['PrepID']}">Production Monitor</a>
+        <a href="https://its.cern.ch/jira/secure/QuickSearch.jspa?searchString=PREPID">JIRA tickets</a> --
+        <a href="https://dmytro.web.cern.ch/dmytro/cmsprodmon/workflows.php?prep_id=PREPID">Production Monitor</a>
       </center>
 
     </div>
@@ -88,17 +88,8 @@
 
       <span style="font-weight:bold;">Workflow Parameters:</span>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a>
-      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=${params['PrepID']}&detail=true" target="blank">Prep ID</a> <br>
-      % if params:
-      Request Type: ${params['RequestType']} <br>
-      % if params.get('SubRequestType'):
-      Sub-Request Type: ${params['SubRequestType']} <br>
-      % endif
-      Memory: ${params['Memory']} <br>
-      Estimated Number of Jobs: ${params.get('TotalEstimatedJobs', '?')}
-      % else:
-      <span style="color:red;">Problem retrieving info (likely an expired certificate, use link above)</span>
-      % endif
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=PREPID&detail=true" target="blank">Prep ID</a> <br>
+      <span id="wkfparams">Loading...</span>
 
     </div>
 
@@ -140,12 +131,9 @@
                  'recovery' : 'Recovery (not ACDC)',
                  'special' : 'Other action'
              }
-             if params['RequestType'] == 'Resubmission':
-                 actions.pop('clone')
-
           %>
           % for val, text in actions.iteritems():
-          <input type="radio" name="action" onclick="makeParamTable(this);" value="${val}">${text}
+          <span id="opt${val}"><input type="radio" name="action" onclick="makeParamTable(this);" value="${val}">${text}</span>
           % endfor
           <br>
           
