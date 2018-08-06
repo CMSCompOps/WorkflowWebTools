@@ -260,13 +260,25 @@ To complete all of the following steps, you need sudo access to the machine.
  #. SSH into a CERN machine.
  #. Try downloading actions from the machine::
 
-        wget -O test.json --no-check-certificate "https://vocms0113.cern.ch:80/getaction?days=30&acted=-1"
+        wget -O test.json --no-check-certificate "https://vocms0113.cern.ch/getaction?days=30&acted=-1"
 
     If the file ``test.json`` is not empty, then the service is likely still running properly.
     Go back to checking your own connection.
- #. SSH into the server.
- #. Check top for the process ``python2.7``.
-    If it is there, but the server is still not responding, kill the process.
+ #. SSH into the server from LXPLUS::
+
+        ssh vocms0113
+
+ #. Check the process ID and see if it is still running::
+
+        # This shows the PID
+        cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid
+        # This checks what processes are running with name 'python2.7'::
+        pgrep python2.7
+
+    If it is running, but the server is still definitely not responding, kill the process::
+
+        sudo kill -9 ``cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid``
+
  #. Do the following to start the process again::
 
         cd /home/dabercro/OpsSpace/WorkflowWebTools/runserver
