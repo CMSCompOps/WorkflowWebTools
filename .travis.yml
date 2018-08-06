@@ -12,5 +12,5 @@ services:
 env: CHECKDOC=true TMPDIR=$PWD/tmp
 install:
   - test -d $TMPDIR/workflowinfo || mkdir -p $TMPDIR/workflowinfo
-  - git clone https://github.com/CMSCompOps/OpsSpace.git
+  - git clone --branch v0.7 https://github.com/CMSCompOps/OpsSpace.git
 script: OpsSpace/test/package_test.sh
