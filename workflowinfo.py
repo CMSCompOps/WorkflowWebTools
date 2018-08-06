@@ -64,7 +64,8 @@ def cached_json(attribute, timeout=None):
                         print 'JSON file no good. Deleting %s. Try again later.' % file_name
                         os.remove(file_name)
 
-                else:
+                # If still None, call the wrapped function
+                if check_var is None:
                     check_var = func(self, *args, **kwargs)
                     with open(file_name, 'w') as cache_file:
                         json.dump(check_var, cache_file)
