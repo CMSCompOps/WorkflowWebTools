@@ -31,7 +31,7 @@ def classifyerror(errorcode, workflow, session=None):
               The first string is the types of errors reported with this error code.
               The second string is the recommended normal actions.
               The third string contains special parameters useful for additional actions.
-    :rtype: str, str
+    :rtype: str, str, str
     """
 
     procedure = PROCEDURES.get(errorcode, {})
