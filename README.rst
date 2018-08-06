@@ -272,12 +272,12 @@ To complete all of the following steps, you need sudo access to the machine.
 
         # This shows the PID
         cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid
-        # This checks what processes are running with name 'python2.7'::
+        # This checks what processes are running with name 'python2.7'
         pgrep python2.7
 
     If it is running, but the server is still definitely not responding, kill the process::
 
-        sudo kill -9 ``cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid``
+        sudo kill -9 $(cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid)
 
  #. Do the following to start the process again::
 
@@ -288,7 +288,7 @@ To complete all of the following steps, you need sudo access to the machine.
 
         sudo tail -f /home/dabercro/OpsSpace/WorkflowWebTools/runserver/nohup.out
 
-    (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line says something like::
+    (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line eventually says something like::
 
         ENGINE Bus STARTED
 
