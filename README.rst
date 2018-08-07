@@ -275,7 +275,14 @@ To complete all of the following steps, you need sudo access to the machine.
         # This checks what processes are running with name 'python2.7'
         pgrep python2.7
 
-    If it is running, but the server is still definitely not responding, kill the process::
+ #. The cache may be in the process of updating.
+    You can check this with the following::
+
+        ls -ltr /tmp/workflowinfo/ | tail
+
+    If those are recent (more recent than when the server stopped responding), then the cache is being rebuilt.
+
+ #. If it is running, the cache is not being rebuilt, and the server is still definitely not responding, kill the process::
 
         sudo kill -9 $(cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid)
 
@@ -291,6 +298,12 @@ To complete all of the following steps, you need sudo access to the machine.
     (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line eventually says something like::
 
         ENGINE Bus STARTED
+
+    If this is taking a long time to show up,
+    It is likely rebuilding the cache.
+    You can check this as mentioned above::
+
+        ls -ltr /tmp/workflowinfo/ | tail
 
 Maintaining the Python Backend
 ------------------------------
