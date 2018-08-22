@@ -14,7 +14,7 @@ import os
 import cherrypy
 
 from passlib.hash import bcrypt
-from CMSToolBox.emailtools import send_email
+from cmstoolbox.emailtools import send_email
 
 from . import serverconfig
 from .serverconfig import LOCATION

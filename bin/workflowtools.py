@@ -22,19 +22,19 @@ import sqlite3
 import cherrypy
 from mako.lookup import TemplateLookup
 
-from WorkflowWebTools import serverconfig
+from workflowwebtools import serverconfig
 
 if __name__ == '__main__' or 'mod_wsgi' in sys.modules.keys():
     serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
-from WorkflowWebTools import manageusers
-from WorkflowWebTools import manageactions
-from WorkflowWebTools import showlog
-from WorkflowWebTools import listpage
-from WorkflowWebTools import globalerrors
-from WorkflowWebTools import clusterworkflows
-from WorkflowWebTools import classifyerrors
-from WorkflowWebTools import actionshistorylink
+from workflowwebtools import manageusers
+from workflowwebtools import manageactions
+from workflowwebtools import showlog
+from workflowwebtools import listpage
+from workflowwebtools import globalerrors
+from workflowwebtools import clusterworkflows
+from workflowwebtools import classifyerrors
+from workflowwebtools import actionshistorylink
 
 from CMSToolBox import sitereadiness
 

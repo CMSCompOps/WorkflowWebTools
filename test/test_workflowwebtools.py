@@ -6,22 +6,22 @@ import shutil
 import os
 import sys
 
-import CMSToolBox.webtools
-CMSToolBox.webtools.get_json = lambda *a, **k: {}
+import cmstoolbox.webtools
+cmstoolbox.webtools.get_json = lambda *a, **k: {}
 
-import WorkflowWebTools.serverconfig as sc
+import workflowwebtools.serverconfig as sc
 sc.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
-import CMSToolBox._loadtestpath
+import cmstoolbox._loadtestpath
 
 import update_history as uh
-import WorkflowWebTools.reasonsmanip as rm
-import WorkflowWebTools.manageactions as ma
-import WorkflowWebTools.globalerrors as ge
+import workflowwebtools.reasonsmanip as rm
+import workflowwebtools.manageactions as ma
+import workflowwebtools.globalerrors as ge
 
-from WorkflowWebTools.paramsregression import convert_to_dense
+from workflowwebtools.paramsregression import convert_to_dense
 
-from CMSToolBox.workflowinfo import WorkflowInfo
+from workflowwebtools.workflowinfo import WorkflowInfo
 
 class TestGlobalError(unittest.TestCase):
 
@@ -157,15 +157,15 @@ class TestClusteringAndReasons(unittest.TestCase):
         ge.check_session(None).teardown()
 
     def test_updatehistory(self):
-        import WorkflowWebTools.globalerrors as ge
+        import workflowwebtools.globalerrors as ge
 
         self.assertEqual(ge.ErrorInfo(sc.all_errors_path()).info[1:],
                          ge.ErrorInfo(sc.workflow_history_path()).info[1:],
                          'Update workflow script did not create equivalent database')
 
     def test_clusterer(self):
-        import WorkflowWebTools.globalerrors as ge
-        import WorkflowWebTools.clusterworkflows as cw
+        import workflowwebtools.globalerrors as ge
+        import workflowwebtools.clusterworkflows as cw
 
         clusterer = cw.get_clusterer(sc.workflow_history_path())
 
@@ -229,14 +229,21 @@ class TestReasons(unittest.TestCase):
     ]
 
     def setUp(self):
+        if os.path.exists(os.path.join(rm.LOCATION, 'reasons.db')):
+            os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
         rm.LOCATION = os.path.join(sc.LOCATION, 'test')
         if not os.path.exists(rm.LOCATION):
             os.makedirs(rm.LOCATION)
 
+        print 'before', rm.reasons_list()
+
         rm.update_reasons(self.reasons)
 
+        print 'after', rm.reasons_list()
+
+
     def tearDown(self):
-        shutil.rmtree(rm.LOCATION)
+        os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
         rm.LOCATION = sc.LOCATION
 
     def test_reasons(self):
@@ -245,7 +252,8 @@ class TestReasons(unittest.TestCase):
         self.assertRaises(KeyError, rm.update_reasons, [{'wrong': 'key'}])
         self.assertEqual(rm.reasons_list(),
                          {reas['short']: reas['long'] for reas in self.reasons},
-                         'Reasons list return is not same as sent')
+                         'Reasons list return is not same as sent,\n\n%s\n\n%s' %
+                         (rm.reasons_list(), {reas['short']: reas['long'] for reas in self.reasons}))
 
 
 class TestActions(unittest.TestCase):
@@ -294,7 +302,7 @@ class TestActions(unittest.TestCase):
             json.dump({}, cache)
 
     def tearDown(self):
-        shutil.rmtree(rm.LOCATION)
+        os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
         rm.LOCATION = sc.LOCATION
         ma.get_actions_collection().drop()
 

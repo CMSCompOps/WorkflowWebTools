@@ -9,8 +9,8 @@ and adds the list of ACDCs to all previous actions
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
-from WorkflowWebTools import workflowinfo
-from WorkflowWebTools import manageactions
+from workflowwebtools import workflowinfo
+from workflowwebtools import manageactions
 
 if __name__ == '__main__':
 

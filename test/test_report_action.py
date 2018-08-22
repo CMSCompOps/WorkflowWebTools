@@ -8,13 +8,13 @@ import os
 import time
 import unittest
 
-import CMSToolBox.webtools
-CMSToolBox.webtools.get_json = lambda *a, **k: {}
+import cmstoolbox.webtools
+cmstoolbox.webtools.get_json = lambda *a, **k: {}
 
-from WorkflowWebTools import serverconfig
+from workflowwebtools import serverconfig
 serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
 
-from WorkflowWebTools import manageactions
+from workflowwebtools import manageactions
 
 class TestReportResponse(unittest.TestCase):
     new_workflows = ['test_workflow_1', 'test_workflow_2', 'new_test']

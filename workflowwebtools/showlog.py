@@ -5,14 +5,14 @@ Generates content for the showlog webpage
 """
 
 
-from CMSToolBox.elasticsearch import search_logs
+from cmstoolbox.elasticsearch import search_logs
 
 
 def give_logs(query, module='', limit=50):
-    """Takes output from :py:func:`CMSToolBox.elasticsearch.search_logs`
+    """Takes output from :py:func:`cmstoolbox.elasticsearch.search_logs`
     and organizes it to pass to a mako template
 
-    :param str query: The query to pass to :py:func:`CMSToolBox.elasticsearch.search_logs`
+    :param str query: The query to pass to :py:func:`cmstoolbox.elasticsearch.search_logs`
     :param str module: The module to show
     :param int limit: The max number of logs to show on a single page
     :returns: dictionary with ['logs'], which is a list of logs, and ['meta'],

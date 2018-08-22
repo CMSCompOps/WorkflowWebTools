@@ -15,8 +15,8 @@ import urlparse
 import validators
 import cherrypy
 
-from CMSToolBox import sitereadiness
-from CMSToolBox.webtools import get_json
+from cmstoolbox import sitereadiness
+from cmstoolbox.webtools import get_json
 
 from . import workflowinfo
 from . import serverconfig
