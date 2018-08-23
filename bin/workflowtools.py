@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# pylint: disable=wrong-import-position, no-self-use, invalid-name
+# pylint: disable=no-member, no-self-use, invalid-name
 
 """
 workflowtools.py
@@ -30,6 +30,7 @@ from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
+import workflowwebtools.web
 from workflowwebtools.web.templates import render
 
 from cmstoolbox import sitereadiness
@@ -179,7 +180,8 @@ class WorkflowTools(object):
 
         try:
             return template()
-        except Exception: # I don't remember what kind of exception this throws...
+        # I don't remember what kind of exception this throws...
+        except Exception: # pylint: disable=broad-except
             time.sleep(1)
             return template()
 
@@ -712,7 +714,8 @@ CONF = {
     '/': {
         'error_page.401': render('401.html'),
         'error_page.404': render('404.html'),
-        'tools.staticdir.root': os.path.abspath(os.getcwd()),
+        'tools.staticdir.root': os.path.abspath(
+            os.path.dirname(workflowwebtools.web.__file__)),
         'tools.sessions.on': True,
         'tools.sessions.secure': True,
         'tools.sessions.httponly': True,
