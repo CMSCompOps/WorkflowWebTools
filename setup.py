@@ -14,7 +14,8 @@ setuptools.setup(
     scripts=[s for s in glob.glob('bin/*') if not s.endswith('~')],
     package_data={
         'workflowwebtools': ['config.yml'],
-        'workflowwebtools.web': ['static/*',
+        'workflowwebtools.web': ['static/css/*',
+                                 'static/js/*',
                                  'templates/*']
         },
     install_requires=[
