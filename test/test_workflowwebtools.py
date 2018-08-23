@@ -10,7 +10,9 @@ import cmstoolbox.webtools
 cmstoolbox.webtools.get_json = lambda *a, **k: {}
 
 import workflowwebtools.serverconfig as sc
-sc.LOCATION = os.path.dirname(os.path.realpath(__file__))
+sc.LOCATION = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'config.yml')
 
 import cmstoolbox._loadtestpath
 

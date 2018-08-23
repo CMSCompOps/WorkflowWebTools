@@ -12,7 +12,9 @@ import cmstoolbox.webtools
 cmstoolbox.webtools.get_json = lambda *a, **k: {}
 
 from workflowwebtools import serverconfig
-serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
+serverconfig.LOCATION = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'config.yml')
 
 from workflowwebtools import manageactions
 
