@@ -13,8 +13,8 @@ import datetime
 from collections import defaultdict
 from functools import wraps
 
-from CMSToolBox.webtools import get_json
-from CMSToolBox.sitereadiness import site_list
+from cmstoolbox.webtools import get_json
+from cmstoolbox.sitereadiness import site_list
 
 from . import serverconfig
 

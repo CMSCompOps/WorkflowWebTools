@@ -76,7 +76,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
 
     for column in columns:
         # Initialize with all zeros
-        settings = serverconfig.get_cluster_settings()[column]
+        settings = serverconfig.config_dict()['cluster'][column]
         column_output[column] = [numpy.zeros(len(allmap[column])) for _ in workflows]
 
         curs.db_lock.acquire()
@@ -145,7 +145,7 @@ def get_clusterer(history_path, errors_path=''):
     cherrypy.log('Number of datapoints to cluster: %i' % len(data))
     cherrypy.log('Fitting workflows...')
 
-    settings = serverconfig.get_cluster_settings()
+    settings = serverconfig.config_dict()['cluster']
     clusterer = sklearn.cluster.KMeans(n_clusters=settings['n_clusters'],
                                        n_init=settings['n_init'],
                                        n_jobs=-1)

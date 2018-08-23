@@ -15,7 +15,7 @@ from collections import defaultdict
 
 import cherrypy
 
-from CMSToolBox import sitereadiness
+from cmstoolbox import sitereadiness
 
 from . import workflowinfo
 from . import errorutils

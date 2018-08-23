@@ -7,8 +7,9 @@ import os
 import sqlite3
 import cherrypy
 
-from WorkflowWebTools.serverconfig import LOCATION
+from .serverconfig import LOCATION
 
+LOCATION = os.path.dirname(LOCATION)
 
 DEFAULT_SHORT = '---- No Short Reason Given, Not Saved to Database! ----'
 

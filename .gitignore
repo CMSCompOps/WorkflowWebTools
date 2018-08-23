@@ -9,3 +9,6 @@ test/*/*
 runserver/data/*
 runserver/config.yml
 *.log
+test/.coverage
+workflowwebtools.egg-info/*
+dist/*

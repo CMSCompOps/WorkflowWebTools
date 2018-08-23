@@ -29,8 +29,8 @@ import os
 import sys
 import sqlite3
 
-from WorkflowWebTools import errorutils
-from WorkflowWebTools import serverconfig
+from workflowwebtools import errorutils
+from workflowwebtools import serverconfig
 
 
 def main(*args):
