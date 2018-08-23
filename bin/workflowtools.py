@@ -20,13 +20,8 @@ import threading
 import sqlite3
 
 import cherrypy
-from mako.lookup import TemplateLookup
 
 from workflowwebtools import serverconfig
-
-if __name__ == '__main__' or 'mod_wsgi' in sys.modules.keys():
-    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
-
 from workflowwebtools import manageusers
 from workflowwebtools import manageactions
 from workflowwebtools import showlog
@@ -35,16 +30,9 @@ from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
+from workflowwebtools.web.templates import render
 
-from CMSToolBox import sitereadiness
-
-TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'templates')
-
-GET_TEMPLATE = TemplateLookup(directories=[TEMPLATES_DIR],
-                              module_directory=os.path.join(TEMPLATES_DIR, 'mako_modules')
-                             ).get_template
-"""Function to get templates from the relative ``templates`` directory"""
+from cmstoolbox import sitereadiness
 
 
 class WorkflowTools(object):
@@ -63,7 +51,7 @@ class WorkflowTools(object):
         :returns: The welcome page
         :rtype: str
         """
-        return GET_TEMPLATE('welcome.html').render()
+        return render('welcome.html')
 
     @cherrypy.expose
     def cluster(self):
@@ -79,10 +67,10 @@ class WorkflowTools(object):
         :returns: a confirmation page
         :rtype: str
         """
+        data = serverconfig.config_dict()['data']
         self.clusterer = clusterworkflows.get_clusterer(
-            serverconfig.workflow_history_path(),
-            serverconfig.all_errors_path())
-        return GET_TEMPLATE('complete.html').render()
+            data['workflow_history'], data['all_errors'])
+        return render('complete.html')
 
     @cherrypy.expose
     def showlog(self, search='', module='', limit=50):
@@ -101,10 +89,11 @@ class WorkflowTools(object):
         """
         logdata = showlog.give_logs(search, module, int(limit))
         if isinstance(logdata, dict):
-            return GET_TEMPLATE('showlog.html').render(logdata=logdata,
-                                                       search=search,
-                                                       module=module,
-                                                       limit=limit)
+            return render('showlog.html',
+                          logdata=logdata,
+                          search=search,
+                          module=module,
+                          limit=limit)
 
         return logdata
 
@@ -176,16 +165,17 @@ class WorkflowTools(object):
         get_names = lambda x: [globalerrors.TITLEMAP[name]
                                for name in globalerrors.get_row_col_names(x)]
 
-        template = lambda: GET_TEMPLATE('globalerror.html').\
-            render(errors=errors,
-                   decoder=json.dumps,
-                   columns=cols,
-                   pievar=pievar,
-                   acted_workflows=manageactions.get_acted_workflows(
-                       serverconfig.get_history_length()),
-                   readiness=globalerrors.check_session(cherrypy.session).readiness,
-                   get_names=get_names
-                  )
+        template = lambda: render(
+            'globalerror.html',
+            errors=errors,
+            decoder=json.dumps,
+            columns=cols,
+            pievar=pievar,
+            acted_workflows=manageactions.get_acted_workflows(
+                int(serverconfig.config_dict()['actions']['submithistory'])),
+            readiness=globalerrors.check_session(cherrypy.session).readiness,
+            get_names=get_names
+            )
 
         try:
             return template()
@@ -256,15 +246,16 @@ class WorkflowTools(object):
         drain_statuses = {sitename: drain for sitename, _, drain in \
                               sitereadiness.i_site_readiness()}
 
-        return GET_TEMPLATE('workflowtables.html').\
-            render(workflowdata=workflowdata,
-                   workflow=workflow,
-                   issuggested=issuggested,
-                   workflowinfo=globalerrors.check_session(cherrypy.session).get_workflow(workflow),
-                   readiness=globalerrors.check_session(cherrypy.session).readiness,
-                   drain_statuses=drain_statuses,
-                   last_submitted=manageactions.get_datetime_submitted(workflow)
-                  )
+        return render(
+            'workflowtables.html',
+            workflowdata=workflowdata,
+            workflow=workflow,
+            issuggested=issuggested,
+            workflowinfo=globalerrors.check_session(cherrypy.session).get_workflow(workflow),
+            readiness=globalerrors.check_session(cherrypy.session).readiness,
+            drain_statuses=drain_statuses,
+            last_submitted=manageactions.get_datetime_submitted(workflow)
+            )
 
 
     @cherrypy.expose
@@ -317,7 +308,7 @@ class WorkflowTools(object):
 
         acted = [
             wf for wf in manageactions.get_acted_workflows(
-                serverconfig.get_history_length()) if wf in similar_wfs
+                int(serverconfig.config_dict()['actions']['submithistory'])) if wf in similar_wfs
         ]
 
         return {'similar': sorted(list(similar_wfs)),
@@ -392,10 +383,10 @@ class WorkflowTools(object):
         cherrypy.log('args: {0}'.format(kwargs))
 
         if workflows == '':
-            return GET_TEMPLATE('scolduser.html').render(workflow='')
+            return render('scolduser.html', workflow='')
 
         if action == '':
-            return GET_TEMPLATE('scolduser.html').render(workflow=workflows[0])
+            return render('scolduser.html', workflow=workflows[0])
 
         workflows, reasons, params = manageactions.\
             submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
@@ -420,13 +411,17 @@ class WorkflowTools(object):
         if blank_sites_subtask:
             drain_statuses = {sitename: drain for sitename, _, drain in \
                                   sitereadiness.i_site_readiness()}
-            return GET_TEMPLATE('picksites.html').render(tasks=blank_sites_subtask,
-                                                         statuses=drain_statuses,
-                                                         sites_to_run=sites_to_run)
+            return render('picksites.html',
+                          tasks=blank_sites_subtask,
+                          statuses=drain_statuses,
+                          sites_to_run=sites_to_run)
 
-        return GET_TEMPLATE('actionsubmitted.html').\
-            render(workflows=workflows, action=action,
-                   reasons=reasons, params=params, user=cherrypy.request.login)
+        return render('actionsubmitted.html',
+                      workflows=workflows,
+                      action=action,
+                      reasons=reasons,
+                      params=params,
+                      user=cherrypy.request.login)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -523,10 +518,10 @@ class WorkflowTools(object):
         errs_explained = globalerrors.check_session(cherrypy.session).\
             get_workflow(workflow).get_explanation(errorcode, workflowstep)
 
-        return GET_TEMPLATE('explainerror.html').\
-            render(error=errorcode,
-                   explanation=errs_explained,
-                   source=workflowstep)
+        return render('explainerror.html',
+                      error=errorcode,
+                      explanation=errs_explained,
+                      source=workflowstep)
 
     @cherrypy.expose
     def newuser(self, email='', username='', password=''):
@@ -557,13 +552,13 @@ class WorkflowTools(object):
         """
 
         if '' in [email, username, password]:
-            return GET_TEMPLATE('newuser.html').\
-                render(emails=serverconfig.get_valid_emails())
+            return render('newuser.html',
+                          emails=serverconfig.get_valid_emails())
 
         add = manageusers.add_user(email, username, password,
                                    cherrypy.url().split('/newuser')[0])
         if add == 0:
-            return GET_TEMPLATE('checkemail.html').render(email=email)
+            return render('checkemail.html', email=email)
 
         raise cherrypy.HTTPRedirect('/newuser')
 
@@ -579,7 +574,7 @@ class WorkflowTools(object):
 
         user = manageusers.confirmation(code)
         if user != '':
-            return GET_TEMPLATE('activated.html').render(user=user)
+            return render('activated.html', user=user)
         raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
@@ -604,19 +599,19 @@ class WorkflowTools(object):
         """
 
         if not(email or code or password):
-            return GET_TEMPLATE('requestreset.html').render()
+            return render('requestreset.html')
 
         elif not (code or password):
             manageusers.send_reset_email(
                 email, cherrypy.url().split('/resetpass')[0])
-            return GET_TEMPLATE('sentemail.html').render(email=email)
+            return render('sentemail.html', email=email)
 
         elif not email and code:
             if not password:
-                return GET_TEMPLATE('newpassword.html').render(code=code)
+                return render('newpassword.html', code=code)
 
             user = manageusers.resetpassword(code, password)
-            return GET_TEMPLATE('resetpassword.html').render(user=user)
+            return render('resetpassword.html', user=user)
 
         raise cherrypy.HTTPError(404)
 
@@ -658,7 +653,7 @@ class WorkflowTools(object):
 
         WorkflowTools.RESET_LOCK.release()
 
-        return GET_TEMPLATE('complete.html').render()
+        return render('complete.html')
 
     @cherrypy.expose
     def listpage(self, errorcode='', sitename='', workflow=''):
@@ -680,7 +675,8 @@ class WorkflowTools(object):
             raise cherrypy.HTTPError(404)
 
         acted = [] if workflow else \
-            manageactions.get_acted_workflows(serverconfig.get_history_length())
+            manageactions.get_acted_workflows(int(
+                serverconfig.config_dict()['actions']['submithistory']))
 
         # Retry after ProgrammingError
         try:
@@ -689,12 +685,12 @@ class WorkflowTools(object):
             time.sleep(5)
             return self.listpage(errorcode, sitename, workflow)
 
-        return GET_TEMPLATE('listworkflows.html').render(
-            workflow=workflow,
-            errorcode=errorcode,
-            sitename=sitename,
-            acted_workflows=acted,
-            info=info)
+        return render('listworkflows.html',
+                      workflow=workflow,
+                      errorcode=errorcode,
+                      sitename=sitename,
+                      acted_workflows=acted,
+                      info=info)
 
 
 def secureheaders():
@@ -705,16 +701,17 @@ def secureheaders():
     headers['X-XSS-Protection'] = '1; mode=block'
     headers['Content-Security-Policy'] = "default-src='self'"
 
+_HOST = serverconfig.config_dict()['host']
 CONF = {
     'global': {
-        'server.socket_host': serverconfig.host_name(),
-        'server.socket_port': serverconfig.host_port(),
+        'server.socket_host': _HOST['name'],
+        'server.socket_port': _HOST['port'],
         'log.access_file': 'access.log',
         'log.error_file': 'application.log'
         },
     '/': {
-        'error_page.401': GET_TEMPLATE('401.html').render,
-        'error_page.404': GET_TEMPLATE('404.html').render,
+        'error_page.401': render('401.html'),
+        'error_page.404': render('404.html'),
         'tools.staticdir.root': os.path.abspath(os.getcwd()),
         'tools.sessions.on': True,
         'tools.sessions.secure': True,
