@@ -22,7 +22,7 @@ setuptools.setup(
         'cherrypy',
         'mako',
         'numpy>=1.6.1',
-        'scipy>-0.19.1',
+        'scipy>=0.19.1',
         'sklearn',
         'passlib>=1.6',
         'bcrypt',
@@ -30,6 +30,6 @@ setuptools.setup(
         'pyyaml',
         'validators',
         'tabulate',
-        'pymongo'
+        'pymongo==3.4.0'
         ]
     )
