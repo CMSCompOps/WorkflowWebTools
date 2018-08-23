@@ -236,7 +236,7 @@ class TestReasons(unittest.TestCase):
     def setUp(self):
         if os.path.exists(os.path.join(rm.LOCATION, 'reasons.db')):
             os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
-        rm.LOCATION = os.path.join(sc.LOCATION, 'test')
+        rm.LOCATION = 'test'
         if not os.path.exists(rm.LOCATION):
             os.makedirs(rm.LOCATION)
 
@@ -248,8 +248,8 @@ class TestReasons(unittest.TestCase):
 
 
     def tearDown(self):
-        os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
-        rm.LOCATION = sc.LOCATION
+        os.remove(os.path.join('test', 'reasons.db'))
+        rm.LOCATION = os.path.dirname(sc.LOCATION)
 
     def test_reasons(self):
 
@@ -292,7 +292,7 @@ class TestActions(unittest.TestCase):
         return output
 
     def setUp(self):
-        rm.LOCATION = os.path.join(sc.LOCATION, 'test')
+        rm.LOCATION = 'test'
         if not os.path.exists(rm.LOCATION):
             os.makedirs(rm.LOCATION)
 
@@ -311,7 +311,7 @@ class TestActions(unittest.TestCase):
 
     def tearDown(self):
         os.remove(os.path.join(rm.LOCATION, 'reasons.db'))
-        rm.LOCATION = sc.LOCATION
+        rm.LOCATION = os.path.dirname(sc.LOCATION)
         ma.get_actions_collection().drop()
 
         file_name = WorkflowInfo(self.request_base['workflows']).cache_filename('workflow_params')

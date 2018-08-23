@@ -173,7 +173,7 @@ class WorkflowTools(object):
             columns=cols,
             pievar=pievar,
             acted_workflows=manageactions.get_acted_workflows(
-                int(serverconfig.config_dict()['actions']['submithistory'])),
+                serverconfig.get_history_length()),
             readiness=globalerrors.check_session(cherrypy.session).readiness,
             get_names=get_names
             )
@@ -310,7 +310,7 @@ class WorkflowTools(object):
 
         acted = [
             wf for wf in manageactions.get_acted_workflows(
-                int(serverconfig.config_dict()['actions']['submithistory'])) if wf in similar_wfs
+                serverconfig.get_history_length()) if wf in similar_wfs
         ]
 
         return {'similar': sorted(list(similar_wfs)),
@@ -677,8 +677,8 @@ class WorkflowTools(object):
             raise cherrypy.HTTPError(404)
 
         acted = [] if workflow else \
-            manageactions.get_acted_workflows(int(
-                serverconfig.config_dict()['actions']['submithistory']))
+            manageactions.get_acted_workflows(
+                serverconfig.get_history_length())
 
         # Retry after ProgrammingError
         try:

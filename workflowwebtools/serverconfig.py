@@ -87,22 +87,22 @@ def get_valid_emails():
 #    return config_dict()['host']['port']
 #
 #
-#def workflow_history_path():
-#    """
-#    :returns: the path to the files of workflow error history
-#    :rtype: str
-#    """
-#
-#    return config_dict()['data']['workflow_history']
-#
-#def all_errors_path():
-#    """
-#    :returns: the path to all errors for recent workflows
-#    :rtype: str
-#    """
-#
-#    return config_dict()['data']['all_errors']
-#
+def workflow_history_path():
+    """
+    :returns: the path to the files of workflow error history
+    :rtype: str
+    """
+
+    return config_dict()['data']['workflow_history']
+
+def all_errors_path():
+    """
+    :returns: the path to all errors for recent workflows
+    :rtype: str
+    """
+
+    return config_dict()['data']['all_errors']
+
 #def get_cluster_settings():
 #    """
 #    :returns: dictionary containing the settings for clustering
@@ -111,11 +111,11 @@ def get_valid_emails():
 #
 #    return config_dict()['cluster']
 #
-#def get_history_length():
-#    """
-#    :returns: the number of days of history to check for workflows
-#              with an action submitted.
-#    :rtype: int
-#    """
-#
-#    return int(config_dict()['actions']['submithistory'])
+def get_history_length():
+    """
+    :returns: the number of days of history to check for workflows
+              with an action submitted.
+    :rtype: int
+    """
+
+    return int(config_dict()['actions']['submithistory'])
