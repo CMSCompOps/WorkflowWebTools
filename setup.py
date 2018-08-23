@@ -16,7 +16,7 @@ setuptools.setup(
         'workflowwebtools': ['config.yml'],
         'workflowwebtools.web': ['static/*',
                                  'templates/*']
-        }
+        },
     install_requires=[
         'cmstoolbox',
         'cherrypy',

@@ -4,7 +4,7 @@ Generates Mako templates
 
 import os
 
-import mako
+import mako.lookup
 
 from .. import serverconfig
 
