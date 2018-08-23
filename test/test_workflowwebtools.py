@@ -142,6 +142,9 @@ class TestClusteringAndReasons(unittest.TestCase):
 
         for wkf in ge.check_session(None).return_workflows():
             file_name = WorkflowInfo(wkf).cache_filename('workflow_params')
+            dirname = os.path.dirname(file_name)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
             with open(file_name, 'w') as cache:
                 json.dump({}, cache)
 
@@ -298,6 +301,9 @@ class TestActions(unittest.TestCase):
             exit(123)
 
         file_name = WorkflowInfo(self.request_base['workflows']).cache_filename('workflow_params')
+        dirname = os.path.dirname(file_name)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
         with open(file_name, 'w') as cache:
             json.dump({}, cache)
 
