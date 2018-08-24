@@ -230,8 +230,8 @@ The following are instructions to run the training and test interactively:
 
 The easiest way to get the classifier from inside server would be to call something like the following::
 
-    from WorkflowWebTools import actionshistorylink
-    from WorkflowWebTools import paramsregression
+    from workflowwebtools import actionshistorylink
+    from workflowwebtools import paramsregression
 
     model = paramsregression.get_classifier(actionshistorylink.dump_json(), 'action')
 
@@ -397,7 +397,7 @@ JavaScript and Mako User Interface
 Some documentation of the JavaScript used on the webpages are given below.
 
 .. autoanysrc:: phony
-   :src: ../WorkflowWebTools/runserver/static/js/*.js
+   :src: ../WorkflowWebTools/workflowwebtools/web/static/js/*.js
    :analyzer: js
 
 .. |build| image:: https://travis-ci.org/CMSCompOps/WorkflowWebTools.svg?branch=master

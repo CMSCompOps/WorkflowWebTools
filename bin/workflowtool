@@ -78,7 +78,6 @@ class WorkflowTools(object):
         """
         This page, located at ``https://localhost:8080/showlog``,
         returns logs that are stored in an elastic search server.
-        More details can be found at :ref:`elastic-search-ref`.
         If directed here from :ref:`workflow-view-ref`, then
         the search will be for the relevant workflow.
 
@@ -704,27 +703,6 @@ def secureheaders():
     headers['Content-Security-Policy'] = "default-src='self'"
 
 _HOST = serverconfig.config_dict()['host']
-CONF = {
-    'global': {
-        'server.socket_host': _HOST['name'],
-        'server.socket_port': _HOST['port'],
-        'log.access_file': 'access.log',
-        'log.error_file': 'application.log'
-        },
-    '/': {
-        'error_page.401': render('401.html'),
-        'error_page.404': render('404.html'),
-        'tools.staticdir.root': os.path.abspath(
-            os.path.dirname(workflowwebtools.web.__file__)),
-        'tools.sessions.on': True,
-        'tools.sessions.secure': True,
-        'tools.sessions.httponly': True,
-        },
-    '/static': {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': './static'
-        },
-    }
 
 if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
     cherrypy.tools.secureheaders = \
@@ -735,6 +713,28 @@ if os.path.exists('keys/cert.pem') and os.path.exists('keys/privkey.pem'):
         })
 
 if __name__ == '__main__':
+
+    CONF = {
+        'global': {
+            'server.socket_host': _HOST['name'],
+            'server.socket_port': _HOST['port'],
+            'log.access_file': 'access.log',
+            'log.error_file': 'application.log'
+        },
+        '/': {
+            'error_page.401': render('401.html'),
+            'error_page.404': render('404.html'),
+            'tools.staticdir.root': os.path.abspath(
+                os.path.dirname(workflowwebtools.web.__file__)),
+            'tools.sessions.on': True,
+            'tools.sessions.secure': True,
+            'tools.sessions.httponly': True,
+        },
+        '/static': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': './static'
+        },
+    }
 
     with open('pid', 'w') as pid_file:
         pid_file.write(str(os.getpid()))
