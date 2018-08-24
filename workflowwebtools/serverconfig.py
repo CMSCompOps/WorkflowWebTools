@@ -7,26 +7,50 @@ Small module to get information from the server config.
 
 import os
 import sys
+import shutil
 
 import yaml
 
-LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.yml') \
-    if os.path.basename(sys.argv[0]) != 'workflowtool' or len(sys.argv) == 1 else sys.argv[1]
+
+class NoConfig(Exception):
+    """
+    An exception that is raised if there is no config file
+    """
+    pass
+
+LOCATION = None
 
 def config_dict():
     """
     :returns: the configuration in a dict
     :rtype: str
-    :raises Exception: when it cannot find the configuration file
+    :raises NoConfig: when it cannot find the configuration file
     """
+
+    global LOCATION # pylint: disable=global-statement
+
+    if LOCATION is None:
+        if os.path.basename(sys.argv[0]) == 'workflowtool' and len(sys.argv) > 1:
+            LOCATION = sys.argv[1]
+        else:
+            LOCATION = 'config.yml'
+
+    if not os.path.exists(LOCATION):
+        shutil.copy(
+            os.path.join(os.path.dirname(__file__),
+                         'default', 'config.yml'),
+            LOCATION
+        )
+        sys.tracebacklimit = 0
+        raise NoConfig(
+            '\n\n  Copied a default configuration to %s.\n  '
+            'Please check it, and then run "workflowtool" again.\n'
+            % LOCATION)
 
     output = {}
 
-    if os.path.exists(LOCATION):
-        with open(LOCATION, 'r') as config:
-            output = yaml.load(config)
-    else:
-        raise Exception('Could not load config at %s' % LOCATION)
+    with open(LOCATION, 'r') as config:
+        output = yaml.load(config)
 
     return output
 

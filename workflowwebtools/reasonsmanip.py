@@ -7,9 +7,7 @@ import os
 import sqlite3
 import cherrypy
 
-from .serverconfig import LOCATION
-
-LOCATION = os.path.dirname(LOCATION)
+from . import serverconfig
 
 DEFAULT_SHORT = '---- No Short Reason Given, Not Saved to Database! ----'
 
@@ -21,7 +19,7 @@ def get_reasons():
     :rtype: (sqlite3.Connection, sqlite3.Cursor)
     """
 
-    conn = sqlite3.connect(os.path.join(LOCATION, 'reasons.db'))
+    conn = sqlite3.connect(os.path.join(serverconfig.config_dict()['workspace'], 'reasons.db'))
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="reasons"')
 

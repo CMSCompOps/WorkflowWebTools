@@ -55,6 +55,7 @@
   <body onload="wfwebtool.workflowTable()">
     <%
        sendtotop = '<p><a href="#top">To top</a></p>'
+       loading = '<img src="/static/img/loading.gif" alt="Loading...">'
     %>
     <div id="top">
 
@@ -74,13 +75,13 @@
     <div style="float:left; width:50%" id="errorinfo">
 
       <span style="font-weight:bold;">Dominant Error Code:</span>
-      <span id="maxerror">Loading...</span>
+      <span id="maxerror">${loading}</span>
       <br>
       <span style="font-weight:bold;">Types Of Errors:</span> <br>
-      <span id="errortypes">Loading...</span>
+      <span id="errortypes">${loading}</span>
       <br>
       <span style="font-weight:bold;">Recommended Action:</span> <br>
-      <span id="errorrecommend">Loading...</span>
+      <span id="errorrecommend">${loading}</span>
 
     </div>
 
@@ -89,7 +90,7 @@
       <span style="font-weight:bold;">Workflow Parameters:</span>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a>
       <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=PREPID&detail=true" target="blank">Prep ID</a> <br>
-      <span id="wkfparams">Loading...</span>
+      <span id="wkfparams">${loading}</span>
 
     </div>
 
