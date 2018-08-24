@@ -1,6 +1,7 @@
 *~
 *.pyc
 */templates/mako_modules/*
+*/*/templates/mako_modules/*
 nohup.out
 *.db
 runserver/actions/*.json
@@ -12,3 +13,5 @@ runserver/config.yml
 test/.coverage
 workflowwebtools.egg-info/*
 dist/*
+venv
+build

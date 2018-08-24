@@ -80,3 +80,4 @@ cluster:
 # This is maximum age in seconds
 cache_refresh:
   errors: 345600
+workspace: '.'
