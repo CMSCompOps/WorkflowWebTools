@@ -14,3 +14,4 @@ test/.coverage
 workflowwebtools.egg-info/*
 dist/*
 venv
+build
