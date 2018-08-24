@@ -36,16 +36,20 @@ def config_dict():
             LOCATION = 'config.yml'
 
     if not os.path.exists(LOCATION):
-        shutil.copy(
-            os.path.join(os.path.dirname(__file__),
-                         'default', 'config.yml'),
-            LOCATION
-        )
-        sys.tracebacklimit = 0
-        raise NoConfig(
-            '\n\n  Copied a default configuration to %s.\n  '
-            'Please check it, and then run "workflowtool" again.\n'
-            % LOCATION)
+
+        default_loc = os.path.join(os.path.dirname(__file__),
+                                   'default', 'config.yml')
+
+
+        if os.path.basename(sys.argv[0]) == 'workflowtool':
+            shutil.copy(default_loc, LOCATION)
+            sys.tracebacklimit = 0
+            raise NoConfig(
+                '\n\n  Copied a default configuration to %s.\n  '
+                'Please check it, and then run "workflowtool" again.\n'
+                % LOCATION)
+        else:
+            LOCATION = os.path.join(default_loc)
 
     output = {}
 
