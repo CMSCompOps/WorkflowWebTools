@@ -1,0 +1,17 @@
+sphinx
+sphinx_rtd_theme
+sphinxcontrib-programoutput
+sphinxcontrib-autoanysrc
+cmstoolbox
+cherrypy
+mako
+numpy>=1.6.1
+scipy==0.19.1
+sklearn
+passlib>=1.6
+bcrypt
+pyOpenSSL
+pyyaml
+validators
+tabulate
+pymongo

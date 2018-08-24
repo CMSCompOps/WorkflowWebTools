@@ -24,5 +24,6 @@ def render(template, **kwargs):
     return mako.lookup.TemplateLookup(
         directories=[TEMPLATES_DIR],
         module_directory=os.path.join(
-            serverconfig.config_dict()['workspace'], 'mako_modules')
+            #serverconfig.config_dict()['workspace'], 'mako_modules')
+            TEMPLATES_DIR, 'mako_modules')
         ).get_template(template).render(**kwargs)
