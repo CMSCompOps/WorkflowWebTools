@@ -13,7 +13,7 @@ setuptools.setup(
     url='https://github.com/CMSCompOps/WorkflowWebTools',
     scripts=[s for s in glob.glob('bin/*') if not s.endswith('~')],
     package_data={
-        'workflowwebtools': ['config.yml'],
+        'workflowwebtools': ['default/config.yml'],
         'workflowwebtools.web': ['static/*/*',
                                  'templates/*']
         },
