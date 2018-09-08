@@ -40,6 +40,7 @@ for row_name, row in sorted(errors.items()):
     <title>4D Errors</title>
     <%include file="rotation_tables.html"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
+    <link rel="stylesheet" href="static/css/globalerror.css"/>
     <script type="text/javascript" src="static/js/pako_inflate.min.js"></script>
     <script type="text/javascript" src="static/js/expandtable.js"></script>
     <script type="text/javascript" src="static/js/piechart.js"></script>
@@ -55,7 +56,7 @@ for row_name, row in sorted(errors.items()):
     </script>
   </head>
 
-  <body onload="pieProduction()">
+  <body>
     <table id="errortable" border="3" style="border-collapse: collapse;">
     </table>
 

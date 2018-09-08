@@ -124,7 +124,7 @@ function drawPies () {
 
     // Not really a set, but we'll sort it at the end to get unique values
     var columns = new Array();
-    var pies = new Array();
+    // var pies = new Array();
     // Get the tbody element inside of the <table> tags
     var table = document.getElementById("errortable").firstElementChild;
     for (var row in table.children) {
@@ -134,8 +134,8 @@ function drawPies () {
             var row_obj = JSON.parse(table.children[row].lastElementChild.lastElementChild.innerHTML);
             for (var col in row_obj.errors) {
                 columns.push(col);
-                for (var pie in row_obj.errors[col])
-                    pies.push(pie);
+                // for (var pie in row_obj.errors[col])
+                //     pies.push(pie);
             }
             continue;
         }
@@ -151,7 +151,8 @@ function drawPies () {
     }
 
     var uniq_cols = uniq(columns);
-    var uniq_pies = uniq(pies);
+
+    sessionStorage.setItem('uniqueCol', JSON.stringify(uniq_cols));
 
     // Insert a header for the table
     var head = table.insertBefore(document.createElement('tr'), table.firstElementChild);
@@ -173,6 +174,7 @@ function drawPies () {
         '</tr>' +
         '</table>' +
         '<input type="submit" value="Submit">' +
+        '<div><label>Draw pie</label><input id="switch" type="checkbox" value="1" ></div>' +
         '</form>';
 
     var toth = head.appendChild(document.createElement('th'));
@@ -202,6 +204,9 @@ function drawPies () {
                     canvas.height = '20';
 
                     anchor.appendChild(canvas);
+                    var tooltip = document.createElement('span');
+                    anchor.appendChild(tooltip);
+                    var tooltiptext = '';
 
                     // Count the size of the pie here and create canvas and sorting objects
                     var count = function (obj) {
@@ -214,6 +219,8 @@ function drawPies () {
                                 pies[pie] = num;
 
                             output += num;
+
+                            tooltiptext += pie + ': ' + num + '<br>';
                         }
 
                         if (output)
@@ -234,6 +241,9 @@ function drawPies () {
                             anchor.href = 'listpage?workflow=' + row.id + '&errorcode=' + col;
                         }
                         anchor.target = '_blank';
+
+                        tooltiptext += 'total: ' + count;
+                        tooltip.innerHTML = tooltiptext;
                     }
                     else
                         anchor.innerHTML = '';
@@ -259,35 +269,154 @@ function drawPies () {
     for (var index = 0; index < n_colors; index++)
         color_map[pies_list[index].pie] = colors[index];
 
+    sessionStorage.setItem('colorMap', JSON.stringify(color_map));
+
     // Draw all of our pie charts
     canvases.forEach(function (canv) {
             var total = canv.total;
             var canvas = canv.canvas;
-            canvas.title = 'Total: ' + total;
+
             var context = canvas.getContext("2d");
             var centerX = canvas.width/2;
             var centerY = canvas.height/2;
             var radius = Math.min(centerX, centerY) * total/(10 + total);
 
-            var currangle = 0;
+            var code_count_list = [];
+            for (var code in canv.obj)
+                code_count_list.push({code: code, num: canv.obj[code]});
+            var maxErrorCode = code_count_list.sort(function(a, b) {return b.num - a.num})[0].code;
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            context.lineWidth = 2;
+            context.strokeStyle = color_map[maxErrorCode];
+            context.stroke();
 
-            for (var key in color_map) {
-                if (canv.obj.hasOwnProperty(key)) {
-                    var nextangle = currangle + 2 * Math.PI * canv.obj[key]/total;
-                    context.beginPath();
-                    context.arc(centerX, centerY, radius, currangle, nextangle);
-                    context.lineTo(centerX, centerY);
-                    context.fillStyle = color_map[key];
-                    context.fill();
-                    currangle = nextangle;
-                }
-            }
         });
 
 }
 
-function pieProduction () {
+
+function pieOn () {
+    /*"""
+    .. function:: pieOn()
+
+      This function replace the default drawing circles with pie chart
+      on canvases, when the "Draw pie" checkbox is toggled on.
+      Radius and color please refer to above `drawPies()` function.
+
+     */
+
+    // Get the tbody element inside of the <table> tags
+    var table = document.getElementById("errortable").firstElementChild;
+    var unique_cols = JSON.parse(sessionStorage.getItem('uniqueCol'));
+    var color_map = JSON.parse(sessionStorage.getItem('colorMap'));
+
+    for (var i_row in table.children) {
+        var row = table.children[i_row];
+        if (row.id) {
+            var total_cell = row.children[1];
+            var raw_obj = JSON.parse(total_cell.lastElementChild.innerHTML);
+            for (var col in raw_obj.errors) {
+                var error_counts = raw_obj.errors[col];
+                var total = 0;
+                for (var error in error_counts) {
+                    total += error_counts[error];
+                }
+
+                var canvas = row.children[2 + unique_cols.indexOf(col)].firstElementChild.firstElementChild;
+                var context = canvas.getContext("2d");
+                // clear original canvas for redrawing
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+                var centerX = canvas.width/2;
+                var centerY = canvas.height/2;
+                var radius = Math.min(centerX, centerY) * total/(10 + total);
+
+                var currangle = 0;
+
+                for (var error in error_counts) {
+                    var count = error_counts[error];
+                    if (error in color_map) {
+                        var nextangle = currangle + 2 * Math.PI * count/total;
+                        context.beginPath();
+                        context.arc(centerX, centerY, radius, currangle, nextangle);
+                        context.lineTo(centerX, centerY);
+                        context.fillStyle = color_map[error];
+                        context.fill();
+                        currangle = nextangle;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function pieOff () {
+    /*"""
+    .. function:: pieOff()
+
+      This function replace the pie charts with circles
+      on canvases, when the "Draw pie" checkbox is toggled off.
+      Radius please refer to above `drawPies()` function.
+      Color indicates the most contributing error code.
+
+     */
+
+    // Get the tbody element inside of the <table> tags
+    var table = document.getElementById("errortable").firstElementChild;
+    var unique_cols = JSON.parse(sessionStorage.getItem('uniqueCol'));
+    var color_map = JSON.parse(sessionStorage.getItem('colorMap'));
+
+    for (var i_row in table.children) {
+        var row = table.children[i_row];
+        if (row.id) {
+            var total_cell = row.children[1];
+            var raw_obj = JSON.parse(total_cell.lastElementChild.innerHTML);
+            for (var col in raw_obj.errors) {
+                var error_counts = raw_obj.errors[col];
+                var total = 0;
+                for (var error in error_counts) {
+                    total += error_counts[error];
+                }
+
+                var canvas = row.children[2 + unique_cols.indexOf(col)].firstElementChild.firstElementChild;
+                var context = canvas.getContext("2d");
+                // clear original canvas for redrawing
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+                var centerX = canvas.width/2;
+                var centerY = canvas.height/2;
+                var radius = Math.min(centerX, centerY) * total/(10 + total);
+
+                var currangle = 0;
+
+                var code_count_list = [];
+                for (var code in error_counts)
+                    code_count_list.push({code: code, num: error_counts[code]});
+                var maxErrorCode = code_count_list.sort(function(a, b) {return b.num - a.num})[0].code;
+                context.beginPath();
+                context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                context.lineWidth = 2;
+                context.strokeStyle = color_map[maxErrorCode];
+                context.stroke();
+
+            }
+        }
+    }
+}
+
+$(document).ready(function(){
     prepareRows();
     drawPies();
     document.getElementById('wait-message').style.display = 'none';
-}
+
+
+    $("#switch").on('click', function(){
+        var check = this;
+        if ($(check).is(':checked')) {
+            pieOn();
+        } else {
+            pieOff();
+        }
+    });
+});
