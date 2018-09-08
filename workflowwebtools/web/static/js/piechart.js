@@ -184,7 +184,7 @@ function drawPies () {
     uniq_cols.forEach(function(col) {
             var collabel = head.appendChild(document.createElement('th'));
             collabel.className = 'rotate';
-            if (ready[col])
+            if (typeof ready !== 'undefined' && ready[col])
                 collabel.className += ' ' + ready[col];
             var innerspan = collabel.appendChild(document.createElement('div')).appendChild(document.createElement('span'));
             innerspan.innerHTML = col;
