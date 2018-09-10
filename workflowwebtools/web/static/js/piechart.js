@@ -204,8 +204,6 @@ function drawPies () {
                     canvas.height = '20';
 
                     anchor.appendChild(canvas);
-                    var tooltip = document.createElement('span');
-                    anchor.appendChild(tooltip);
                     var tooltiptext = '';
 
                     // Count the size of the pie here and create canvas and sorting objects
@@ -242,8 +240,8 @@ function drawPies () {
                         }
                         anchor.target = '_blank';
 
-                        tooltiptext += 'total: ' + count;
-                        tooltip.innerHTML = tooltiptext;
+                        tooltiptext += '<br><strong>total: ' + count + '</strong>';
+                        anchor.setAttribute('title', tooltiptext);
                     }
                     else
                         anchor.innerHTML = '';
@@ -302,7 +300,8 @@ function pieOn () {
 
       This function replace the default drawing circles with pie chart
       on canvases, when the "Draw pie" checkbox is toggled on.
-      Radius and color please refer to above `drawPies()` function.
+
+      Radius and color please refer to above :js:func:`drawPies` function.
 
      */
 
@@ -357,7 +356,8 @@ function pieOff () {
 
       This function replace the pie charts with circles
       on canvases, when the "Draw pie" checkbox is toggled off.
-      Radius please refer to above `drawPies()` function.
+
+      Radius please refer to above :js:func:`drawPies` function.
       Color indicates the most contributing error code.
 
      */
@@ -410,6 +410,30 @@ $(document).ready(function(){
     drawPies();
     document.getElementById('wait-message').style.display = 'none';
 
+    $("a").tooltip({
+        position: {
+            my: 'left top+5'
+        },
+        content: function() {
+            var element = this;
+            var text = $(element).attr('title');
+            var maxTextLen = 0;
+            text.split('<br>').forEach(function(t) {
+                if (t.length > maxTextLen) {
+                    maxTextLen = t.length;
+                }
+            });
+            return "<p  style='text-align: right; width: "+maxTextLen*0.5+"em; max-width: 500px'>"+text+"</p>";
+        }
+    });
+
+    $("a").hover(
+        function() {
+            $( this ).parent().css("background-color", "#E8E8E8");
+        }, function() {
+            $( this ).parent().css("background-color", "white");
+        }
+    );
 
     $("#switch").on('click', function(){
         var check = this;
