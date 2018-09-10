@@ -19,7 +19,7 @@ setuptools.setup(
         },
     install_requires=[
         'cmstoolbox',
-        'cherrypy',
+        'cherrypy<18.0.0',
         'mako',
         'numpy>=1.6.1',
         'scipy>=0.19.1',
