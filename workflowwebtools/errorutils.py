@@ -137,7 +137,8 @@ def add_to_database(curs, data_location):
     if 'conn' in dir(curs):
         curs.conn.commit()
 
-    cherrypy.log('Number of points added to the database: %i' % number_added)
+    if number_added:
+        cherrypy.log('Number of points added to the database: %i' % number_added)
 
 
 def create_table(curs):
