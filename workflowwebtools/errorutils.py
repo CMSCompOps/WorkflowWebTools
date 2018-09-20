@@ -88,7 +88,7 @@ def get_list_info(status_list):
     return indict
 
 
-def add_to_database(curs, data_location):
+def add_to_database(curs, data_location): # pylint: disable=too-complex
     """Add data from a file to a central database through the passed cursor
 
     :param sqlite3.Cursor curs: is the cursor to the database
@@ -137,7 +137,8 @@ def add_to_database(curs, data_location):
     if 'conn' in dir(curs):
         curs.conn.commit()
 
-    cherrypy.log('Number of points added to the database: %i' % number_added)
+    if number_added:
+        cherrypy.log('Number of points added to the database: %i' % number_added)
 
 
 def create_table(curs):

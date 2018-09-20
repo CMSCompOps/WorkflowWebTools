@@ -17,7 +17,6 @@ from passlib.hash import bcrypt
 from cmstoolbox.emailtools import send_email
 
 from . import serverconfig
-from .serverconfig import LOCATION
 
 def get_user_db():
     """Gets the users database in the local directory.
@@ -26,7 +25,9 @@ def get_user_db():
     :rtype: sqlite3.Connection, sqlite3.Cursor
     """
 
-    conn = sqlite3.connect(os.path.join(LOCATION, 'users.db'))
+    conn = sqlite3.connect(os.path.join(
+        serverconfig.config_dict()['workspace'],
+        'users.db'))
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="users"')
 
@@ -148,7 +149,7 @@ def send_reset_email(email, url):
             'Some machine'
             )
 
-        send_email(serverconfig.wm_email(), email,
+        send_email(serverconfig.config_dict()['webmaster']['email'], email,
                    'Reset account on WorkflowWebTools Instance',
                    message_text)
 
@@ -220,7 +221,7 @@ def add_user(email, username, password, url):
     confirm_link = (url + '/confirmuser?' +
                     urllib.urlencode({'code': str(validation_string)}))
 
-    wm_email = serverconfig.wm_email()
+    wm_email = serverconfig.config_dict()['webmaster']['email']
 
     store_email = do_salt_hash(email)
 
@@ -241,7 +242,7 @@ def add_user(email, username, password, url):
         'If this request was created by you, please follow the following link: \n\n' +
         confirm_link +
         '\n\nThank you, \n' +
-        serverconfig.wm_name()
+        serverconfig.config_dict()['webmaster']['name']
         )
 
     send_email(wm_email, [email, wm_email],
