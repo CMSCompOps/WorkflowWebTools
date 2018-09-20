@@ -26,8 +26,8 @@ def get_user_db():
     """
 
     conn = sqlite3.connect(os.path.join(
-            serverconfig.config_dict()['workspace'],
-            'users.db'))
+        serverconfig.config_dict()['workspace'],
+        'users.db'))
     curs = conn.cursor()
     curs.execute('SELECT name FROM sqlite_master WHERE type="table" and name="users"')
 
