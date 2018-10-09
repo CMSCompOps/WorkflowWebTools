@@ -138,7 +138,11 @@ wfwebtool.fillSimilar = function () {
 function reset(wkfl) {
     $.ajax({
         url: '/resetcache?workflow=' + wkfl,
-        success: location.reload
+        success: function () {
+            theSpan = document.getElementById('reset');
+            theSpan.innerHTML = 'Refresh page';
+            theSpan.style.color = 'red';
+        }
     })
 };
 
