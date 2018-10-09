@@ -30,6 +30,6 @@ setuptools.setup(
         'pyyaml',
         'validators',
         'tabulate',
-        'pymongo==3.4.0'
+        'pymongo<3.5.0'
         ]
     )

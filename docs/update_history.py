@@ -1,1 +1,1 @@
-../runserver/update_history.py
+../bin/wfwt-update-history

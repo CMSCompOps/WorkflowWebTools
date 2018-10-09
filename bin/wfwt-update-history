@@ -50,7 +50,6 @@ def main(*args):
         args = [serverconfig.all_errors_path()]
 
     for arg in args:
-        print "Adding " + arg
         errorutils.add_to_database(curs, arg)
 
     conn.commit()
@@ -58,5 +57,4 @@ def main(*args):
 
 
 if __name__ == '__main__':
-    serverconfig.LOCATION = os.path.dirname(os.path.realpath(__file__))
     main(*(sys.argv[1:]))
