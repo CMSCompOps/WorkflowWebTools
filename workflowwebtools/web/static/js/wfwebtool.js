@@ -136,12 +136,14 @@ wfwebtool.fillSimilar = function () {
 
 
 function reset(wkfl) {
+    theSpan = document.getElementById('reset');
+    theSpan.innerHTML = 'Refreshing page, please wait...';
     $.ajax({
         url: '/resetcache?workflow=' + wkfl,
         success: function () {
-            theSpan = document.getElementById('reset');
-            theSpan.innerHTML = 'Refresh page';
             theSpan.style.color = 'red';
+            theSpan.innerHTML = 'Refreshing page...';
+            location.reload();
         }
     })
 };
