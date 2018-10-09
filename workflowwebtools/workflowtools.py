@@ -1,5 +1,13 @@
-import os
-import sys
+"""
+Defines the class that runs the server
+"""
+
+# pylint: disable=no-member, no-self-use, invalid-name
+
+# Definitely clean these
+# pylint: disable=too-many-public-methods, missing-docstring
+
+
 import json
 import time
 import datetime
@@ -17,7 +25,6 @@ from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
-import workflowwebtools.web
 from workflowwebtools.web.templates import render
 
 from cmstoolbox import sitereadiness
@@ -85,7 +92,7 @@ class WorkflowTools(object):
         return logdata
 
     @cherrypy.expose
-    def globalerror2(self, pievar='errorcode'):
+    def globalerror2(self):
         return render(
             'globalerror2.html'
             )
@@ -696,5 +703,3 @@ class WorkflowTools(object):
                       sitename=sitename,
                       acted_workflows=acted,
                       info=info)
-
-

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# pylint: disable=no-member, no-self-use, invalid-name
+# pylint: disable=no-member, invalid-name
 
 """
 workflowtools.py
@@ -12,6 +12,7 @@ Script to run the WorkflowWebTools server.
 """
 
 import os
+import sys
 import cherrypy
 
 import workflowwebtools.web
