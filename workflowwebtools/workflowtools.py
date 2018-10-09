@@ -64,7 +64,6 @@ class WorkflowTools(object):
             record['workflow']: record['acted']
             for record in coll.find()
             }
-        print self.statuses
 
     @cherrypy.expose
     def index(self):
