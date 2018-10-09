@@ -16,6 +16,7 @@ import sqlite3
 
 import cherrypy
 
+from workflowwebtools import workflowinfo
 from workflowwebtools import serverconfig
 from workflowwebtools import manageactions
 from workflowwebtools import manageusers
@@ -27,18 +28,43 @@ from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
 from workflowwebtools.web.templates import render
 
+from workflowwebtools import statuses
+
 from cmstoolbox import sitereadiness
 
 
 class WorkflowTools(object):
-    """This class holds all of the exposed methods for the Workflow Webpage"""
 
     RESET_LOCK = threading.Lock()
 
     def __init__(self):
-        """Initializes the service by creating clusters, if running webpage"""
-        if __name__ == '__main__':
-            self.cluster()
+        self.cluster()
+
+        self.workflows = {
+            workflow: workflowinfo.WorkflowInfo(workflow)
+            for workflow in
+            statuses.get_manual_workflows(
+                serverconfig.config_dict()['data']['all_errors']
+                )
+            }
+
+        self.prepids = {
+            prepid: workflowinfo.PrepIDInfo(prepid) for prepid in
+            [info.get_prep_id() for info in self.workflows.values()]
+            }
+
+        # Set in update_statuses
+        self.statuses = None
+        self.update_statuses()
+
+
+    def update_statuses(self):
+        coll = manageactions.get_actions_collection()
+        self.statuses = {
+            record['workflow']: record['acted']
+            for record in coll.find()
+            }
+        print self.statuses
 
     @cherrypy.expose
     def index(self):
@@ -99,14 +125,24 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def prepids(self):
-        return sorted(
-            cherrypy.session.get(
-                'info',
-                globalerrors.check_session(None)
-                ).prepidinfos.keys()
-            )
+    def getprepids(self):
+        return sorted(self.prepids.keys())
 
+    def get_status(self, workflow):
+        status = self.statuses.get(workflow)
+        if status is None:
+            return "none"
+        return "acted" if status else "pending"
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def getworkflows(self, prepid):
+        return [
+            {"workflow": workflow,
+             "status": self.get_status(workflow)
+            }
+            for workflow in self.prepids[prepid].get_workflows()
+            ]
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
@@ -642,7 +678,6 @@ class WorkflowTools(object):
         """
 
         WorkflowTools.RESET_LOCK.acquire()
-
         cherrypy.log('Cache reset by: %s' % cherrypy.request.login)
         info = globalerrors.check_session(cherrypy.session)
 

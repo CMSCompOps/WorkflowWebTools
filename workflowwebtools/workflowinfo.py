@@ -468,4 +468,7 @@ class PrepIDInfo(Info):
         :rtype: list
         """
 
-        return [workflow[0] for workflow in self.get_workflows_requesttime()]
+        return [
+            workflow for workflow, _ in
+            self.get_workflows_requesttime()
+        ]
