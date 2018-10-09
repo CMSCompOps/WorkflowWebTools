@@ -135,6 +135,14 @@ wfwebtool.fillSimilar = function () {
 };
 
 
+function reset(wkfl) {
+    $.ajax({
+        url: '/resetcache?workflow=' + wkfl,
+        success: location.reload
+    })
+};
+
+
 wfwebtool.workflowTable = function () {
     // These are a bunch of separate functions to fill in the page
     this.describeError();
