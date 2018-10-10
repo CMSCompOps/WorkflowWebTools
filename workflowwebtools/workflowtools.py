@@ -169,11 +169,13 @@ class WorkflowTools(object):
     def getprepids(self):
         return sorted(self.prepids.keys())
 
+
     def get_status(self, workflow):
         status = self.statuses.get(workflow)
         if status is None:
             return "none"
         return "acted" if status else "pending"
+
 
     def get(self, workflow):
         self.lock.acquire()
@@ -183,7 +185,7 @@ class WorkflowTools(object):
             self.workflows[workflow] = wkflow_obj
         self.lock.release()
         return wkflow_obj
-        
+
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

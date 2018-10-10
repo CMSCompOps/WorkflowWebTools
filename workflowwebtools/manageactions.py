@@ -180,7 +180,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     return workflows, reasons, params
 
 
-def submit2(documents):
+def submit2(documents): # pylint: disable=missing-docstring
     coll = get_actions_collection()
 
     for document in documents:
