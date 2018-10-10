@@ -39,7 +39,7 @@ class WorkflowTools(object):
 
     def __init__(self):
         self.lock = threading.Lock()
-#        self.cluster()
+        self.cluster()
         self.update()
 
         self.markedreset = set()
@@ -50,10 +50,9 @@ class WorkflowTools(object):
         self.lock.acquire()
         self.markedreset.add(prepid)
         self.lock.release()
-        
 
     def reset(self):
-        
+
         self.lock.acquire()
         # Reset things is requested
         if self.markedreset:
