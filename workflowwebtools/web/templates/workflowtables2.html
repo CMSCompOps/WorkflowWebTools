@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,user-scalable=yes"/>
+    <%include file="rotation_tables.html"/>
+    <script type="text/javascript" src="/static/js/wfwebtool.js"></script>
+    <script type="text/javascript" src="/static/js/submit.js"></script>
+    <script type="text/javascript" src="/static/js/workflowtables.js"></script>
+    <title>Workflow Errors</title>
+
+  </head>
+  <body onload="initPage('${workflow}')">
+    <%
+       loading = '<img class="loading" src="/static/img/loading.gif" alt="Loading...">'
+    %>
+    <div id="top">
+
+      <center id="top">
+        <h1>${workflow}</h1>
+        <a href="/globalerror2">Global Errors</a> <br>
+      </center>
+
+    </div>
+
+    <hr>
+
+    <div style="float:left; width:50%" id="errorinfo">
+
+      <span style="font-weight:bold;">Dominant Error Code:</span>
+      <span id="maxerror">${loading}</span>
+      <br>
+      <span style="font-weight:bold;">Types Of Errors:</span> <br>
+      <span id="errortypes">${loading}</span>
+      <br>
+      <span style="font-weight:bold;">Recommended Action:</span> <br>
+      <span id="errorrecommend">${loading}</span>
+
+    </div>
+
+    <div>
+
+      <span style="font-weight:bold;">Workflow Parameters:</span>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?name=${workflow}" target="blank">more</a>
+      <a href="https://cmsweb.cern.ch/reqmgr2/data/request?prep_id=PREPID&detail=true" target="blank">Prep ID</a> <br>
+      <span id="wkfparams">${loading}</span>
+
+    </div>
+
+    <hr style="clear: both;">
+
+    <div>
+
+      <div>
+        <span style="font-weight:bold;">Tasks with errors:</span> <br>
+        <div id="tasks">${loading}</div>
+      </div>
+
+    </div>
+
+    <hr>
+
+    <div>
+
+      <span style="font-weight:bold;">Actions:</span> <br>
+
+      <div id="submitform">${loading}
+
+        <button id="showmulti" type="button" style="display:none;">Apply to multiple?</button> <br>
+        <div id="multiwfs" style="display:none;">
+          <div id="wflist"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+    <center>
+      <div id="tables">
+      </div>
+    </center>
+
+  </body>
+</html>

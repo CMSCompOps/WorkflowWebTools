@@ -129,7 +129,9 @@ wfwebtool.fillSimilar = function () {
                 wfdiv.appendChild(document.createElement('br'));
             });
 
-            button.onclick = wftoggle.toggle;
+            button.onclick = function () {
+                wftoggle.toggle();
+            };
         }
     });
 };

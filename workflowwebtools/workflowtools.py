@@ -23,6 +23,7 @@ from workflowwebtools import serverconfig
 from workflowwebtools import manageactions
 from workflowwebtools import manageusers
 from workflowwebtools import showlog
+from workflowwebtools import reasonsmanip
 from workflowwebtools import listpage
 from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
@@ -174,6 +175,16 @@ class WorkflowTools(object):
             return "none"
         return "acted" if status else "pending"
 
+    def get(self, workflow):
+        self.lock.acquire()
+        wkflow_obj = self.workflows.get(workflow)
+        if wkflow_obj is None:
+            wkflow_obj = workflowinfo.WorkflowInfo(workflow)
+            self.workflows[workflow] = wkflow_obj
+        self.lock.release()
+        return wkflow_obj
+        
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def getworkflows(self, prepid):
@@ -293,8 +304,61 @@ class WorkflowTools(object):
             return template()
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def getreasons(self):
+        return [
+            {
+                'short': shortreason,
+                'long': longreason
+            }
+            for shortreason, longreason in
+            sorted(reasonsmanip.reasons_list().iteritems())
+        ]
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def workflowerrors(self, workflow):
+        wkflow_obj = self.get(workflow)
+
+        errors = wkflow_obj.get_errors(True)
+        output = []
+
+        # Need to track total sites, so wer
+        for step, ecs in sorted(errors.iteritems()):
+            allsites = set()
+
+            codes = []
+            for code, sites in sorted([
+                    (-1 if code == 'NotReported' else int(code), sites)
+                    for code, sites in ecs.iteritems()]):
+
+                sites = {
+                    site: (num or int(code < 0))
+                    for site, num in sorted(sites.iteritems())
+                }
+                allsites.update(sites.keys())
+
+                codes.append({
+                    'code': code,
+                    'sites': sites
+                })
+
+            output.append({
+                'step': step,
+                'codes': codes,
+                'allsites': sorted(allsites)
+            })
+
+        return output
+
+
+    @cherrypy.expose
     def seeworkflow2(self, workflow):
-        return workflow
+        return render(
+            'workflowtables2.html',
+            workflow=workflow
+            )
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):
@@ -398,6 +462,41 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    def sitestatuses(self):
+        """
+        :returns: An object (dictionary) of drain statuses of sites
+        :rtype: JSON
+        """
+        return [
+            {
+                'site': site,
+                'status': status,
+                'drain': drain
+            }
+            for site, status, drain in sitereadiness.i_site_readiness()
+        ]
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def submissionparams(self, workflow):
+        wkfl_obj = self.get(workflow)
+
+        return {
+            'submitted': str(manageactions.get_datetime_submitted(workflow)),
+            'sitestorun': [
+                {
+                    'step': step,
+                    'sites': wkfl_obj.site_to_run(step)
+                }
+                for step in sorted(wkfl_obj.get_errors())
+            ],
+            'allsites': sorted(self.drainstatuses())
+        }
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     def similarwfs(self, workflow):
         """
         Gives back a list of workflows that are clustered with the queried workflow.
@@ -452,6 +551,13 @@ class WorkflowTools(object):
             'recommended': main_error_class[1],
             'params': main_error_class[2]
             }
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    def update_reasons(self, reasons):
+        reasonsmanip.update_reasons(reasons)
+        return 'OK'
 
 
     @cherrypy.expose
