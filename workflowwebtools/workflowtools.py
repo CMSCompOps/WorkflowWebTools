@@ -40,6 +40,7 @@ class WorkflowTools(object):
 
     def __init__(self):
         self.lock = threading.Lock()
+        self.readinesslock = threading.Lock()
         self.cluster()
         self.update()
 
@@ -98,6 +99,7 @@ class WorkflowTools(object):
 
     def update_statuses(self):
         coll = manageactions.get_actions_collection()
+        self.site_statuses = None
         self.statuses = {
             record['workflow']: record['acted']
             for record in coll.find()
@@ -469,14 +471,23 @@ class WorkflowTools(object):
         :returns: An object (dictionary) of drain statuses of sites
         :rtype: JSON
         """
-        return [
-            {
-                'site': site,
-                'status': status,
-                'drain': drain
-            }
-            for site, status, drain in sitereadiness.i_site_readiness()
-        ]
+
+        self.readinesslock.acquire()
+
+        try:
+            if self.site_statuses is None:
+                self.site_statuses = [
+                    {
+                        'site': site,
+                        'status': status,
+                        'drain': drain
+                    }
+                    for site, status, drain in sitereadiness.i_site_readiness()
+                ]
+        finally:
+            self.readinesslock.release()
+
+        return self.site_statuses
 
 
     @cherrypy.expose
@@ -493,7 +504,7 @@ class WorkflowTools(object):
                 }
                 for step in sorted(wkfl_obj.get_errors())
             ],
-            'allsites': sorted(self.drainstatuses())
+            'allsites': sorted([site['site'] for site in self.sitestatuses()])
         }
 
 

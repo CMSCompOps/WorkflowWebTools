@@ -20,7 +20,7 @@ function listWorkflows (workflows) {
             dot.style.backgroundColor = status_colors[wkflow.status];
             line.appendChild(document.createTextNode(" " + wkflow.errors + " "));
             var aref = line.appendChild(document.createElement("a"));
-            aref.href = '/seeworkflow/?workflow=' + wkflow.workflow;
+            aref.href = '/seeworkflow2/?workflow=' + wkflow.workflow;
             aref.innerHTML = wkflow.workflow;
             aref.leftMargin = '10px';
         });
