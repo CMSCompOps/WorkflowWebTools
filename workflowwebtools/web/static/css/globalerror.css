@@ -3,6 +3,14 @@ table {
     margin: 0px 25px 0px 25px;
 }
 
+tr:hover {
+    background-color: #ddd;
+}
+
+.remover:hover {
+    background-color: #999;
+}
+
 .ui-tooltip {
     max-width: 500px;
     font-family: monospace;

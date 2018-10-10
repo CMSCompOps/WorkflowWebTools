@@ -18,6 +18,7 @@ function listWorkflows (workflows) {
             var dot = line.appendChild(document.createElement("span"));
             dot.className = "dot";
             dot.style.backgroundColor = status_colors[wkflow.status];
+            line.appendChild(document.createTextNode(" " + wkflow.errors + " "));
             var aref = line.appendChild(document.createElement("a"));
             aref.href = '/seeworkflow/?workflow=' + wkflow.workflow;
             aref.innerHTML = wkflow.workflow;
@@ -31,32 +32,86 @@ function fillWorkflows(rowObj) {
         url: "/getworkflows",
         data: {"prepid": rowObj.id},
         success: function (workflows) {
+
+            // Sum the errors and throw them into the row
+            rowObj.appendChild(document.createElement("td")).appendChild(
+                document.createTextNode(workflows.reduce(function (a, b) {
+                    return {errors: a.errors + b.errors};
+                }).errors));
+
             var report = rowObj.appendChild(document.createElement("td"));
+            var drawn = 0;
+
             workflows.forEach(function (wkfl) {
+                if (drawn && !(drawn % 10))
+                    report.appendChild(document.createElement("br"));
+
                 var dot = report.appendChild(document.createElement("span"));
                 dot.className = "dot";
                 dot.style.backgroundColor = status_colors[wkfl.status];
+                drawn += 1;
             });
             rowObj.onclick = listWorkflows(workflows);
         }
     });
 }
 
-function fillPrepIDs() {
-    // Create the table of PrepIDs
+function fillSomePrepIDs(prepids, start, howmany) {
     var table = document.getElementById("errortable");
 
+    var iPrep = start;
+    var last = howmany ? Math.min(prepids.length, start + howmany) : prepids.length;
+
+
+    while (iPrep < last) {
+        var prepid = prepids[iPrep];
+        var rowObj = table.insertRow();
+        rowObj.id = prepid;
+
+        var remover = rowObj.appendChild(document.createElement("td"));
+        remover.innerHTML = "&#x2716";
+        remover.className = "remover";
+        remover.onclick = function (event) {
+            var myRow = event.target.parentNode
+            table.deleteRow(myRow.rowIndex);
+            $.ajax({
+                url: '/markreset',
+                data: {'prepid': myRow.id}
+            });
+            event.stopPropagation();
+        };
+
+        rowObj.appendChild(document.createElement("td")).
+            innerHTML = prepid;
+        fillWorkflows(rowObj);
+        iPrep += 1;
+    }
+
+    // We can still load more
+    if (iPrep < prepids.length)
+        document.getElementById("loadmore").onclick = function () {
+            fillSomePrepIDs(prepids, iPrep, 50);
+        };
+    // Otherwise, remove our buttons
+    else {
+        document.getElementById("loadmore").remove();
+        document.getElementById("loadall").remove();
+    }
+}
+
+function fillPrepIDs() {
+    // Create the table of PrepIDs
     $.ajax({
         url: "/getprepids",
         success: function (prepids) {
-            prepids.forEach(function (prepid) {
-                var rowObj = table.insertRow();
-                rowObj.id = prepid;
-                rowObj.appendChild(document.createElement("td")).
-                    innerHTML = prepid;
-                fillWorkflows(rowObj);
-            });
+            fillSomePrepIDs(prepids, 0, 50);
             document.getElementById("loading").remove();
+            document.getElementById("loadmore").onclick = function (){
+                fillSomePrepIDs(prepids, 0, 50);
+            };
+            document.getElementById("loadall").onclick = function (){
+                fillSomePrepIDs(prepids, 0, 0);
+            };
         }
     });
 

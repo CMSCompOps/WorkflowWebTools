@@ -5,7 +5,7 @@ Defines the class that runs the server
 # pylint: disable=no-member, no-self-use, invalid-name
 
 # Definitely clean these
-# pylint: disable=too-many-public-methods, missing-docstring
+# pylint: disable=too-many-public-methods, missing-docstring, attribute-defined-outside-init
 
 
 import json
@@ -15,6 +15,8 @@ import threading
 import sqlite3
 
 import cherrypy
+
+from cmstoolbox import sitereadiness
 
 from workflowwebtools import workflowinfo
 from workflowwebtools import serverconfig
@@ -30,32 +32,68 @@ from workflowwebtools.web.templates import render
 
 from workflowwebtools import statuses
 
-from cmstoolbox import sitereadiness
-
 
 class WorkflowTools(object):
 
     RESET_LOCK = threading.Lock()
 
     def __init__(self):
-        self.cluster()
+        self.lock = threading.Lock()
+#        self.cluster()
+        self.update()
 
-        self.workflows = {
-            workflow: workflowinfo.WorkflowInfo(workflow)
-            for workflow in
-            statuses.get_manual_workflows(
-                serverconfig.config_dict()['data']['all_errors']
+        self.markedreset = set()
+
+
+    @cherrypy.expose
+    def markreset(self, prepid):
+        self.lock.acquire()
+        self.markedreset.add(prepid)
+        self.lock.release()
+        
+
+    def reset(self):
+        
+        self.lock.acquire()
+        # Reset things is requested
+        if self.markedreset:
+            for pid in self.markedreset:
+                for wf in self.prepids[pid].get_workflows():
+                    workflow_obj = self.workflows.pop(wf, None)
+                    if workflow_obj:
+                        workflow_obj.reset()
+
+                prep_obj = self.prepids.pop(pid, None)
+                if prep_obj:
+                    prep_obj.reset()
+
+            self.markedreset = set()
+        self.lock.release()
+
+
+
+    def update(self):
+
+        self.lock.acquire()
+
+        try:
+            self.workflows = {
+                workflow: workflowinfo.WorkflowInfo(workflow)
+                for workflow in
+                statuses.get_manual_workflows(
+                    serverconfig.config_dict()['data']['all_errors']
                 )
             }
 
-        self.prepids = {
-            prepid: workflowinfo.PrepIDInfo(prepid) for prepid in
-            [info.get_prep_id() for info in self.workflows.values()]
+            self.prepids = {
+                prepid: workflowinfo.PrepIDInfo(prepid) for prepid in
+                [info.get_prep_id() for info in self.workflows.values()]
             }
 
-        # Set in update_statuses
-        self.statuses = None
-        self.update_statuses()
+            self.update_statuses()
+
+        finally:
+            self.lock.release()
 
 
     def update_statuses(self):
@@ -117,7 +155,11 @@ class WorkflowTools(object):
         return logdata
 
     @cherrypy.expose
-    def globalerror2(self):
+    def globalerror2(self, reset=False):
+        if reset:
+            self.reset()
+            self.update()
+
         return render(
             'globalerror2.html'
             )
@@ -136,12 +178,33 @@ class WorkflowTools(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def getworkflows(self, prepid):
-        return [
-            {"workflow": workflow,
-             "status": self.get_status(workflow)
+        workflow_objs = {
+            workflow: {
+                'obj': workflowinfo.WorkflowInfo(workflow),
+                'time': requesttime
+                }
+            for workflow, requesttime in
+            self.prepids[prepid].get_workflows_requesttime()
             }
-            for workflow in self.prepids[prepid].get_workflows()
+
+        workflows = [
+            {"workflow": workflow,
+             "status": self.get_status(workflow),
+             "errors": obj['obj'].sum_errors()
+            }
+            for workflow, obj in workflow_objs.iteritems()
             ]
+
+        self.lock.acquire()
+        for workflow, obj in workflow_objs.iteritems():
+            if workflow not in self.workflows:
+                self.workflows[workflow] = obj['obj']
+        self.lock.release()
+
+        return sorted(
+            [wkflow for wkflow in workflows if wkflow['errors']],
+            key=lambda wkfl: workflow_objs[wkfl['workflow']]['time']
+        )
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
@@ -229,6 +292,10 @@ class WorkflowTools(object):
         except Exception: # pylint: disable=broad-except
             time.sleep(1)
             return template()
+
+    @cherrypy.expose
+    def seeworkflow2(self, workflow):
+        return workflow
 
     @cherrypy.expose
     def seeworkflow(self, workflow='', issuggested=''):

@@ -293,6 +293,17 @@ class WorkflowInfo(Info):
         return output
 
 
+    def sum_errors(self):
+        """
+        :returns: The total number of errors reported by this workflow
+        :rtype: int
+        """
+
+        errors = self.get_errors(True)
+        return sum([num for codes in errors.values() for sites in codes.values()
+                    for num in sites.values()])
+
+
     @cached_json('recovery_info')
     def get_recovery_info(self):
         """
@@ -434,7 +445,7 @@ class PrepIDInfo(Info):
     def __str__(self):
         return 'prepIDinfo_%s' % self.prep_id
 
-    @cached_json('requests', 3600 * 24)
+    @cached_json('requests')
     def get_requests(self):
         """
         :returns: The requests for the Prep ID from ReqMgr2 API

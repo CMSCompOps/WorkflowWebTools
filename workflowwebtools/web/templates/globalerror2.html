@@ -8,13 +8,20 @@
   </head>
 
   <body onLoad="fillPrepIDs()">
+    <a href="?reset=true">Update the table</a>
     <div>
       <img id="loading" src="/static/img/loading.gif" alt="Loading...">
       <table id="errortable" border="3" style="border-collapse: collapse;">
       </table>
-      <div id="workflows">
-        Workflows: (Click on a row to begin)
+      <div style="float:left;">
+        <div id="workflows" style="position:fixed;">
+          Workflows: (Click on a row to begin)
+        </div>
       </div>
+    </div>
+    <div style="clear:both;">
+      <button id="loadmore">Load 50 more</button>
+      <button id="loadall">Load All</button>
     </div>
   </body>
 </html>
