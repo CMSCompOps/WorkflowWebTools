@@ -68,14 +68,18 @@ class ErrorInfo(object):
         :rtype: list
         """
 
-        self.db_lock.acquire()
-        if params:
-            self.curs.execute(query, params)
-        else:
-            self.curs.execute(query)
+        output = []
 
-        output = list(self.curs.fetchall())
-        self.db_lock.release()
+        self.db_lock.acquire()
+        try:
+            if params:
+                self.curs.execute(query, params)
+            else:
+                self.curs.execute(query)
+
+            output = list(self.curs.fetchall())
+        finally:
+            self.db_lock.release()
 
         return output
 

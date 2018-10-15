@@ -9,6 +9,7 @@ import re
 import json
 import time
 import datetime
+import threading
 
 from collections import defaultdict
 from functools import wraps
@@ -51,6 +52,8 @@ def cached_json(attribute, timeout=None):
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
 
+            self.cachelock.acquire()
+
             check_var = self.cache.get(attribute)
 
             if check_var is None:
@@ -71,6 +74,8 @@ def cached_json(attribute, timeout=None):
                         json.dump(check_var, cache_file)
 
                 self.cache[attribute] = check_var
+
+            self.cachelock.release()
 
             return check_var or {}
 
@@ -174,6 +179,7 @@ class Info(object):
         self.cache = {}
         self.cache_dir = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
         self.bak_dir = os.path.join(self.cache_dir, 'bak')
+        self.cachelock = threading.Lock()
 
     def __str__(self):
         pass

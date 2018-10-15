@@ -55,6 +55,35 @@ function setReasons() {
     });
 }
 
+function addOptions (form, params) {
+    [
+        {
+            action: "clone",
+            description: "Kill and Clone"
+        },
+        {
+            action: "acdc",
+            description: "ACDC"
+        },
+        {
+            action: "recovery",
+            description: "Recovery (not ACDC)"
+        },
+        {
+            action: "special",
+            description: "Other action"
+        }
+    ].forEach(function (option) {
+        $(form.appendChild(document.createElement("input"))).
+            attr("type", "radio").attr("name", "action").attr("value", option.action).
+            click(function () {
+                makeTable(option.action, params)
+            });
+        form.appendChild(document.createTextNode(option.description));
+    });
+    form.appendChild(document.createElement("br"));
+}
+
 function makeForm(workflow) {
 
     $.ajax({
@@ -65,11 +94,17 @@ function makeForm(workflow) {
             $(formDiv).find(".loading").remove()
 
             var form = formDiv.appendChild(document.createElement("form"));
-            form.method = "POST";
-            form.action = "/submit2";
+            form.action = "javascript:;";
+            form.onsubmit = function () {
+                alert("Submitted");
+            };
 
             $(form.appendChild(document.createElement("input"))).
                 attr("type", "hidden").attr("name", "workflows").attr("value", workflow);
+
+            addOptions(form, params);
+
+            form.appendChild(document.createElement("div")).id = "actionparams";
 
             var button = form.appendChild(document.createElement("button"));
             button.type = "button";

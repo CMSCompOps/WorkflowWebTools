@@ -88,10 +88,14 @@ function fillSomePrepIDs(prepids, start, howmany) {
     }
 
     // We can still load more
-    if (iPrep < prepids.length)
-        document.getElementById("loadmore").onclick = function () {
-            fillSomePrepIDs(prepids, iPrep, 50);
-        };
+    if (iPrep < prepids.length) {
+        $("#loadmore").click(function () {
+                fillSomePrepIDs(prepids, iPrep, 50);
+            });
+        $("#loadall").click(function () {
+                fillSomePrepIDs(prepids, iPrep, 0);
+            });
+    }
     // Otherwise, remove our buttons
     else {
         document.getElementById("loadmore").remove();
@@ -106,12 +110,16 @@ function fillPrepIDs() {
         success: function (prepids) {
             fillSomePrepIDs(prepids, 0, 50);
             document.getElementById("loading").remove();
-            document.getElementById("loadmore").onclick = function (){
-                fillSomePrepIDs(prepids, 0, 50);
-            };
-            document.getElementById("loadall").onclick = function (){
-                fillSomePrepIDs(prepids, 0, 0);
-            };
+
+            $(document.getElementById("top").appendChild(document.createElement("button"))).
+                click(function () {
+                    var search = new RegExp($("#searchbar").val());
+                    fillSomePrepIDs(
+                        prepids.filter(function (element) {
+                            return search.test(element);
+                        }),
+                        0, 50);
+                }).html("Submit");
         }
     });
 

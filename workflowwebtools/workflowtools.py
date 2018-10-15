@@ -328,7 +328,7 @@ class WorkflowTools(object):
         errors = wkflow_obj.get_errors(True)
         output = []
 
-        # Need to track total sites, so wer
+        # Need to track total sites, so we need to do nested loops here
         for step, ecs in sorted(errors.iteritems()):
             allsites = set()
 
