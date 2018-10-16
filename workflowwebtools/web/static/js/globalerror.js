@@ -113,6 +113,7 @@ function fillPrepIDs() {
 
             $(document.getElementById("top").appendChild(document.createElement("button"))).
                 click(function () {
+                    $("#errortable tr").remove();
                     var search = new RegExp($("#searchbar").val());
                     fillSomePrepIDs(
                         prepids.filter(function (element) {
