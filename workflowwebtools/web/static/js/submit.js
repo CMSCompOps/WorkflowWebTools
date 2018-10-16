@@ -1,10 +1,49 @@
+function printSiteLists (method) {
+    console.log(method);
+};
+
+function makeTable (option, params) {
+
+    var methodsDiv = document.getElementById("sitemethods");
+    methodsDiv.innerHTML = "";
+
+    var paramsDiv = document.getElementById("actionparams");
+
+    if (["acdc", "recovery"].indexOf(option.action) >= 0) {
+        // ACDC is the most complex action, and needs parameters for each task and sites.
+        var methods = ["Auto", "Manual", "Ban"];
+        methodsDiv.appendChild(document.createElement("h4")).
+            appendChild(document.createTextNode("Site Selection Method:"));
+
+        methodsDiv.appendChild(document.createElement("p")).
+            appendChild(document.createTextNode(
+                "To see which sites are selected for this workflow under Auto, "
+                    + "check what is automatically checked under Manual. "
+                    + "Ban defaults to sites in drain. Same ban list applies to all tasks, "
+                    + "which otherwise pick sites from Auto."
+            ));
+
+        for (method in methods) {
+            var input = methodsDiv.appendChild(document.createElement("input"));
+            input.type = "radio";
+            input.name = "method";
+            input.value = methods[method];
+            input.checked = (method == 0)
+            input.onclick = function (event) {
+                printSiteLists(event.target.value);
+            };
+            methodsDiv.appendChild(document.createTextNode(methods[method]));
+        }
+    }
+};
+
 var reasons = {
     reasons: {},
     fillReason: function (caller) {
         $(caller.parentNode).find(".shortreason").
             attr("value", caller.value);
         $(caller.parentNode).find(".longreason").
-            html(reasons.reasons[caller.value] || '');
+            html(reasons.reasons[caller.value] || "");
     },
     addReason: function () {
         var reasonDiv = document.getElementById("reasons");
@@ -31,7 +70,7 @@ function setReasons() {
     $.ajax({
         url: "/getreasons",
         success: function (response) {
-            var liststring = '';
+            var liststring = "";
 
             response.forEach(function (reason) {
                 reasons.reasons[reason.short] = reason.long;
@@ -39,7 +78,7 @@ function setReasons() {
                     + reason.short + '</option>';
             });
 
-            reasons.content = 'Select reason: '
+            reasons.content = "Select reason: "
                 + '<select name= "selectedreason" onchange="reasons.fillReason(this)">'
                 + '<option  value="">New Reason</option>'
                 + liststring
@@ -56,31 +95,61 @@ function setReasons() {
 }
 
 function addOptions (form, params) {
+    var simple_texts =  ["memory", "cores"];
+    var xrd_opts =  {
+        xrootd: ["enabled", "disabled"],
+        secondary: ["enabled", "disabled"],
+        splitting: split_list
+    };
+    var split_list = ["2x", "3x", "10x", "20x", "50x", "100x", "200x", "max"];
+
     [
         {
             action: "clone",
-            description: "Kill and Clone"
+            description: "Kill and Clone",
+            texts: simple_texts,
+            opts: {
+                "splitting": split_list
+            }
         },
         {
             action: "acdc",
-            description: "ACDC"
+            description: "ACDC",
+            texts: simple_texts,
+            opts: xrd_opts
         },
         {
             action: "recovery",
-            description: "Recovery (not ACDC)"
+            description: "Recovery (not ACDC)",
+            texts: [
+                "memory",
+                "group",
+                "cores"
+            ],
+            opts: xrd_opts
         },
         {
             action: "special",
-            description: "Other action"
+            description: "Other action",
+            opts: {
+                "action": ["by-pass", "force-complete", "on-hold"]
+            },
+            texts: [
+                "other",
+            ]
         }
     ].forEach(function (option) {
+
         $(form.appendChild(document.createElement("input"))).
             attr("type", "radio").attr("name", "action").attr("value", option.action).
             click(function () {
-                makeTable(option.action, params)
+                makeTable(option, params)
             });
+
         form.appendChild(document.createTextNode(option.description));
+
     });
+
     form.appendChild(document.createElement("br"));
 }
 
@@ -99,11 +168,15 @@ function makeForm(workflow) {
                 alert("Submitted");
             };
 
-            $(form.appendChild(document.createElement("input"))).
-                attr("type", "hidden").attr("name", "workflows").attr("value", workflow);
+            var params = [
+                {
+                    workflow: workflow
+                }
+            ];
 
             addOptions(form, params);
 
+            form.appendChild(document.createElement("div")).id = "sitemethods";
             form.appendChild(document.createElement("div")).id = "actionparams";
 
             var button = form.appendChild(document.createElement("button"));
@@ -115,7 +188,9 @@ function makeForm(workflow) {
             form.appendChild(document.createElement("br")).clear = "both";
 
             $(form.appendChild(document.createElement("input"))).
-                attr("type", "submit").attr("value", "Submit");
+                attr("type", "submit").attr("value", "Submit").click(function () {
+                    // Create a JavaScript Object of all the parameters and send them
+                });
 
             formDiv.appendChild(form);
         }

@@ -1,4 +1,7 @@
 
+// This is the number of workflows that get automatically loaded for the global error page
+var eachLoad = 40;
+
 // Colors dictionary
 var status_colors = {
     "none": "red",
@@ -37,7 +40,7 @@ function fillWorkflows(rowObj) {
             rowObj.appendChild(document.createElement("td")).appendChild(
                 document.createTextNode(workflows.reduce(function (a, b) {
                     return {errors: a.errors + b.errors};
-                }).errors));
+                }).errors || 0));
 
             var report = rowObj.appendChild(document.createElement("td"));
             var drawn = 0;
@@ -89,10 +92,10 @@ function fillSomePrepIDs(prepids, start, howmany) {
 
     // We can still load more
     if (iPrep < prepids.length) {
-        $("#loadmore").click(function () {
-                fillSomePrepIDs(prepids, iPrep, 50);
+        $("#loadmore").html("Load " + eachLoad + " More").off("click").click(function () {
+                fillSomePrepIDs(prepids, iPrep, eachLoad);
             });
-        $("#loadall").click(function () {
+        $("#loadall").off("click").click(function () {
                 fillSomePrepIDs(prepids, iPrep, 0);
             });
     }
@@ -108,7 +111,7 @@ function fillPrepIDs() {
     $.ajax({
         url: "/getprepids",
         success: function (prepids) {
-            fillSomePrepIDs(prepids, 0, 50);
+            fillSomePrepIDs(prepids, 0, eachLoad);
             document.getElementById("loading").remove();
 
             $(document.getElementById("top").appendChild(document.createElement("button"))).
@@ -119,7 +122,7 @@ function fillPrepIDs() {
                         prepids.filter(function (element) {
                             return search.test(element);
                         }),
-                        0, 50);
+                        0, eachLoad);
                 }).html("Submit");
         }
     });

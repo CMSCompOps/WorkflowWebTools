@@ -449,8 +449,7 @@ class WorkflowTools(object):
         :rtype: JSON
         """
 
-        return globalerrors.check_session(cherrypy.session).\
-            get_workflow(workflow).get_workflow_parameters()
+        return self.get(workflow).get_workflow_parameters()
 
 
     @cherrypy.expose
@@ -563,7 +562,7 @@ class WorkflowTools(object):
             'types': main_error_class[0],
             'recommended': main_error_class[1],
             'params': main_error_class[2]
-            }
+        }
 
 
     @cherrypy.expose
