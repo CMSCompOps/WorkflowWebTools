@@ -293,8 +293,6 @@ class WorkflowInfo(Info):
 
             for row in acdc_server_response['rows']:
                 task = row['doc']['fileset_name']
-                if True in [(steptype in task) for steptype in ['LogCollect', 'Cleanup']]:
-                    continue
 
                 new_output = output.get(task, {})
                 new_errorcode = new_output.get('NotReported', {})
@@ -304,6 +302,10 @@ class WorkflowInfo(Info):
 
                 new_output['NotReported'] = new_errorcode
                 output[task] = new_output
+
+        for step in list(output):
+            if True in [(steptype in step) for steptype in ['LogCollect', 'Cleanup']]:
+                output.pop(step)
 
         return output
 

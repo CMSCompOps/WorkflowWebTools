@@ -14,9 +14,21 @@ function printSiteLists (method, params) {
 
                 var siteList = $(this).find(".sitelist")[0];
                 params.allsites.forEach(function (site) {
+                    var run = (torun.indexOf(site.site) >= 0);
+                    var bad = (site.drain != "enabled");
+
                     var siteListDiv = siteList.appendChild(document.createElement("div"));
                     siteListDiv.className = "sitecheck";
-                    siteListDiv.innerHTML = '<input type="checkbox" name="sites" value="' + site.site + '">' + site.site + '</input>';
+                    if (bad)
+                        siteListDiv.style.color = "red";
+                    if (run)
+                        siteListDiv.style.fontWeight = "900";
+
+                    $(siteListDiv.appendChild(document.createElement("input"))).
+                        attr("type", "checkbox").attr("name", "sites").
+                        attr("value", site.site).
+                        attr("checked", (method == "Ban" && bad) || (method != "Ban" && run));
+                    siteListDiv.appendChild(document.createTextNode(site.site));
                 });
                 siteList.appendChild(document.createElement("div")).className = "clear";
             }

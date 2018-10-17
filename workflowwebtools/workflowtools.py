@@ -40,6 +40,7 @@ class WorkflowTools(object):
 
     def __init__(self):
         self.lock = threading.Lock()
+        self.wflock = threading.Lock()
         self.readinesslock = threading.Lock()
         self.cluster()
         self.update()
@@ -60,7 +61,9 @@ class WorkflowTools(object):
         if self.markedreset:
             for pid in self.markedreset:
                 for wf in self.prepids[pid].get_workflows():
+                    self.wflock.acquire()
                     workflow_obj = self.workflows.pop(wf, None)
+                    self.wflock.release()
                     if workflow_obj:
                         workflow_obj.reset()
 
@@ -76,15 +79,12 @@ class WorkflowTools(object):
     def update(self):
 
         self.lock.acquire()
+        self.workflows = {}
 
         try:
-            self.workflows = {
-                workflow: workflowinfo.WorkflowInfo(workflow)
-                for workflow in
-                statuses.get_manual_workflows(
-                    serverconfig.config_dict()['data']['all_errors']
-                )
-            }
+            for workflow in statuses.get_manual_workflows(
+                    serverconfig.config_dict()['data']['all_errors']):
+                self.get(workflow)
 
             self.prepids = {
                 prepid: workflowinfo.PrepIDInfo(prepid) for prepid in
@@ -180,12 +180,13 @@ class WorkflowTools(object):
 
 
     def get(self, workflow):
-        self.lock.acquire()
+        self.wflock.acquire()
         wkflow_obj = self.workflows.get(workflow)
         if wkflow_obj is None:
-            wkflow_obj = workflowinfo.WorkflowInfo(workflow)
-            self.workflows[workflow] = wkflow_obj
-        self.lock.release()
+            self.workflows[workflow] = workflowinfo.WorkflowInfo(workflow)
+            wkflow_obj = self.workflows[workflow]
+
+        self.wflock.release()
         return wkflow_obj
 
 
@@ -194,7 +195,7 @@ class WorkflowTools(object):
     def getworkflows(self, prepid):
         workflow_objs = {
             workflow: {
-                'obj': workflowinfo.WorkflowInfo(workflow),
+                'obj': self.get(workflow),
                 'time': requesttime
                 }
             for workflow, requesttime in
