@@ -53,6 +53,11 @@ def cached_json(attribute, timeout=None):
                 os.mkdir(self.cache_dir)
 
             self.cachelock.acquire()
+            if attribute not in self.cachelocks:
+                self.cachelocks[attribute] = threading.Lock()
+
+            self.cachelocks[attribute].acquire()
+            self.cachelock.release()
 
             check_var = self.cache.get(attribute)
 
@@ -75,7 +80,7 @@ def cached_json(attribute, timeout=None):
 
                 self.cache[attribute] = check_var
 
-            self.cachelock.release()
+            self.cachelocks[attribute].release()
 
             return check_var or {}
 
@@ -180,6 +185,7 @@ class Info(object):
         self.cache_dir = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
         self.bak_dir = os.path.join(self.cache_dir, 'bak')
         self.cachelock = threading.Lock()
+        self.cachelocks = {}
 
     def __str__(self):
         pass
@@ -287,6 +293,9 @@ class WorkflowInfo(Info):
 
             for row in acdc_server_response['rows']:
                 task = row['doc']['fileset_name']
+                if True in [(steptype in task) for steptype in ['LogCollect', 'Cleanup']]:
+                    continue
+
                 new_output = output.get(task, {})
                 new_errorcode = new_output.get('NotReported', {})
                 for file_replica in row['doc']['files'].values():
@@ -333,6 +342,7 @@ class WorkflowInfo(Info):
                         use_cert=True)
 
         recovery_docs = [row['doc'] for row in docs.get('rows', [])]
+        site_white_list = set(self.get_workflow_parameters()['SiteWhitelist'])
 
         for doc in recovery_docs:
             task = doc['fileset_name']
@@ -341,7 +351,7 @@ class WorkflowInfo(Info):
             for replica, info in doc['files'].iteritems():
                 # For fake files, just return the site whitelist
                 if replica.startswith('MCFakeFile'):
-                    locations = set(self.get_workflow_parameters()['SiteWhitelist'])
+                    locations = site_white_list
                 else:
                     locations = set(info['locations'])
 
@@ -377,6 +387,7 @@ class WorkflowInfo(Info):
                 out_list.append(clean_site)
 
         out_list.sort()
+
         return out_list
 
     @cached_json('jobdetail')

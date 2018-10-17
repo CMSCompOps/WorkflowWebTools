@@ -1,5 +1,26 @@
-function printSiteLists (method) {
-    console.log(method);
+function printSiteLists (method, params) {
+    $(".sitelist").html("");
+
+    if (method != "Auto")
+        $(".paramtable").filter(
+            function () {
+                var length = $(this).find("h3 a").length;
+                return (method == "Ban" ? length === 0 : length != 0);
+            }
+        ).each(
+            function () {
+                var step = $(this).find("h3 a").html();
+                var torun = params.sitestorun[step] || [];
+
+                var siteList = $(this).find(".sitelist")[0];
+                params.allsites.forEach(function (site) {
+                    var siteListDiv = siteList.appendChild(document.createElement("div"));
+                    siteListDiv.className = "sitecheck";
+                    siteListDiv.innerHTML = '<input type="checkbox" name="sites" value="' + site.site + '">' + site.site + '</input>';
+                });
+                siteList.appendChild(document.createElement("div")).className = "clear";
+            }
+        );
 };
 
 function makeTable (option, params) {
@@ -8,6 +29,14 @@ function makeTable (option, params) {
     methodsDiv.innerHTML = "";
 
     var paramsDiv = document.getElementById("actionparams");
+    paramsDiv.innerHTML = "";
+
+    function addParamTable (input) {
+        var div = input || paramsDiv.appendChild(document.createElement("div"));
+        div.className = "paramtable";
+        div.appendChild(document.createElement("div")).className = "sitelist";
+        return div;
+    };
 
     if (["acdc", "recovery"].indexOf(option.action) >= 0) {
         // ACDC is the most complex action, and needs parameters for each task and sites.
@@ -30,11 +59,56 @@ function makeTable (option, params) {
             input.value = methods[method];
             input.checked = (method == 0)
             input.onclick = function (event) {
-                printSiteLists(event.target.value);
+                printSiteLists(event.target.value, params);
             };
             methodsDiv.appendChild(document.createTextNode(methods[method]));
         }
+
+        function addTaskHeader (inner) {
+            var div = paramsDiv.appendChild(document.createElement("div"));
+            var taskParamHeader = div.appendChild(document.createElement("h3"));
+            taskParamHeader.innerHTML = inner;
+            taskParamHeader.className = "taskparamhead";
+
+            addParamTable(div);
+        };
+
+        addTaskHeader("All Steps (use this or fill all others)");
+        params.steps.forEach(function (step) {
+            addTaskHeader('<a href="#' + step + '">' + step + '</a>');
+        });
+
     }
+    else
+        addParamTable().style.margin = "15px 0px 15px 0px";
+
+    $(".paramtable").each(function () {
+        var paramtable = this;
+        option.opts.forEach(function (opt) {
+            var optDiv = paramtable.appendChild(document.createElement("div"));
+            optDiv.appendChild(document.createElement("b")).innerHTML = opt.name + ": ";
+
+            opt.options.forEach(function (value) {
+                optDiv.appendChild(document.createTextNode("    " + value + "  "));
+                var radio = optDiv.appendChild(document.createElement("input"));
+                radio.type = "radio";
+                radio.name = opt.name;
+                radio.value = value;
+                radio.ondblclick = function() {
+                    this.checked = false;
+                };
+            });
+        });
+
+        option.texts.forEach(function (text) {
+            var optDiv = paramtable.appendChild(document.createElement("div"));
+            optDiv.appendChild(document.createElement("b")).innerHTML = text + ": ";
+
+            var input = optDiv.appendChild(document.createElement("input"));
+            input.type = "text";
+            input.name = text;
+        });
+    });
 };
 
 var reasons = {
@@ -95,22 +169,22 @@ function setReasons() {
 }
 
 function addOptions (form, params) {
-    var simple_texts =  ["memory", "cores"];
-    var xrd_opts =  {
-        xrootd: ["enabled", "disabled"],
-        secondary: ["enabled", "disabled"],
-        splitting: split_list
-    };
     var split_list = ["2x", "3x", "10x", "20x", "50x", "100x", "200x", "max"];
+    var simple_texts =  ["memory", "cores"];
+    var xrd_opts =  [
+        {name: "xrootd", options: ["enabled", "disabled"]},
+        {name: "secondary", options: ["enabled", "disabled"]},
+        {name: "splitting", options: split_list}
+    ];
 
     [
         {
             action: "clone",
             description: "Kill and Clone",
             texts: simple_texts,
-            opts: {
-                "splitting": split_list
-            }
+            opts: [
+                {name: "splitting", options: split_list}
+            ]
         },
         {
             action: "acdc",
@@ -131,9 +205,9 @@ function addOptions (form, params) {
         {
             action: "special",
             description: "Other action",
-            opts: {
-                "action": ["by-pass", "force-complete", "on-hold"]
-            },
+            opts: [
+                {name: "action", options: ["by-pass", "force-complete", "on-hold"]},
+            ],
             texts: [
                 "other",
             ]
@@ -168,12 +242,6 @@ function makeForm(workflow) {
                 alert("Submitted");
             };
 
-            var params = [
-                {
-                    workflow: workflow
-                }
-            ];
-
             addOptions(form, params);
 
             form.appendChild(document.createElement("div")).id = "sitemethods";
@@ -189,6 +257,11 @@ function makeForm(workflow) {
 
             $(form.appendChild(document.createElement("input"))).
                 attr("type", "submit").attr("value", "Submit").click(function () {
+                    var output = [
+                        {
+                            workflow: workflow
+                        }
+                    ];
                     // Create a JavaScript Object of all the parameters and send them
                 });
 

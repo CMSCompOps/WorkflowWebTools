@@ -71,13 +71,14 @@ class ErrorInfo(object):
         output = []
 
         self.db_lock.acquire()
+        curs = self.conn.cursor()
         try:
             if params:
-                self.curs.execute(query, params)
+                curs.execute(query, params)
             else:
-                self.curs.execute(query)
+                curs.execute(query)
 
-            output = list(self.curs.fetchall())
+            output = list(curs.fetchall())
         finally:
             self.db_lock.release()
 

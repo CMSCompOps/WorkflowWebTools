@@ -492,18 +492,21 @@ class WorkflowTools(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def submissionparams(self, workflow):
+
         wkfl_obj = self.get(workflow)
+        steps = sorted(wkfl_obj.get_errors())
 
         return {
             'submitted': str(manageactions.get_datetime_submitted(workflow)),
-            'sitestorun': [
-                {
-                    'step': step,
-                    'sites': wkfl_obj.site_to_run(step)
-                }
-                for step in sorted(wkfl_obj.get_errors())
-            ],
-            'allsites': sorted([site['site'] for site in self.sitestatuses()])
+            'steps': steps,
+            'sitestorun': {
+                step: wkfl_obj.site_to_run(step) for step in steps
+            },
+            'allsites': sorted(
+                [{'site': site['site'], 'drain': site['drain']}
+                 for site in self.sitestatuses()],
+                key=lambda s: s['site']
+            )
         }
 
 
@@ -554,8 +557,12 @@ class WorkflowTools(object):
         :rtype: JSON
         """
 
+        cherrypy.log('classifying ' + workflow)
+
         max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
         main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
+
+        cherrypy.log('done classifying ' + workflow)
 
         return {
             'maxerror': max_error,

@@ -40,7 +40,7 @@ function fillWorkflows(rowObj) {
             rowObj.appendChild(document.createElement("td")).appendChild(
                 document.createTextNode(workflows.reduce(function (a, b) {
                     return {errors: a.errors + b.errors};
-                }).errors || 0));
+                }, {errors: 0}).errors));
 
             var report = rowObj.appendChild(document.createElement("td"));
             var drawn = 0;
