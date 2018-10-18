@@ -135,7 +135,6 @@ def errors_for_workflow(workflow, url='cmsweb.cern.ch'):
 
     return output
 
-
 def explain_errors(workflow, errorcode):
     """
     Get example errors for a given workflow and errorcode
@@ -292,6 +291,60 @@ class WorkflowInfo(Info):
 
         return output
 
+    @cached_json('reqdetail')
+    def _get_reqdetail(self):
+        """
+        Get the request detail from the wmstatsserver
+
+        :returns: The request detail json from the server or cache
+        :rtype: dict
+        """
+
+        reqDetail = {self.workflow : {}}
+        raw =  get_json(self.url,
+                        '/wmstatsserver/data/request/%s' % self.workflow,
+                        use_cert=True)
+
+        result = raw.get('result', [])
+        if not result: return reqDetail
+
+        reqDetail[self.workflow] = result[0].get(self.workflow, {})
+
+        return reqDetail
+
+    def get_failure_rate(self):
+        """
+        Get failure rate if you happen to have a `WorkflowInfo` object
+
+        :returns: workflow's failure rate
+
+        :rtype: float
+        """
+
+        result = self._get_reqdetail()
+
+        frate = 0.
+        wf_agents = result.get(self.workflow, {}).get('AgentJobInfo', {})
+        if not wf_agents:
+            return frate
+
+        nsuccess = 0
+        nfailure = 0
+        for agent, agentdata in wf_agents.iteritems():
+            status = agentdata.get('status', {})
+            if not status: continue
+
+            nsuccess += status.get('success', 0)
+
+            for ftype, num in status.get('failure', {}).iteritems():
+                nfailure += num
+
+        try:
+            frate = float(nfailure)/(nfailure+nsuccess)
+        except ZeroDivisionError:
+            pass
+
+        return frate
 
     @cached_json('recovery_info')
     def get_recovery_info(self):
