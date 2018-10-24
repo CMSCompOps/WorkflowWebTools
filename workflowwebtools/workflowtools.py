@@ -42,6 +42,7 @@ class WorkflowTools(object):
         self.lock = threading.Lock()
         self.wflock = threading.Lock()
         self.readinesslock = threading.Lock()
+        self.seeworkflowlock = threading.Lock()
         self.cluster()
         self.update()
 
@@ -412,32 +413,42 @@ class WorkflowTools(object):
                  Resets personal cache in the meanwhile, just in case
         """
 
-        if workflow not in \
-                globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
-            WorkflowTools.RESET_LOCK.acquire()
-            info = globalerrors.check_session(cherrypy.session)
-            if info:
-                info.teardown()
-                info.setup()
-            WorkflowTools.RESET_LOCK.release()
+        self.seeworkflowlock.acquire()
 
-            raise cherrypy.HTTPError(404)
+        output = ''
 
-        workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
+        try:
+            if workflow not in \
+                    globalerrors.check_session(
+                            cherrypy.session, can_refresh=True).return_workflows():
+                WorkflowTools.RESET_LOCK.acquire()
+                info = globalerrors.check_session(cherrypy.session)
+                if info:
+                    info.teardown()
+                    info.setup()
+                WorkflowTools.RESET_LOCK.release()
 
-        drain_statuses = {sitename: drain for sitename, _, drain in \
-                              sitereadiness.i_site_readiness()}
+                raise cherrypy.HTTPError(404)
 
-        return render(
-            'workflowtables.html',
-            workflowdata=workflowdata,
-            workflow=workflow,
-            issuggested=issuggested,
-            workflowinfo=globalerrors.check_session(cherrypy.session).get_workflow(workflow),
-            readiness=globalerrors.check_session(cherrypy.session).readiness,
-            drain_statuses=drain_statuses,
-            last_submitted=manageactions.get_datetime_submitted(workflow)
-            )
+            workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
+
+            drain_statuses = {sitename: drain for sitename, _, drain in \
+                                  sitereadiness.i_site_readiness()}
+
+            output = render(
+                'workflowtables.html',
+                workflowdata=workflowdata,
+                workflow=workflow,
+                issuggested=issuggested,
+                workflowinfo=globalerrors.check_session(cherrypy.session).get_workflow(workflow),
+                readiness=globalerrors.check_session(cherrypy.session).readiness,
+                drain_statuses=drain_statuses,
+                last_submitted=manageactions.get_datetime_submitted(workflow)
+                )
+        finally:
+            self.seeworkflowlock.release()
+
+        return output
 
 
     @cherrypy.expose
@@ -523,24 +534,33 @@ class WorkflowTools(object):
                   If the quey is not a valid workflow in the system, an empty list is returned
         :rtype: JSON
         """
-        if workflow not in \
-                globalerrors.check_session(cherrypy.session, can_refresh=True).return_workflows():
-            return []
+        output = {'similar': [], 'acted': []}
 
-        clusterworkflows.CLUSTER_LOCK.acquire()
+        self.seeworkflowlock.acquire()
 
-        similar_wfs = clusterworkflows.\
-            get_clustered_group(workflow, self.clusterer, cherrypy.session)
+        try:
+            if workflow in \
+                    globalerrors.check_session(cherrypy.session,
+                                               can_refresh=True).return_workflows():
 
-        clusterworkflows.CLUSTER_LOCK.release()
+                clusterworkflows.CLUSTER_LOCK.acquire()
 
-        acted = [
-            wf for wf in manageactions.get_acted_workflows(
-                serverconfig.get_history_length()) if wf in similar_wfs
-        ]
+                similar_wfs = clusterworkflows.\
+                    get_clustered_group(workflow, self.clusterer, cherrypy.session)
 
-        return {'similar': sorted(list(similar_wfs)),
-                'acted': acted}
+                clusterworkflows.CLUSTER_LOCK.release()
+
+                acted = [
+                    wf for wf in manageactions.get_acted_workflows(
+                        serverconfig.get_history_length()) if wf in similar_wfs
+                ]
+
+                output = {'similar': sorted(list(similar_wfs)),
+                          'acted': acted}
+        finally:
+            self.seeworkflowlock.release()
+
+        return output
 
 
     @cherrypy.expose
@@ -558,19 +578,24 @@ class WorkflowTools(object):
         :rtype: JSON
         """
 
-        cherrypy.log('classifying ' + workflow)
+        output = {}
+        self.seeworkflowlock.acquire()
 
-        max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-        main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
+        try:
+            max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
+            main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
 
-        cherrypy.log('done classifying ' + workflow)
+            output = {
+                'maxerror': max_error,
+                'types': main_error_class[0],
+                'recommended': main_error_class[1],
+                'params': main_error_class[2]
+            }
 
-        return {
-            'maxerror': max_error,
-            'types': main_error_class[0],
-            'recommended': main_error_class[1],
-            'params': main_error_class[2]
-        }
+        finally:
+            self.seeworkflowlock.release()
+
+        return output
 
 
     @cherrypy.expose
