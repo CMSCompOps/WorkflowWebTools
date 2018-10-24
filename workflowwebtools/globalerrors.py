@@ -263,11 +263,13 @@ class ErrorInfo(object):
 
         if self._step_list is None:
             self._step_list = defaultdict(list)
+            cherrypy.log('Getting db_lock: 2')
             self.db_lock.acquire()
             self.curs.execute('SELECT DISTINCT(stepname) FROM workflows ORDER BY stepname')
             for tup in self.curs.fetchall():
                 stepname = tup[0]
                 self._step_list[stepname.split('/')[1]].append(stepname)
+            cherrypy.log('Releasing db_lock: 2')
             self.db_lock.release()
 
         return self._step_list[workflow]
@@ -329,11 +331,14 @@ def check_session(session, can_refresh=False):
     """
 
     if session:
+        cherrypy.log('Getting global lock: 1')
         GLOBAL_LOCK.acquire()
         if session.get('lock') is None:
             session['lock'] = threading.Lock()
+        cherrypy.log('Releasing global lock: 1')
         GLOBAL_LOCK.release()
 
+        cherrypy.log('Getting session lock')
         session['lock'].acquire()
 
         if session.get('info') is None:
@@ -341,12 +346,14 @@ def check_session(session, can_refresh=False):
         theinfo = session.get('info')
 
     else:
+        cherrypy.log('Getting global lock: 2')
         GLOBAL_LOCK.acquire()
         global GLOBAL_INFO
         if GLOBAL_INFO is None:
             GLOBAL_INFO = ErrorInfo()
 
         theinfo = GLOBAL_INFO
+        cherrypy.log('Releasing global lock: 2')
         GLOBAL_LOCK.release()
 
     # If session ErrorInfo is old, set up another connection
@@ -355,6 +362,7 @@ def check_session(session, can_refresh=False):
         theinfo.setup()
 
     if session:
+        cherrypy.log('Releasing session lock')
         session['lock'].release()
 
     return theinfo
