@@ -652,40 +652,52 @@ class WorkflowTools(object):
         if action == '':
             return render('scolduser.html', workflow=workflows[0])
 
-        workflows, reasons, params = manageactions.\
-            submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
-                         **kwargs)
+        output = ''
 
-        # Immediately get actions to check the sites list
-        check_actions = manageactions.get_actions()
-        blank_sites_subtask = []
-        sites_to_run = {}
-        # Loop through all workflows just submitted
-        for workflow in workflows:
-            # Check sites of recovered workflows
-            if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
-                for subtask, params in check_actions[workflow]['Parameters'].iteritems():
-                    # Empty sites are noted
-                    if not params.get('sites'):
-                        blank_sites_subtask.append('/%s/%s' % (workflow, subtask))
-                        sites_to_run['/%s/%s' % (workflow, subtask)] = \
-                            globalerrors.check_session(cherrypy.session).\
-                            get_workflow(workflow).site_to_run(subtask)
+        self.seeworkflowlock.acquire()
+        try:
 
-        if blank_sites_subtask:
-            drain_statuses = {sitename: drain for sitename, _, drain in \
-                                  sitereadiness.i_site_readiness()}
-            return render('picksites.html',
-                          tasks=blank_sites_subtask,
-                          statuses=drain_statuses,
-                          sites_to_run=sites_to_run)
+            workflows, reasons, params = manageactions.\
+                submitaction(cherrypy.request.login, workflows, action, cherrypy.session,
+                             **kwargs)
 
-        return render('actionsubmitted.html',
-                      workflows=workflows,
-                      action=action,
-                      reasons=reasons,
-                      params=params,
-                      user=cherrypy.request.login)
+            # Immediately get actions to check the sites list
+            check_actions = manageactions.get_actions()
+            blank_sites_subtask = []
+            sites_to_run = {}
+            # Loop through all workflows just submitted
+            for workflow in workflows:
+                # Check sites of recovered workflows
+                if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
+                    for subtask, params in check_actions[workflow]['Parameters'].iteritems():
+                        # Empty sites are noted
+                        if not params.get('sites'):
+                            blank_sites_subtask.append('/%s/%s' % (workflow, subtask))
+                            sites_to_run['/%s/%s' % (workflow, subtask)] = \
+                                globalerrors.check_session(cherrypy.session).\
+                                get_workflow(workflow).site_to_run(subtask)
+
+            if blank_sites_subtask:
+                drain_statuses = {sitename: drain for sitename, _, drain in \
+                                      sitereadiness.i_site_readiness()}
+                output = render('picksites.html',
+                                tasks=blank_sites_subtask,
+                                statuses=drain_statuses,
+                                sites_to_run=sites_to_run)
+
+            else:
+                output = render('actionsubmitted.html',
+                                workflows=workflows,
+                                action=action,
+                                reasons=reasons,
+                                params=params,
+                                user=cherrypy.request.login)
+
+        finally:
+            self.seeworkflowlock.release()
+
+        return output
+
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
