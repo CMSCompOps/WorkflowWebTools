@@ -1,3 +1,5 @@
+var allHeader = "All Steps (use this or fill all others)";
+
 function printSiteLists (method, params) {
     $(".sitelist").html("");
 
@@ -82,10 +84,16 @@ function makeTable (option, params) {
             taskParamHeader.innerHTML = inner;
             taskParamHeader.className = "taskparamhead";
 
+            if (inner != allHeader) {
+                $(div.appendChild(document.createElement("input"))).
+                    attr("type", "checkbox").attr("class", "dothis");
+                div.appendChild(document.createElement("span")).innerHTML = "Only this task";
+            }
+
             addParamTable(div);
         };
 
-        addTaskHeader("All Steps (use this or fill all others)");
+        addTaskHeader(allHeader);
         params.steps.forEach(function (step) {
             addTaskHeader('<a href="#' + step + '">' + step + '</a>');
         });
@@ -239,6 +247,40 @@ function addOptions (form, params) {
     form.appendChild(document.createElement("br"));
 }
 
+function paramsOfDiv (sel) {
+    var output = {};
+    $(sel).find("input:radio:checked, input:text").each(function () {
+        output[this.name] = this.value;
+    });
+    return output;
+}
+
+function buildSubmit (workflow) {
+    var action = $("form input[name=action]:checked").val();
+
+    var params = function () {
+        if (["acdc", "recovery"].indexOf(action) >= 0) {
+            return {};
+        }
+        else {
+            return paramsOfDiv(".paramtable");
+        }
+    } ();
+
+    var output = [
+        {
+            workflow: workflow,
+            parameters: {
+                Action: action,
+                Reasons: $(".longreason").map(function(i, ele) { return ele.value }).get(),
+                ACDCs: [],
+                Parameters: params
+            }
+        }
+    ];
+    return output;
+}
+
 function makeForm(workflow) {
 
     $.ajax({
@@ -251,7 +293,8 @@ function makeForm(workflow) {
             var form = formDiv.appendChild(document.createElement("form"));
             form.action = "javascript:;";
             form.onsubmit = function () {
-                alert("Submitted");
+                submission = buildSubmit(workflow);
+                alert("Will submit " + JSON.stringify(submission));
             };
 
             addOptions(form, params);
@@ -268,14 +311,7 @@ function makeForm(workflow) {
             form.appendChild(document.createElement("br")).clear = "both";
 
             $(form.appendChild(document.createElement("input"))).
-                attr("type", "submit").attr("value", "Submit").click(function () {
-                    var output = [
-                        {
-                            workflow: workflow
-                        }
-                    ];
-                    // Create a JavaScript Object of all the parameters and send them
-                });
+                attr("type", "submit").attr("value", "Submit");
 
             formDiv.appendChild(form);
         }
