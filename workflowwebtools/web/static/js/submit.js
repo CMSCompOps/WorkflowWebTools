@@ -1,5 +1,9 @@
 var allHeader = "All Steps (use this or fill all others)";
 
+function normalize (s) {
+    return s.replace(/^_/, "");
+}
+
 function printSiteLists (method, params) {
     $(".sitelist").html("");
 
@@ -106,7 +110,7 @@ function makeTable (option, params) {
         var paramtable = this;
         option.opts.forEach(function (opt) {
             var optDiv = paramtable.appendChild(document.createElement("div"));
-            optDiv.appendChild(document.createElement("b")).innerHTML = opt.name + ": ";
+            optDiv.appendChild(document.createElement("b")).innerHTML = normalize(opt.name) + ": ";
 
             opt.options.forEach(function (value) {
                 optDiv.appendChild(document.createTextNode("    " + value + "  "));
@@ -122,7 +126,7 @@ function makeTable (option, params) {
 
         option.texts.forEach(function (text) {
             var optDiv = paramtable.appendChild(document.createElement("div"));
-            optDiv.appendChild(document.createElement("b")).innerHTML = text + ": ";
+            optDiv.appendChild(document.createElement("b")).innerHTML = normalize(text) + ": ";
 
             var input = optDiv.appendChild(document.createElement("input"));
             input.type = "text";
@@ -226,7 +230,7 @@ function addOptions (form, params) {
             action: "special",
             description: "Other action",
             opts: [
-                {name: "action", options: ["by-pass", "force-complete", "on-hold"]},
+                {name: "_action", options: ["by-pass", "force-complete", "on-hold"]},
             ],
             texts: [
                 "other",
@@ -250,7 +254,7 @@ function addOptions (form, params) {
 function paramsOfDiv (sel) {
     var output = {};
     $(sel).find("input:radio:checked, input:text").each(function () {
-        output[this.name] = this.value;
+        output[normalize(this.name)] = this.value;
     });
     return output;
 }
