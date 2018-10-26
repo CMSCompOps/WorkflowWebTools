@@ -222,13 +222,14 @@ class WorkflowTools(object):
             key=lambda wkfl: workflow_objs[wkfl['workflow']]['time']
         )
 
+
     @cherrypy.expose
     @cherrypy.tools.json_in()
     def submit2(self):
         input_json = cherrypy.request.json
         manageactions.submit2(input_json['documents'])
         return 'Done'
-        
+
 
     @cherrypy.expose
     def globalerror(self, pievar='errorcode'):
