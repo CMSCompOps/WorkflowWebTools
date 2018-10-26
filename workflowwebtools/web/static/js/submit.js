@@ -1,7 +1,7 @@
 var allHeader = "All Steps (use this or fill all others)";
 
 function normalize (s) {
-    return s.replace(/^_/, "");
+    return s.replace(/^_+/, "");
 }
 
 function printSiteLists (method, params) {
@@ -51,7 +51,7 @@ function makeTable (option, params) {
 
     function addParamTable (input) {
         var div = input || paramsDiv.appendChild(document.createElement("div"));
-        div.className = "paramtable";
+        $(div).addClass("paramtable");
         div.appendChild(document.createElement("div")).className = "sitelist";
         return div;
     };
@@ -92,6 +92,7 @@ function makeTable (option, params) {
                 $(div.appendChild(document.createElement("input"))).
                     attr("type", "checkbox").attr("class", "dothis");
                 div.appendChild(document.createElement("span")).innerHTML = "Only this task";
+                div.className = "stepdiv";
             }
 
             addParamTable(div);
@@ -259,12 +260,39 @@ function paramsOfDiv (sel) {
     return output;
 }
 
-function buildSubmit (workflow) {
+function buildSubmit (workflow, sitesToRun) {
     var action = $("form input[name=action]:checked").val();
+    var siteMethod = $("#sitemethods input:radio:checked").val();
+
+    if (siteMethod == "Ban")
+        var banned = $(".sitecheck input:checked").map(function (i, ele) { return ele.value }).get();
 
     var params = function () {
         if (["acdc", "recovery"].indexOf(action) >= 0) {
-            return {};
+            var allSteps = {};
+            var onlySteps = {};
+            $(".stepdiv").each(
+                function () {
+                    var sel = $(this);
+
+                    var stepName = sel.find(".taskparamhead a").html();
+                    var stepParams = paramsOfDiv(this);
+                    stepParams["sites"] = function () {
+                        if (siteMethod == "Auto")
+                            return sitesToRun[stepName];
+                        if (siteMethod == "Manual")
+                            return sel.find(".sitecheck input:checked").map(function (i, ele) { return ele.value }).get();
+                        // Otherwise, filter out Banned
+                        return sitesToRun[stepName].filter(function (site) {return banned.indexOf(site) < 0});
+                    } ();
+
+                    var saveName = stepName.replace("/" + workflow + "/", "");
+                    allSteps[saveName] = stepParams;
+                    if (sel.find(".dothis:checked").length)
+                        onlySteps[saveName] = stepParams;
+                }
+            );
+            return $.isEmptyObject(onlySteps) ? allSteps : onlySteps;
         }
         else {
             return paramsOfDiv(".paramtable");
@@ -297,8 +325,15 @@ function makeForm(workflow) {
             var form = formDiv.appendChild(document.createElement("form"));
             form.action = "javascript:;";
             form.onsubmit = function () {
-                submission = buildSubmit(workflow);
-                alert("Will submit " + JSON.stringify(submission));
+                submission = buildSubmit(workflow, params.sitestorun);
+                if (confirm("Will submit " + JSON.stringify(submission)))
+                    $.ajax({
+                        url: "/submit2",
+                        type: "POST",
+                        dataType: "json",
+                        contentType : 'application/json',
+                        data: JSON.stringify({documents: submission})
+                    });
             };
 
             addOptions(form, params);
