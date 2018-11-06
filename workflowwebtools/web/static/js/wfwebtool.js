@@ -137,6 +137,18 @@ wfwebtool.fillSimilar = function () {
 };
 
 
+wfwebtool.predict = function () {
+    var wf = this.url.searchParams.get('workflow');
+    $.ajax({
+        url: '/predict',
+        data: {workflow: wf},
+        success: function (data) {
+            $('#prediction').html("Suggestion: " + data.Action);
+        }
+    });
+};
+
+
 function reset(wkfl) {
     theSpan = document.getElementById('reset');
     theSpan.innerHTML = 'Refreshing page, please wait...';
@@ -156,4 +168,5 @@ wfwebtool.workflowTable = function () {
     this.describeError();
     this.writeParams();
     this.fillSimilar();
+    this.predict();
 };

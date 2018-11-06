@@ -30,6 +30,7 @@ from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
 from workflowwebtools.web.templates import render
+from workflowwebtools.predict import evaluate
 
 from workflowwebtools import statuses
 
@@ -172,6 +173,11 @@ class WorkflowTools(object):
     def getprepids(self):
         return sorted(self.prepids.keys())
 
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def predict(self, workflow):
+        return evaluate.predict(self.get(workflow))#.get_errors(True))
 
     def get_status(self, workflow):
         status = self.statuses.get(workflow)
