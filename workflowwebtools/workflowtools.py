@@ -177,7 +177,7 @@ class WorkflowTools(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def predict(self, workflow):
-        return evaluate.predict(self.get(workflow))#.get_errors(True))
+        return evaluate.predict(self.get(workflow))
 
     def get_status(self, workflow):
         status = self.statuses.get(workflow)
@@ -433,17 +433,17 @@ class WorkflowTools(object):
         output = ''
 
         try:
-            if workflow not in \
-                    globalerrors.check_session(
-                            cherrypy.session, can_refresh=True).return_workflows():
-                WorkflowTools.RESET_LOCK.acquire()
-                info = globalerrors.check_session(cherrypy.session)
-                if info:
-                    info.teardown()
-                    info.setup()
-                WorkflowTools.RESET_LOCK.release()
+#            if workflow not in \
+#                    globalerrors.check_session(
+#                            cherrypy.session, can_refresh=True).return_workflows():
+#                WorkflowTools.RESET_LOCK.acquire()
+#                info = globalerrors.check_session(cherrypy.session)
+#                if info:
+#                    info.teardown()
+#                    info.setup()
+#                WorkflowTools.RESET_LOCK.release()
 
-                raise cherrypy.HTTPError(404)
+#                raise cherrypy.HTTPError(404)
 
             workflowdata = globalerrors.see_workflow(workflow, cherrypy.session)
 
