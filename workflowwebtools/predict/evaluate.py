@@ -2,7 +2,7 @@
 A module that evaluates a model and returns the prediction
 """
 
-from cmstoolbox import sitereadiness
+#from cmstoolbox import sitereadiness
 
 
 
