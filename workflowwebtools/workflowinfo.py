@@ -451,6 +451,22 @@ class WorkflowInfo(Info):
 
         return str(self.get_workflow_parameters().get('PrepID', 'NoPrepID'))
 
+    def get_monitoring_info(self):
+        """
+        :returns: the information to send to CMSMONIT
+        :rtype: dict
+        """
+        # Dummy call to get self.explanations filled
+        self.get_explanation(0)
+
+        return {
+            'errors': self.get_errors(True),
+            'prepID': self.get_prep_id(),
+            'params': self.get_workflow_parameters(),
+            'recovery': self.get_recovery_info(),
+            'logs': self.explanations
+            }
+
 
 class PrepIDInfo(Info):
     """
