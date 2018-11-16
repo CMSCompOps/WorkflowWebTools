@@ -34,7 +34,8 @@ def dump_json(file_name=None):
 
     for workflow in actions:
         for subtask in history.get_step_list(workflow):
-            if actions[workflow]['Action'] in ['acdc', 'recovery']:
+            action = actions[workflow]['Action']
+            if action in ['acdc', 'recovery']:
                 parameters = actions[workflow]['Parameters'].get(
                     '/'.join(subtask.split('/')[2:]), {})
             else:
@@ -52,7 +53,10 @@ def dump_json(file_name=None):
                 'parameters':
                     parameters
                 }
-            output[subtask]['parameters']['action'] = actions[workflow]['Action']
+
+            output[subtask]['parameters']['action'] = \
+                action if action != 'special' else \
+                actions[workflow]['Parameters']['action']
 
     if file_name:
         with open(file_name, 'w') as output_file:
