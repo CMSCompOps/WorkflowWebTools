@@ -59,6 +59,7 @@ def open_location(data_location):
             "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'")
         wkfs = [row for row, in oracle_cursor]
         oracle_db_conn.close()
+        cherrypy.log('Number of workflows from database: %i' % len(wkfs))
         return errors_from_list(wkfs)
 
     raw = None
