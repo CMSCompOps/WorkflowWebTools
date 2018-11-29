@@ -129,9 +129,37 @@ wfwebtool.fillSimilar = function () {
                 wfdiv.appendChild(document.createElement('br'));
             });
 
-            button.onclick = wftoggle.toggle;
+            button.onclick = function () {
+                wftoggle.toggle();
+            };
         }
     });
+};
+
+
+wfwebtool.predict = function () {
+    var wf = this.url.searchParams.get('workflow');
+    $.ajax({
+        url: '/predict',
+        data: {workflow: wf},
+        success: function (data) {
+            $('#prediction').html("Suggestion: " + data.Action);
+        }
+    });
+};
+
+
+function reset(wkfl) {
+    theSpan = document.getElementById('reset');
+    theSpan.innerHTML = 'Refreshing page, please wait...';
+    $.ajax({
+        url: '/resetcache?workflow=' + wkfl,
+        success: function () {
+            theSpan.style.color = 'red';
+            theSpan.innerHTML = 'Refreshing page...';
+            location.reload();
+        }
+    })
 };
 
 
@@ -140,4 +168,5 @@ wfwebtool.workflowTable = function () {
     this.describeError();
     this.writeParams();
     this.fillSimilar();
+    this.predict();
 };

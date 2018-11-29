@@ -79,24 +79,24 @@ def get_valid_emails():
     return emails
 
 
-#def wm_email():
-#    """
-#    :returns: the email of the webmaster
-#    :rtype: str
-#    """
-#
-#    return config_dict()['webmaster']['email']
-#
-#
-#def wm_name():
-#    """
-#    :returns: the name of the webmaster
-#    :rtype: str
-#    """
-#
-#    return config_dict()['webmaster']['name']
-#
-#
+def wm_email():
+    """
+    :returns: the email of the webmaster
+    :rtype: str
+    """
+
+    return config_dict()['webmaster']['email']
+
+
+def wm_name():
+    """
+    :returns: the name of the webmaster
+    :rtype: str
+    """
+
+    return config_dict()['webmaster']['name']
+
+
 #def host_name():
 #    """
 #    :returns: the name of the host from the config

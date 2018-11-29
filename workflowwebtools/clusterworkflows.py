@@ -79,6 +79,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
         settings = serverconfig.config_dict()['cluster'][column]
         column_output[column] = [numpy.zeros(len(allmap[column])) for _ in workflows]
 
+        cherrypy.log('Getting db_lock: 3')
         curs.db_lock.acquire()
         curs.curs.execute("SELECT SUM(numbererrors), {0}, stepname "
                           "FROM workflows "
@@ -96,6 +97,7 @@ def get_workflow_vectors(workflows, session=None, allmap=None):
                     if stepname:
                         wfname = stepname.split('/')[1]
 
+        cherrypy.log('releasing db_lock: 3')
         curs.db_lock.release()
 
         # Preprocessing here

@@ -407,9 +407,10 @@ function pieOff () {
 
 $(document).ready(function(){
     prepareRows();
-    drawPies();
+//    drawPies();
     document.getElementById('wait-message').style.display = 'none';
 
+/*
     $("a").tooltip({
         position: {
             my: 'left top+5'
@@ -443,4 +444,5 @@ $(document).ready(function(){
             pieOff();
         }
     });
+*/
 });
