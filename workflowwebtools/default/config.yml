@@ -81,3 +81,4 @@ cluster:
 cache_refresh:
   errors: 345600
 workspace: '.'
+refresh_period: 15
