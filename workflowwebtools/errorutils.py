@@ -41,14 +41,14 @@ def errors_from_list(workflows):
     return indict
 
 
-def open_location(data_location):
+def get_workflow_list_from_location(data_location):
     """
     This function assumes that the contents of the location is in JSON format.
-    It opens the data location and returns the dictionary.
+    It opens the data location and returns the list of workflows.
 
     :param str data_location: The location of the file or url
-    :returns: information in the JSON file
-    :rtype: dict
+    :returns: workflow list
+    :rtype: list
     """
     config_dict = serverconfig.config_dict()
 
@@ -60,7 +60,7 @@ def open_location(data_location):
         wkfs = [row for row, in oracle_cursor]
         oracle_db_conn.close()
         cherrypy.log('Number of workflows from database: %i' % len(wkfs))
-        return errors_from_list(wkfs)
+        return wkfs
 
     raw = None
 
@@ -87,10 +87,27 @@ def open_location(data_location):
     if not (keys and isinstance(raw[keys[0]], list)):
         return raw
 
-    return errors_from_list([
+    return [
         workflow for workflow, statuses in raw.iteritems()
         if True in ['manual' in status for status in statuses]
-    ])
+    ]
+
+
+def open_location(data_location):
+    """
+    This function assumes that the contents of the location is in JSON format.
+    It opens the data location and returns the dictionary.
+
+    :param str data_location: The location of the file or url
+    :returns: information in the JSON file
+    :rtype: dict
+    """
+    wkfs = get_workflow_list_from_location(data_location)
+    
+    if wkfs:
+        return errors_from_list(wkfs)
+    else:
+        return None
 
 
 def get_list_info(status_list):
