@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Errors</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+    <link rel="stylesheet" type="text/css" href="/static/css/globalerror.css">
+    <script type="text/javascript" src="static/js/globalerror.js"></script>
+  </head>
+
+  <body onLoad="fillPrepIDs()">
+    <div>
+      <span id="top">
+        <a href="?reset=true">Update the table</a>
+        <input id="searchbar" type="textbox"/>
+      </span>
+    </div>
+
+    <div>
+
+      <img style="float:left;" id="loading" src="/static/img/loading.gif" alt="Loading...">
+
+      <table id="errortable" border="3" style="border-collapse: collapse;">
+      </table>
+
+      <div style="float:left;">
+        <div id="workflows" style="position:fixed;">
+          Workflows: (Click on a row to begin)
+        </div>
+      </div>
+    </div>
+
+    <div style="clear:both;">
+      <button id="loadmore">Load More</button>
+      <button id="loadall">Load All</button>
+    </div>
+  </body>
+</html>

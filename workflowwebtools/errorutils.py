@@ -14,12 +14,32 @@ import urlparse
 
 import validators
 import cherrypy
+import cx_Oracle
 
 from cmstoolbox import sitereadiness
 from cmstoolbox.webtools import get_json
 
 from . import workflowinfo
 from . import serverconfig
+
+def errors_from_list(workflows):
+    """
+    :param list workflows: A list of workflows that are in assistance-manual
+    :returns: The errors for the workflows
+    :rtype: dict
+    """
+    indict = {}
+
+    for workflow in workflows:
+        base = workflowinfo.WorkflowInfo(workflow)
+        prep_id = base.get_prep_id()
+        for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
+            indict.update(
+                workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
+                )
+
+    return indict
+
 
 def open_location(data_location):
     """
@@ -30,8 +50,19 @@ def open_location(data_location):
     :returns: information in the JSON file
     :rtype: dict
     """
+    config_dict = serverconfig.config_dict()
+
+    if 'oracle' in config_dict:
+        oracle_db_conn = cx_Oracle.connect(*config_dict['oracle']) # pylint:disable=c-extension-no-member
+        oracle_cursor = oracle_db_conn.cursor()
+        oracle_cursor.execute(
+            "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'")
+        wkfs = [row for row, in oracle_cursor]
+        oracle_db_conn.close()
+        cherrypy.log('Number of workflows from database: %i' % len(wkfs))
+        return errors_from_list(wkfs)
+
     raw = None
-    indict = {}
 
     if os.path.isfile(data_location):
         with open(data_location, 'r') as input_file:
@@ -41,7 +72,7 @@ def open_location(data_location):
         components = urlparse.urlparse(data_location)
 
         # Anything we need for the Shibboleth cookie could be in the config file
-        cookie_stuff = serverconfig.config_dict()['data']
+        cookie_stuff = config_dict['data']
 
         raw = get_json(components.netloc, components.path,
                        use_https=True,
@@ -56,16 +87,10 @@ def open_location(data_location):
     if not (keys and isinstance(raw[keys[0]], list)):
         return raw
 
-    for workflow, statuses in raw.iteritems():
-        if True in ['manual' in status for status in statuses]:
-            base = workflowinfo.WorkflowInfo(workflow)
-            prep_id = base.get_prep_id()
-            for wkf in set(workflowinfo.PrepIDInfo(prep_id).get_workflows()):
-                indict.update(
-                    workflowinfo.WorkflowInfo(wkf).get_errors(get_unreported=True)
-                    )
-
-    return indict
+    return errors_from_list([
+        workflow for workflow, statuses in raw.iteritems()
+        if True in ['manual' in status for status in statuses]
+    ])
 
 
 def get_list_info(status_list):

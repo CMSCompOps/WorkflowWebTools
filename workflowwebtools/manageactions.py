@@ -180,6 +180,23 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     return workflows, reasons, params
 
 
+def submit2(documents): # pylint: disable=missing-docstring
+    coll = get_actions_collection()
+
+    for document in documents:
+        workflow = document['workflow']
+        params = document['parameters']
+
+        cherrypy.log('About to insert workflow: %s action: %s' % (workflow, params))
+
+        coll.update_one({'workflow': workflow},
+                        {'$set':
+                             {'timestamp': int(time.time()),
+                              'parameters': params,
+                              'acted': 0}},
+                        upsert=True)
+
+
 def get_actions(num_days=None, num_hours=24, acted=0):
     """Get the recent actions to be acted on in dictionary form
 

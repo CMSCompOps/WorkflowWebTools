@@ -9,6 +9,7 @@ import re
 import json
 import time
 import datetime
+import threading
 
 from collections import defaultdict
 from functools import wraps
@@ -51,6 +52,13 @@ def cached_json(attribute, timeout=None):
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
 
+            self.cachelock.acquire()
+            if attribute not in self.cachelocks:
+                self.cachelocks[attribute] = threading.Lock()
+
+            self.cachelocks[attribute].acquire()
+            self.cachelock.release()
+
             check_var = self.cache.get(attribute)
 
             if check_var is None:
@@ -71,6 +79,8 @@ def cached_json(attribute, timeout=None):
                         json.dump(check_var, cache_file)
 
                 self.cache[attribute] = check_var
+
+            self.cachelocks[attribute].release()
 
             return check_var or {}
 
@@ -173,6 +183,8 @@ class Info(object):
         self.cache = {}
         self.cache_dir = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
         self.bak_dir = os.path.join(self.cache_dir, 'bak')
+        self.cachelock = threading.Lock()
+        self.cachelocks = {}
 
     def __str__(self):
         pass
@@ -280,6 +292,7 @@ class WorkflowInfo(Info):
 
             for row in acdc_server_response['rows']:
                 task = row['doc']['fileset_name']
+
                 new_output = output.get(task, {})
                 new_errorcode = new_output.get('NotReported', {})
                 for file_replica in row['doc']['files'].values():
@@ -288,6 +301,10 @@ class WorkflowInfo(Info):
 
                 new_output['NotReported'] = new_errorcode
                 output[task] = new_output
+
+        for step in list(output):
+            if True in [(steptype in step) for steptype in ['LogCollect', 'Cleanup']]:
+                output.pop(step)
 
         return output
 
@@ -346,6 +363,17 @@ class WorkflowInfo(Info):
 
         return frate
 
+    def sum_errors(self):
+        """
+        :returns: The total number of errors reported by this workflow
+        :rtype: int
+        """
+
+        errors = self.get_errors(True)
+        return sum([num for codes in errors.values() for sites in codes.values()
+                    for num in sites.values()])
+
+
     @cached_json('recovery_info')
     def get_recovery_info(self):
         """
@@ -369,6 +397,7 @@ class WorkflowInfo(Info):
                         use_cert=True)
 
         recovery_docs = [row['doc'] for row in docs.get('rows', [])]
+        site_white_list = set(self.get_workflow_parameters()['SiteWhitelist'])
 
         for doc in recovery_docs:
             task = doc['fileset_name']
@@ -377,7 +406,7 @@ class WorkflowInfo(Info):
             for replica, info in doc['files'].iteritems():
                 # For fake files, just return the site whitelist
                 if replica.startswith('MCFakeFile'):
-                    locations = set(self.get_workflow_parameters()['SiteWhitelist'])
+                    locations = site_white_list
                 else:
                     locations = set(info['locations'])
 
@@ -413,6 +442,7 @@ class WorkflowInfo(Info):
                 out_list.append(clean_site)
 
         out_list.sort()
+
         return out_list
 
     @cached_json('jobdetail')
@@ -487,7 +517,7 @@ class PrepIDInfo(Info):
     def __str__(self):
         return 'prepIDinfo_%s' % self.prep_id
 
-    @cached_json('requests', 3600 * 24)
+    @cached_json('requests')
     def get_requests(self):
         """
         :returns: The requests for the Prep ID from ReqMgr2 API
@@ -521,4 +551,7 @@ class PrepIDInfo(Info):
         :rtype: list
         """
 
-        return [workflow[0] for workflow in self.get_workflows_requesttime()]
+        return [
+            workflow for workflow, _ in
+            self.get_workflows_requesttime()
+        ]
