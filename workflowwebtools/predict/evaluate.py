@@ -178,7 +178,7 @@ def pred(errors):
 def predict(wf_obj):
     """
     Takes the errors for a workflow and makes an action prediction
-    :param workflowwebtool.workflowinfo.WorkflowInfo errors:
+    :param workflowwebtool.workflowinfo.WorkflowInfo wf_obj:
         The WorkflowInfo object that we want to perform a prediction on
     :returns: Prediction results to be passed back to a browser
     :rtype: dict
