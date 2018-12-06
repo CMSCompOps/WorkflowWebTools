@@ -603,8 +603,8 @@ class WorkflowTools(object):
         self.seeworkflowlock.acquire()
 
         try:
-            max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-            main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
+            max_error = classifyerrors.get_max_errorcode(self.get(workflow))
+            main_error_class = classifyerrors.classifyerror(max_error, self.get(workflow))
 
             output = {
                 'maxerror': max_error,

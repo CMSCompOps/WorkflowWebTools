@@ -8,10 +8,12 @@ These procedures are gathered from :py:mod:`WorkflowWebTools.procedures`.
 
 import re
 
+from collections import defaultdict
+
 from .procedures import PROCEDURES
 from .globalerrors import check_session
 
-def classifyerror(errorcode, workflow, session=None):
+def classifyerror(errorcode, workflow):
     """
     Return the most relevant characteristics of an error code for this session.
     This will include things like:
@@ -24,8 +26,7 @@ def classifyerror(errorcode, workflow, session=None):
        More error types should be added to this function as needed
 
     :param int errorcode: The error code that we want to classify
-    :param str workflow: the workflow that we want to get the errors from
-    :param cherrypy.Session session: Is the user's cherrypy session
+    :param workflowinfo.WorkflowInfo workflow: the workflow that we want to get the errors from
     :returns: A tuple of strings describing the key characteristics of the errorcode.
               These strings are good for printing directly in web browsers.
               The first string is the types of errors reported with this error code.
@@ -36,7 +37,7 @@ def classifyerror(errorcode, workflow, session=None):
 
     procedure = PROCEDURES.get(errorcode, {})
 
-    logs = check_session(session).get_workflow(workflow).get_explanation(str(errorcode))
+    logs = workflow.get_explanation(str(errorcode))
 
     error_re = re.compile(r'[\w\s]+ \(Exit code: (\d+)\)')
     error_types = {}
@@ -79,26 +80,29 @@ def classifyerror(errorcode, workflow, session=None):
             additional_actions_string.replace(' |br| |br| ', '<br>'))
 
 
-def get_max_errorcode(workflow, session=None):
+def get_max_errorcode(workflow):
     """
     Get the errorcode with the most errors for a session
 
-    :param str workflow: Is the primary name of the workflow
-    :param cherrypy.Session session: Is the user's cherrypy session
+    :param workflowinfo.WorkflowInfo workflow: the workflow that we want to get the errors from
     :returns: The error code that appears most often for this workflow
     :rtype: int
     """
 
+    errors = workflow.get_errors(True)
+    errors_summed = defaultdict(int)
 
-    curs, _, allerrors, _ = check_session(session).info
+    for codes in errors.values():
+        for errorcode, sites in codes.items():
+            numcode = -1 if errorcode == 'NotReported' else int(errorcode)
+            for num in sites.values():
+                errors_summed[numcode] += num
 
-    num_errors = []
+    output = 0
+    max_num = 0
+    for code, num in errors_summed.items():
+        if num > max_num:
+            max_num = num
+            output = code
 
-    for errorcode in allerrors:
-        output = curs.execute("SELECT SUM(numbererrors) FROM workflows WHERE "
-                              "stepname LIKE '/{0}/%' AND errorcode={1}".\
-                                  format(workflow, errorcode))
-
-        num_errors.append(output[0])
-
-    return allerrors[num_errors.index(max(num_errors))]
+    return output
