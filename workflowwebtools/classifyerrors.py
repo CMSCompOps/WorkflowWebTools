@@ -11,7 +11,6 @@ import re
 from collections import defaultdict
 
 from .procedures import PROCEDURES
-from .globalerrors import check_session
 
 def classifyerror(errorcode, workflow):
     """
