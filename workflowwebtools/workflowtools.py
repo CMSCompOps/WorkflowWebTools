@@ -185,6 +185,10 @@ class WorkflowTools(object):
             return "none"
         return "acted" if status else "pending"
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def getstatus(self, workflow):
+        return {'status': self.get_status(workflow).capitalize()}
 
     def get(self, workflow):
         self.wflock.acquire()
@@ -231,10 +235,12 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
     def submit2(self):
         input_json = cherrypy.request.json
         manageactions.submit2(input_json['documents'])
-        return 'Done'
+        self.update_statuses()
+        return {'message': 'Done'}
 
 
     @cherrypy.expose
@@ -597,8 +603,8 @@ class WorkflowTools(object):
         self.seeworkflowlock.acquire()
 
         try:
-            max_error = classifyerrors.get_max_errorcode(workflow, cherrypy.session)
-            main_error_class = classifyerrors.classifyerror(max_error, workflow, cherrypy.session)
+            max_error = classifyerrors.get_max_errorcode(self.get(workflow))
+            main_error_class = classifyerrors.classifyerror(max_error, self.get(workflow))
 
             output = {
                 'maxerror': max_error,

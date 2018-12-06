@@ -313,6 +313,18 @@ function buildSubmit (workflow, sitesToRun) {
     return output;
 }
 
+
+function showStatus(workflow) {
+    $.ajax({
+        url: "/getstatus",
+        data: {"workflow": workflow},
+        success: function (status) {
+            document.getElementById("actionstatus").innerHTML = "Action: " + status.status;
+        }
+    });
+}
+
+
 function makeForm(workflow) {
 
     $.ajax({
@@ -326,14 +338,19 @@ function makeForm(workflow) {
             form.action = "javascript:;";
             form.onsubmit = function () {
                 submission = buildSubmit(workflow, params.sitestorun);
-                if (confirm("Will submit " + JSON.stringify(submission)))
+                if (confirm("Will submit " + JSON.stringify(submission))) {
                     $.ajax({
                         url: "/submit2",
                         type: "POST",
                         dataType: "json",
                         contentType : 'application/json',
-                        data: JSON.stringify({documents: submission})
+                        data: JSON.stringify({documents: submission}),
+                        success: function () {
+                            showStatus(workflow);
+                            alert('Action Submitted');
+                        }
                     });
+                }
             };
 
             addOptions(form, params);
@@ -361,4 +378,5 @@ function makeForm(workflow) {
 function prepareSubmit (workflow) {
     makeForm(workflow);
     setReasons();
+    showStatus(workflow);
 };

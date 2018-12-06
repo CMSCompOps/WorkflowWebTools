@@ -31,6 +31,9 @@ setuptools.setup(
         'validators',
         'tabulate',
         'pymongo<3.5.0',
-        'cx_Oracle'
+        'cx_Oracle',
+        'pandas',
+        'keras',
+        'tensorflow'
         ]
     )
