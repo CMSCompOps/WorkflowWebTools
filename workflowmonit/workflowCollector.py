@@ -6,12 +6,12 @@ import sys
 import json
 import yaml
 import re
-import shutil
 import cx_Oracle
+import threading
+import multiprocessing
 from collections import defaultdict, OrderedDict
 from pprint import pprint
 import time
-
 
 from workflowwebtools import workflowinfo
 from workflowwebtools import errorutils
@@ -57,11 +57,17 @@ def invalidate_caches(cacheDir=None):
     '''
 
     cache_dir = cacheDir or os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
-    
+
+    import shutil
     try:
         shutil.rmtree(cache_dir)
     except:
         print('Fail to remove caches: ', cache_dir)
+        pass
+
+    try:
+        os.mkdir(cache_dir)
+    except:
         pass
 
 
@@ -211,6 +217,7 @@ def short_errorlog(log,
         return attentionedPieces[0]
     else:
         return piecesList[0]
+
 
 def extract_keywords(description,
                      buzzwords = ['error', 'errors', 'errormsg', 'fail', 'failed', 'failure', 'kill', 'killed', 'exception'],
@@ -520,6 +527,7 @@ def populate_error_for_workflow(workflow):
 
     return workflow_summary
 
+
 def get_acdc_response(wfstr):
     """
     debug
@@ -535,47 +543,110 @@ def get_acdc_response(wfstr):
     return response
 
 
+def filter_workflow_by_failurerate(res, wf, frate=0.2):
+    """
+    A wrapper
+    """
+
+    if wf.get_failure_rate() > frate:
+        res.append(wf)
+
+
+def collect_workflow_summary(res, wfs):
+    """
+    A wrapper
+    """
+
+    for wf in wfs:
+        res.append(
+                populate_error_for_workflow(wf)
+                )
+
+
+def filter_n_collector(res, wf, frate=0.2):
+    """
+    A wrapper
+    """
+
+    if wf.get_failure_rate() > frate:
+        res.append(
+                populate_error_for_workflow(wf)
+                )
+
+
 def main():
 
     start_time = time.time()
 
     #status_location = '/home/wsi/workdir/statuses.json' # dummy
-    CONFIG_PATH = '/home/wsi/workdir/config.yml'
+    CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
     #DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE 'running%'"
     DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'"
-    wfs = get_workflow_from_db(CONFIG_PATH, DB_QUERY_CMD)
+    wfs = get_workflow_from_db(CONFIG_FILE_PATH, DB_QUERY_CMD)
 
-    #for i, wf in enumerate(wfs.keys()):
-    #    print(i, wf)
-    #    pprint( get_acdc_response(wf) )
-    #'''
-
-    #p = Pool(8)
-    #result = p.map(populate_error_for_workflow, wfs.values())
     print("Number of workflows retrieved from Oracle DB: ", len(wfs))
-    result = list()
+    invalidate_caches()
+
+###################################
+## Threading
+###################################
+    results = list()
+    threads = list()
     for i, wf in enumerate(wfs.values()):
-        if wf.get_failure_rate() < 0.2: continue
-        ws = populate_error_for_workflow(wf)
-        print(i)
-        result.append(ws)
-        #pprint(ws)
+        t = threading.Thread(target=filter_n_collector, args=(results, wf, ))
+        threads.append(t)
+        t.start()
+    for t in threads: t.join()
+    print("Number of workflows that has >20% failure rate: ", len(results))
+###################################
+## Multiprocessing
+###################################
+    #results = list()
+    #processes = list()
+    #for i, wf in enumerate(wfs.values()):
+    #    p = multiprocessing.Process(target=filter_n_collector, args=(results, wf, ))
+    #    processes.append(p)
+    #    p.start()
+    #for p in processes: p.join()
+    #print("Number of workflows that has >20% failure rate: ", len(results))
+###################################
+## Threading, then multiprocessing
+###################################
+    #filtered = list()
+    #threads = list()
+    #for i, wf in enumerate(wfs.values()):
+    #    t = threading.Thread(target=filter_workflow_by_failurerate, args=(filtered, wf, ))
+    #    threads.append(t)
+    #    t.start()
+    #for t in threads: t.join()
+    #print("Number of workflows that has >20% failure rate: ", len(filtered))
+    #print("Time spent on caching: {0}s".format(time.time() - start_time))
 
-    with open('result.json', 'w') as fp:
-        json.dump(result, fp, indent=4)
+    #results = list()
+    #processes = list()
+    #for i in range(multiprocessing.cpu_count()):
+    #    p = multiprocessing.Process(target=collect_workflow_summary, args=(results, filtered))
+    #    processes.append(p)
+    #    p.start()
+    #for p in processes: p.join()
+    #with open('result.json', 'w') as fp:
+    #    json.dump(results, fp, indent=4)
 
-    elasped_time = time.time() - start_time
-    print('Takes {0} s'.format(elasped_time))
-    #with open('toSaveExample.json', 'w') as outf:
-    #    json.dump(
-    #            populate_error_for_workflow(
-    #                wfs.values()[2]
-    #                ),
-    #            outf,
-    #            indent = 4
-    #            )
+    #elasped_time = time.time() - start_time
+    #print('Takes {0} s in total.'.format(elasped_time))
+###################################
+## Plain for loop
+###################################
+    #results = list()
+    #threads = list()
+    #for i, wf in enumerate(wfs.values()):
+    #    if wf.get_failure_rate() < 0.2: continue
+    #    ws = populate_error_for_workflow(wf)
+    #    print(i)
+    #    results.append(ws)
+    #print("Number of workflows that has >20% failure rate: ", len(results))
+###################################
 
-    #'''
     #key, ws = wfs.items()[0]
     #print(key)
     #pprint(populate_error_for_workflow(ws))

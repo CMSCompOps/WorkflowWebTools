@@ -4,9 +4,11 @@ import os
 import yaml
 import socket
 import time
-import workflowCollector
+import threading
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
+
+import workflowCollector
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
@@ -27,13 +29,15 @@ def buildDoc(configpath):
 
     wkfs = workflowCollector.get_workflow_from_db(configpath, DB_QUERY_CMD)
 
-    result = []
-    for wf in wkfs:
-        result.append(
-                workflowCollector.populate_error_for_workflow(wf)
-                )
+    threads = []
+    results = []
+    for wf in wkfs.values():
+        t = threading.Thread(target=workflowCollector.filter_n_collector, args=(results, wf, ))
+        threads.append(t)
+        t.start()
+    for t in threads: t.join()
 
-    return result
+    return results
 
 
 def send(cred, doc):
