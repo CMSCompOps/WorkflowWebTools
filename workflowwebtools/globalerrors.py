@@ -357,7 +357,8 @@ def check_session(session, can_refresh=False):
         GLOBAL_LOCK.release()
 
     # If session ErrorInfo is old, set up another connection
-    if can_refresh and theinfo.timestamp < time.time() - 60*30:
+    if can_refresh and theinfo.timestamp < time.time() - \
+            60*serverconfig.config_dict()['refresh_period']:
         theinfo.teardown()
         theinfo.setup()
 
