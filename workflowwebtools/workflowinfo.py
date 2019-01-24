@@ -383,10 +383,12 @@ class WorkflowInfo(Info):
         all_site_list = site_list()
 
         for site in site_set:
-            clean_site = re.sub(r'_(ECHO_)?(Disk|MSS)$', '', site)
+            if site.startswith('T0_') or site.endswith('_MSS') or site.endswith('_Export'):
+                continue
+
+            clean_site = re.sub(r'_(ECHO_)?(Disk)$', '', site)
             if clean_site not in out_list and clean_site and \
-                    clean_site in all_site_list and \
-                    'T0_' not in clean_site:
+                    clean_site in all_site_list:
                 out_list.append(clean_site)
 
         out_list.sort()
