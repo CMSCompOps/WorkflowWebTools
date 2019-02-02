@@ -1,17 +1,130 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os
+import sys
 import yaml
 import socket
 import time
 import threading
+import sqlite3
+from Queue import Queue
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
 
-import workflowCollector
+import workflowCollector as wc
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
+
+
+def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH):
+    """
+    Get item from queue, work on it, append result to `res`.
+
+    :param list res: container to hold results
+    :param list completedWfs: completed workflows, to avoid re-caching
+    :param Queue q: queue
+    :param float minFailureRate: minimum failure rate
+    :param str configPath: path to config file
+    """
+
+    dbPath = wc.get_yamlconfig(configPath).get(
+        'workflow_status_db',
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workflow_status.sqlite')
+    )
+    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?)"""
+
+    while not q.empty():
+        wf = q.get()
+        if wf.workflow in completedWfs: continue
+        try:
+            if wf.get_failure_rate() > minFailureRate:
+                res.append(wc.populate_error_for_workflow(wf))
+
+            toUpdate = (wf.workflow, wf._get_reqdetail().get(wf.workflow, {}).get('RequestStatus', ''))
+            if not all(toUpdate): continue
+            conn = sqlite3.connect(dbPath)
+            with conn:
+                c = conn.cursor()
+                c.execute(DB_UPDATE_CMD, toUpdate)
+
+        except:
+            pass
+        q.task_done()
+    return True
+
+
+
+def getCompletedWorkflowsFromDb(configPath):
+    """
+    Get completed workflow list from local status db
+
+    :param str configPath: location of config file
+    :returns: list of workflow (str)
+    :rtype: list
+    """
+
+    config = wc.get_yamlconfig(configPath)
+    if not config:
+        sys.exit('Config file: {} not exist, exiting..'.format(configPath))
+    dbPath = config.get(
+        'workflow_status_db',
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workflow_status.sqlite')
+        )
+
+    DB_CREATE_CMD = """CREATE TABLE IF NOT EXISTS workflowStatuses (
+        name TEXT PRIMARY KEY,
+        status TEXT
+    );"""
+    DB_QUERY_CMD = """SELECT * FROM workflowStatuses WHERE status IN ('running-closed', 'completed', 'aborted-archived')"""
+
+    res = []
+    conn = sqlite3.connect(dbPath)
+    with conn:
+        c = conn.cursor()
+        c.execute(DB_CREATE_CMD)
+        for row in c.execute(DB_QUERY_CMD):
+            res.append(row[0])
+
+    return res
+
+
+def updateWorkflowStatusToDb(configPath, wcErrorInfos):
+    """
+    update workflow status to local status db, with the information from wcErrorInfo
+
+    :param str configPath: location of config file
+    :param list wcErrorInfos: list of dicts returned by :py:func:`wc.filter_n_collect`
+    :returns: True
+    """
+
+    config = wc.get_yamlconfig(configPath)
+    if not config:
+        sys.exit('Config path: {} not exist, exiting..'.format(configPath))
+    dbPath = config.get(
+        'workflow_status_db',
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workflow_status.sqlite')
+        )
+
+    DB_CREATE_CMD = """CREATE TABLE IF NOT EXISTS workflowStatuses (
+        name TEXT PRIMARY KEY,
+        status TEXT
+    );"""
+    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?)"""
+
+    toUpdate = []
+    for e in wcErrorInfos:
+        name = e.get('name', '')
+        status = e.get('status', '')
+        if not (name and status): continue
+        toUpdate.append((name, status))
+
+    conn = sqlite3.connect(dbPath)
+    with conn:
+        c = conn.cursor()
+        c.executemany(DB_UPDATE_CMD, toUpdate)
+
+    return True
 
 
 def buildDoc(configpath):
@@ -27,20 +140,30 @@ def buildDoc(configpath):
 
     DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE 'running%'"
 
-    wkfs = workflowCollector.get_workflow_from_db(configpath, DB_QUERY_CMD)
+    _wkfs = wc.get_workflow_from_db(configpath, DB_QUERY_CMD)
+    completedWfs = getCompletedWorkflowsFromDb(configpath)
+    wkfs = [w for w in _wkfs if w.workflow not in completedWfs]
+    print('Number of workflows to query: ', len(wkfs))
+    wc.invalidate_caches()
 
-    threads = []
-    results = []
-    for wf in wkfs.values():
-        t = threading.Thread(target=workflowCollector.filter_n_collector, args=(results, wf, ))
-        threads.append(t)
+    q = Queue()
+    num_threads = min(150, len(wkfs))
+    for wf in wkfs: q.put(wf)
+
+    results = list()
+    for _ in range(num_threads):
+        t = threading.Thread(target=worker, args=(results, q, completedWfs, ))
+        t.daemon = True
         t.start()
-    for t in threads: t.join()
+    q.join()
+
+    updateWorkflowStatusToDb(configpath, results)
+    print('Number of updated workflows: ', len(results))
 
     return results
 
 
-def send(cred, doc):
+def sendDoc(cred, doc):
     """
     Given a credential dict and documents to send, make notification.
 
@@ -49,15 +172,15 @@ def send(cred, doc):
     :returns: None
     """
 
-    host, port = cred['host_and_ports'].split(':')
-    port = int(port)
 
     amq = StompAMQ(
-            cred['usename'],
-            cred['password'],
+            None, # username
+            None, # password
             cred['producer'],
             cred['topic'],
-            [(host, port)]
+            host_and_ports = None, # default [('agileinf-mb.cern.ch', 61213)]
+            cert = cred['cert'],
+            key = cred['key']
             )
 
 
@@ -91,8 +214,10 @@ def dummy(doc):
 
 if __name__ == "__main__":
 
-    cred = workflowCollector.get_yamlconfig(CRED_FILE_PATH)
-    workflowCollector.invalidate_caches()
+    print('\n', time.asctime())
+
+    cred = wc.get_yamlconfig(CRED_FILE_PATH)
     doc = buildDoc(CONFIG_FILE_PATH)
-    
-    send(cred, doc)
+
+    wc.save_json(doc, 'toSentDoc')
+    sendDoc(cred, doc)

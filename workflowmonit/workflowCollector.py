@@ -2,16 +2,14 @@
 from __future__ import print_function
 
 import os
+import re
 import sys
 import json
 import yaml
-import re
+import time
 import cx_Oracle
 import threading
-import multiprocessing
 from collections import defaultdict, OrderedDict
-from pprint import pprint
-import time
 
 from workflowwebtools import workflowinfo
 from workflowwebtools import errorutils
@@ -115,27 +113,26 @@ def get_workflowlist_from_db(config, queryCmd):
 
 def get_workflow_from_db(configPath, queryCmd):
     '''
-    get a dict of :py:class:`WorkflowInfo` objects by parseing the oracle db indicated in config.yml
-    pointed by configpath.
-    {'workflow' : WorkflowInfo}
+    get a list of :py:class:`WorkflowInfo` objects by parsing the oracle db
+    indicated in `config.yml` pointed by configpath.
 
     :param str configPath: path of config file
     :param str queryCmd: SQL query command
-    :returns: dict of :py:class:`WorkflowInfo`s with its string as key
+    :returns: list of :py:class:`WorkflowInfo`s
 
-    :rtype: dict
+    :rtype: list
     '''
 
-    wf_dict = {}
+    wf_list = []
 
     config = get_yamlconfig(configPath)
-    if not config: return wf_dict
+    if not config: return wf_list
 
     wfs = get_workflowlist_from_db(config, queryCmd)
     if wfs:
-        wf_dict = {wf : workflowinfo.WorkflowInfo(wf) for wf in wfs}
+        wf_list = [workflowinfo.WorkflowInfo(wf) for wf in wfs]
 
-    return wf_dict
+    return wf_list
 
 
 def cleanup_shortlog(desc):
@@ -416,6 +413,9 @@ def populate_error_for_workflow(workflow):
     :rtype: dict
     """
 
+    if isinstance(workflow, str):
+        workflow = workflowinfo.WorkflowInfo(workflow)
+    assert(isinstance(workflow, workflowinfo.WorkflowInfo))
 
     workflow_summary = {
             "name" : workflow.workflow,
@@ -579,35 +579,18 @@ def get_acdc_response(wfstr):
     return response
 
 
-def filter_workflow_by_failurerate(res, wf, frate=0.2):
-    """
-    A wrapper
-    """
+def filter_n_collector(res, q, minFailureRate=0.2):
 
-    if wf.get_failure_rate() > frate:
-        res.append(wf)
+    while not q.empty():
+        wf = q.get()
+        try:
+            if wf.get_failure_rate() > minFailureRate:
+                res.append(populate_error_for_workflow(wf))
+        except:
+            pass
+        q.task_done()
+    return True
 
-
-def collect_workflow_summary(res, wfs):
-    """
-    A wrapper
-    """
-
-    for wf in wfs:
-        res.append(
-                populate_error_for_workflow(wf)
-                )
-
-
-def filter_n_collector(res, wf, frate=0.2):
-    """
-    A wrapper
-    """
-
-    if wf.get_failure_rate() > frate:
-        res.append(
-                populate_error_for_workflow(wf)
-                )
 
 
 def main():
@@ -623,67 +606,27 @@ def main():
     print("Number of workflows retrieved from Oracle DB: ", len(wfs))
     invalidate_caches()
 
-###################################
-## Threading
-###################################
-    results = list()
-    threads = list()
-    for i, wf in enumerate(wfs.values()):
-        t = threading.Thread(target=filter_n_collector, args=(results, wf, ))
-        threads.append(t)
-        t.start()
-    for t in threads: t.join()
-    print("Number of workflows that has >20% failure rate: ", len(results))
-###################################
-## Multiprocessing
-###################################
-    #results = list()
-    #processes = list()
-    #for i, wf in enumerate(wfs.values()):
-    #    p = multiprocessing.Process(target=filter_n_collector, args=(results, wf, ))
-    #    processes.append(p)
-    #    p.start()
-    #for p in processes: p.join()
-    #print("Number of workflows that has >20% failure rate: ", len(results))
-###################################
-## Threading, then multiprocessing
-###################################
-    #filtered = list()
-    #threads = list()
-    #for i, wf in enumerate(wfs.values()):
-    #    t = threading.Thread(target=filter_workflow_by_failurerate, args=(filtered, wf, ))
-    #    threads.append(t)
-    #    t.start()
-    #for t in threads: t.join()
-    #print("Number of workflows that has >20% failure rate: ", len(filtered))
-    #print("Time spent on caching: {0}s".format(time.time() - start_time))
+    from Queue import Queue
+    q = Queue()
+    num_threads = min(150, len(wfs))
 
-    #results = list()
-    #processes = list()
-    #for i in range(multiprocessing.cpu_count()):
-    #    p = multiprocessing.Process(target=collect_workflow_summary, args=(results, filtered))
-    #    processes.append(p)
-    #    p.start()
-    #for p in processes: p.join()
-    #with open('result.json', 'w') as fp:
-    #    json.dump(results, fp, indent=4)
+    for wf in wfs: q.put(wf)
+    results = list()
+    for _ in range(num_threads):
+        t = threading.Thread(target=filter_n_collector, args=(results, q, ))
+        t.daemon = True # seting threads as "daemon" allows main program to exit
+                          # eventually even if these dont finish correctly.
+        t.start()
+    q.join()
+    print("Number of workflows that has >20% failure rate: ", len(results))
+
 
     elasped_time = time.time() - start_time
     print('Takes {0} s in total.'.format(elasped_time))
-###################################
-## Plain for loop
-###################################
-    #results = list()
-    #threads = list()
-    #for i, wf in enumerate(wfs.values()):
-    #    if wf.get_failure_rate() < 0.2: continue
-    #    ws = populate_error_for_workflow(wf)
-    #    print(i)
-    #    results.append(ws)
-    #print("Number of workflows that has >20% failure rate: ", len(results))
-###################################
 
-    # key, ws = wfs.items()[1]
+    ###################################
+
+    # key, ws = wfs[1]
     # print(key)
     # pprint(populate_error_for_workflow(ws))
     #pprint(error_summary(ws))
