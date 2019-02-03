@@ -16,6 +16,7 @@ from workflowmonit import workflowCollector as wc
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
+LOGDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Logs')
 
 
 def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH):
@@ -33,17 +34,22 @@ def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH
         'workflow_status_db',
         os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workflow_status.sqlite')
     )
-    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?)"""
+    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?,?)"""
 
     while not q.empty():
         wf = q.get()
         if wf.workflow in completedWfs: continue
         try:
-            if wf.get_failure_rate() > minFailureRate:
+            failurerate = wf.get_failure_rate()
+            if failurerate > minFailureRate:
                 res.append(wc.populate_error_for_workflow(wf))
 
-            toUpdate = (wf.workflow, wf._get_reqdetail().get(wf.workflow, {}).get('RequestStatus', ''))
-            if not all(toUpdate): continue
+            toUpdate = (
+                wf.workflow,
+                wf._get_reqdetail().get(wf.workflow, {}).get('RequestStatus', ''),
+                failurerate
+                )
+            if not all(toUpdate[:-1]): continue
             conn = sqlite3.connect(dbPath)
             with conn:
                 c = conn.cursor()
@@ -75,9 +81,10 @@ def getCompletedWorkflowsFromDb(configPath):
 
     DB_CREATE_CMD = """CREATE TABLE IF NOT EXISTS workflowStatuses (
         name TEXT PRIMARY KEY,
-        status TEXT
+        status TEXT,
+        failurerate REAL
     );"""
-    DB_QUERY_CMD = """SELECT * FROM workflowStatuses WHERE status IN ('running-closed', 'completed', 'aborted-archived')"""
+    DB_QUERY_CMD = """SELECT * FROM workflowStatuses WHERE status IN ('running-closed', 'completed', 'aborted-archived', 'rejected-archived')"""
 
     res = []
     conn = sqlite3.connect(dbPath)
@@ -109,16 +116,20 @@ def updateWorkflowStatusToDb(configPath, wcErrorInfos):
 
     DB_CREATE_CMD = """CREATE TABLE IF NOT EXISTS workflowStatuses (
         name TEXT PRIMARY KEY,
-        status TEXT
+        status TEXT,
+        failurerate REAL
     );"""
-    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?)"""
+    DB_UPDATE_CMD = """INSERT OR REPLACE INTO workflowStatuses VALUES (?,?,?)"""
 
     toUpdate = []
     for e in wcErrorInfos:
-        name = e.get('name', '')
-        status = e.get('status', '')
-        if not (name and status): continue
-        toUpdate.append((name, status))
+        entry = (
+            e.get('name', ''),
+            e.get('status', ''),
+            e.get('failureRate', 0.)
+        )
+        if not all(entry[:-1]): continue
+        toUpdate.append(entry)
 
     conn = sqlite3.connect(dbPath)
     with conn:
@@ -221,5 +232,11 @@ if __name__ == "__main__":
     cred = wc.get_yamlconfig(CRED_FILE_PATH)
     doc = buildDoc(CONFIG_FILE_PATH)
 
-    wc.save_json(doc, 'toSentDoc')
+    if not os.path.isdir(LOGDIR):
+        os.makedirs(LOGDIR)
+
+    wc.save_json(
+        doc,
+        os.path.join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+    )
     sendDoc(cred, doc)

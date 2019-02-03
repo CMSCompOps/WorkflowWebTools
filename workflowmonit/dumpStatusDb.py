@@ -19,8 +19,8 @@ def main():
     conn = sqlite3.connect(dbPath)
     with conn:
         c = conn.cursor()
-        for row in c.execute("SELECT * FROM workflowStatuses"):
-            print('[ {0:^12} ]\t{1}'.format(row[1], row[0]))
+        for row in c.execute("SELECT * FROM workflowStatuses WHERE status='running-open' ORDER BY failurerate"):
+            print('[ {1:^15} ]\t{2:.6f}\t{0}'.format(*row))
 
 if __name__ == "__main__":
     main()
