@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+
 import os
 import sys
 import yaml
@@ -8,10 +9,10 @@ import time
 import threading
 import sqlite3
 from Queue import Queue
+
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
-
-import workflowCollector as wc
+from workflowmonit import workflowCollector as wc
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
@@ -144,7 +145,7 @@ def buildDoc(configpath):
     completedWfs = getCompletedWorkflowsFromDb(configpath)
     wkfs = [w for w in _wkfs if w.workflow not in completedWfs]
     print('Number of workflows to query: ', len(wkfs))
-    wc.invalidate_caches()
+    wc.invalidate_caches('/tmp/wsi/workflowinfo')
 
     q = Queue()
     num_threads = min(150, len(wkfs))
@@ -192,7 +193,6 @@ def sendDoc(cred, doc):
     print('### results from AMQ %s' % len(results))
 
 
-
 def dummy(doc):
     """
     Debug
@@ -211,6 +211,8 @@ def dummy(doc):
     toSend = amq.make_notification(doc, docType, docId)
 
     return toSend
+
+
 
 if __name__ == "__main__":
 

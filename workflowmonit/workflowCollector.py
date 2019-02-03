@@ -7,10 +7,11 @@ import sys
 import json
 import yaml
 import time
-import cx_Oracle
+import shutil
 import threading
 from collections import defaultdict, OrderedDict
 
+import cx_Oracle
 from workflowwebtools import workflowinfo
 from workflowwebtools import errorutils
 
@@ -56,7 +57,6 @@ def invalidate_caches(cacheDir=None):
 
     cache_dir = cacheDir or os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
 
-    import shutil
     try:
         shutil.rmtree(cache_dir)
     except:
