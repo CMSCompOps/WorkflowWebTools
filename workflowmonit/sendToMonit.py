@@ -10,6 +10,7 @@ import threading
 import sqlite3
 from Queue import Queue
 
+import schedule
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
 from workflowmonit import workflowCollector as wc
@@ -224,8 +225,7 @@ def dummy(doc):
     return toSend
 
 
-
-if __name__ == "__main__":
+def jobWrapper():
 
     print('\n', time.asctime())
 
@@ -240,3 +240,13 @@ if __name__ == "__main__":
         os.path.join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
     )
     sendDoc(cred, doc)
+
+
+schedule.every().hour.do(jobWrapper)
+
+
+if __name__ == "__main__":
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
