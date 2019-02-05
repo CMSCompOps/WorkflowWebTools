@@ -10,7 +10,6 @@ import threading
 import sqlite3
 from Queue import Queue
 
-import schedule
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
 from workflowmonit import workflowCollector as wc
@@ -20,13 +19,31 @@ CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'con
 LOGDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Logs')
 
 
+class NotFinished(Exception):
+    """ Task unfinished.. """
+
+class TimeoutQueue(Queue):
+
+    def join_with_timeout(self, timeout):
+        self.all_tasks_done.acquire()
+        try:
+            endtime = time.time() + timeout
+            while self.unfinished_tasks:
+                remaining = endtime - time.time()
+                if remaining <= 0.0:
+                    raise NotFinished
+                self.all_tasks_done.wait(remaining)
+        finally:
+            self.all_tasks_done.release()
+
+
 def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH):
     """
     Get item from queue, work on it, append result to `res`.
 
     :param list res: container to hold results
     :param list completedWfs: completed workflows, to avoid re-caching
-    :param Queue q: queue
+    :param TimeoutQueue q: queue
     :param float minFailureRate: minimum failure rate
     :param str configPath: path to config file
     """
@@ -39,8 +56,9 @@ def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH
 
     while not q.empty():
         wf = q.get()
-        if wf.workflow in completedWfs: continue
         try:
+            if wf.workflow in completedWfs: continue
+
             failurerate = wf.get_failure_rate()
             if failurerate > minFailureRate:
                 res.append(wc.populate_error_for_workflow(wf))
@@ -58,7 +76,8 @@ def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH
 
         except:
             pass
-        q.task_done()
+        finally:
+            q.task_done()
     return True
 
 
@@ -159,7 +178,7 @@ def buildDoc(configpath):
     print('Number of workflows to query: ', len(wkfs))
     wc.invalidate_caches('/tmp/wsi/workflowinfo')
 
-    q = Queue()
+    q = TimeoutQueue()
     num_threads = min(150, len(wkfs))
     for wf in wkfs: q.put(wf)
 
@@ -168,7 +187,10 @@ def buildDoc(configpath):
         t = threading.Thread(target=worker, args=(results, q, completedWfs, ))
         t.daemon = True
         t.start()
-    q.join()
+    try:
+        q.join_with_timeout(30*60) # timeout 30min
+    except NotFinished:
+        pass
 
     updateWorkflowStatusToDb(configpath, results)
     print('Number of updated workflows: ', len(results))
@@ -191,7 +213,7 @@ def sendDoc(cred, doc):
             None, # password
             cred['producer'],
             cred['topic'],
-            host_and_ports = None, # default [('agileinf-mb.cern.ch', 61213)]
+            host_and_ports = [('cms-mb.cern.ch', 61323)], # default [('agileinf-mb.cern.ch', 61213)]
             cert = cred['cert'],
             key = cred['key']
             )
@@ -242,11 +264,8 @@ def jobWrapper():
     sendDoc(cred, doc)
 
 
-schedule.every().hour.do(jobWrapper)
 
 
 if __name__ == "__main__":
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    jobWrapper()
