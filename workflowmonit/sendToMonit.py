@@ -4,19 +4,22 @@ from __future__ import print_function
 import os
 import sys
 import yaml
-import socket
 import time
-import threading
+import socket
 import sqlite3
+import logging
+import threading
+import logging.config
 from Queue import Queue
 
 from workflowwebtools import workflowinfo
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
-from workflowmonit import workflowCollector as wc
+import workflowmonit.workflowCollector as wc
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
 LOGDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Logs')
+LOGGING_CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configLogging.yml')
 
 
 class NotFinished(Exception):
@@ -33,6 +36,8 @@ class TimeoutQueue(Queue):
                 if remaining <= 0.0:
                     raise NotFinished
                 self.all_tasks_done.wait(remaining)
+        except:
+            logger.exception("Unfinished tasks detected (timeout = {}s). won't wait.".format(timeout))
         finally:
             self.all_tasks_done.release()
 
@@ -56,9 +61,9 @@ def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH
 
     while not q.empty():
         wf = q.get()
-        try:
-            if wf.workflow in completedWfs: continue
+        if wf.workflow in completedWfs: continue
 
+        try:
             failurerate = wf.get_failure_rate()
             if failurerate > minFailureRate:
                 res.append(wc.populate_error_for_workflow(wf))
@@ -75,6 +80,7 @@ def worker(res, q, completedWfs, minFailureRate=0.2, configPath=CONFIG_FILE_PATH
                 c.execute(DB_UPDATE_CMD, toUpdate)
 
         except:
+            logger.exception('workflow "{}" has trouble caching.'.format(wf.workflow))
             pass
         finally:
             q.task_done()
@@ -175,7 +181,9 @@ def buildDoc(configpath):
     _wkfs = wc.get_workflow_from_db(configpath, DB_QUERY_CMD)
     completedWfs = getCompletedWorkflowsFromDb(configpath)
     wkfs = [w for w in _wkfs if w.workflow not in completedWfs]
-    print('Number of workflows to query: ', len(wkfs))
+
+    logger.info('Number of workflows to query: {}'.format(len(wkfs)))
+
     wc.invalidate_caches('/tmp/wsi/workflowinfo')
 
     q = TimeoutQueue()
@@ -193,7 +201,7 @@ def buildDoc(configpath):
         pass
 
     updateWorkflowStatusToDb(configpath, results)
-    print('Number of updated workflows: ', len(results))
+    logger.info('Number of updated workflows: {}'.format(len(results)))
 
     return results
 
@@ -221,35 +229,22 @@ def sendDoc(cred, doc):
 
     docType = 'dict'
     docId = '{0}:{1}:{2}'.format(cred['producer'], socket.gethostname(), int(time.time()))
-    results = amq.send(
-            amq.make_notification(doc, docType, docId)
-            )
-    print('### results from AMQ %s' % len(results))
+    msg = amq.make_notification(doc, docType, docId)
+    results = amq.send( msg )
+    logger.info('### results from AMQ {}'.format(len(results)))
+
+    return (msg, results)
 
 
-def dummy(doc):
-    """
-    Debug
-    """
+def main():
 
-    amq = StompAMQ(
-            'wsi',
-            '123456',
-            'toolsandint-workflows-collector',
-            'cms.toolsandint.workflowsinfo',
-            [('vocms0116.cern.ch', 8080)]
-            )
+    with open(LOGGING_CONFIG, 'r') as f:
+        config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
 
-    docType = 'dict'
-    docId = 'toolsandint-workflows-collector:vocms0116.cern.ch:{0}'.format(int(time.time()))
-    toSend = amq.make_notification(doc, docType, docId)
+    global logger
+    logger = logging.getLogger('workflowmonitLogger')
 
-    return toSend
-
-
-def jobWrapper():
-
-    print('\n', time.asctime())
 
     cred = wc.get_yamlconfig(CRED_FILE_PATH)
     doc = buildDoc(CONFIG_FILE_PATH)
@@ -257,15 +252,17 @@ def jobWrapper():
     if not os.path.isdir(LOGDIR):
         os.makedirs(LOGDIR)
 
-    wc.save_json(
-        doc,
-        os.path.join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-    )
-    sendDoc(cred, doc)
+    doc_bkp = os.path.join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+    wc.save_json(doc, doc_bkp)
+    logger.info('Document saved at: {}'.format(doc_bkp))
 
+    msg, res = sendDoc(cred, doc)
+
+    msg_bkp = os.path.join(LOGDIR, 'amqMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+    wc.save_json(msg, msg_bkp)
+    logger.info('Message saved at: {}'.format(msg_bkp))
 
 
 
 if __name__ == "__main__":
-
-    jobWrapper()
+    main()

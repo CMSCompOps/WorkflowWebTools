@@ -2,7 +2,8 @@
 import os
 import sys
 import sqlite3
-import workflowCollector as wc
+
+import workflowmonit.workflowCollector as wc
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
 
