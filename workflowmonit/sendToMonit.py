@@ -13,7 +13,7 @@ import logging.config
 from Queue import Queue
 
 from workflowwebtools import workflowinfo
-from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
+from workflowmonit.stompAMQ import stompAMQ
 import workflowmonit.workflowCollector as wc
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credential.yml')
@@ -206,34 +206,41 @@ def buildDoc(configpath):
     return results
 
 
-def sendDoc(cred, doc):
+def sendDoc(cred, docs):
     """
     Given a credential dict and documents to send, make notification.
 
     :param dict cred: credential required by StompAMQ
-    :param list doc: documents to send
+    :param list docs: documents to send
     :returns: None
     """
 
+    if not docs:
+        logger.info("No document going to be set to AMQ.")
+        return []
 
-    amq = StompAMQ(
-            None, # username
-            None, # password
-            cred['producer'],
-            cred['topic'],
-            host_and_ports = [('cms-mb.cern.ch', 61323)], # default [('agileinf-mb.cern.ch', 61213)]
-            cert = cred['cert'],
-            key = cred['key']
-            )
+    try:
+        amq = stompAMQ(
+                None, # username
+                None, # password
+                cred['producer'],
+                cred['topic'],
+                host_and_ports = [(cred['hostport']['host'], cred['hostport']['port'])], # default [('agileinf-mb.cern.ch', 61213)]
+                logger = logger,
+                cert = cred['cert'],
+                key = cred['key']
+                )
 
+        doctype = 'workflowmonit_{}'.format(cred['producer'])
+        notifications = [amq.make_notification(payload=doc, docType=doctype) for doc in docs]
+        failures = amq.send(notifications)
 
-    docType = 'dict'
-    docId = '{0}:{1}:{2}'.format(cred['producer'], socket.gethostname(), int(time.time()))
-    msg = amq.make_notification(doc, docType, docId)
-    results = amq.send( msg )
-    logger.info('### results from AMQ {}'.format(len(results)))
+        logger.info("{}/{} docs successfully sent to AMQ.".format( (len(notifications)-len(failures)), len(notifications)))
+        return failures
 
-    return (msg, results)
+    except Exception as e:
+        logger.exception("Failed to send data to StompAMQ. Error: {}".format(str(e)))
+
 
 
 def main():
@@ -247,20 +254,21 @@ def main():
 
 
     cred = wc.get_yamlconfig(CRED_FILE_PATH)
-    doc = buildDoc(CONFIG_FILE_PATH)
+    docs = buildDoc(CONFIG_FILE_PATH)
 
     if not os.path.isdir(LOGDIR):
         os.makedirs(LOGDIR)
 
     doc_bkp = os.path.join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-    wc.save_json(doc, doc_bkp)
-    logger.info('Document saved at: {}'.format(doc_bkp))
+    wc.save_json(docs, doc_bkp)
+    logger.info('Document saved at: {}.json'.format(doc_bkp))
 
-    msg, res = sendDoc(cred, doc)
+    failures = sendDoc(cred=cred, docs=docs)
 
-    msg_bkp = os.path.join(LOGDIR, 'amqMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-    wc.save_json(msg, msg_bkp)
-    logger.info('Message saved at: {}'.format(msg_bkp))
+    failedDocs_bkp = os.path.join(LOGDIR, 'amqFailedMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+    if len(failures):
+        wc.save_json(failures, failedDocs_bkp)
+        logger.info('Failed message saved at: {}.json'.format(failedDocs_bkp))
 
 
 
