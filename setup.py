@@ -19,6 +19,7 @@ setuptools.setup(
         },
     install_requires=[
         'cmstoolbox',
+        'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
         'numpy>=1.6.1',
