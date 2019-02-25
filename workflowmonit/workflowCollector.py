@@ -72,26 +72,6 @@ def invalidate_caches(cacheDir=None):
         pass
 
 
-def _get_workflow_from_status(path):
-    '''
-    get a dict of :py:class:`WorkflowInfo` objects by parsing the statuses.json file given the path.
-    {'workflow' : WorkflowInfo}
-
-    :param str path: path of statuses.json
-    :returns: dict of :py:class:`WorkflowInfo` with its string as key
-
-    :rtype: dict
-    '''
-
-    wf_dict = {}
-
-    wfs = errorutils.get_workflow_list_from_location(path)
-    if wfs:
-        wf_dict = {wf: workflowinfo.WorkflowInfo(wf) for wf in wfs}
-
-    return wf_dict
-
-
 def get_workflowlist_from_db(config, queryCmd):
     '''
     get a list of workflows from oracle db from a config dictionary which has a ``oracle`` key.
