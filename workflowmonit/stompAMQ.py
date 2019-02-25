@@ -8,8 +8,8 @@ from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
 
 class stompAMQ(StompAMQ):
     """
-    Overriding :py:class`WMCore.Services.StompAMQ.StompAMQ.StompAMQ`'s
-    :py:func:`_send_single`. The default `destination` -- _queue_ is
+    Overriding :py:mod:`WMCore.Services.StompAMQ.StompAMQ.StompAMQ`'s
+    :py:func:`_send_single` method. The default ``destination`` -- **queue** is
     not authorizing me to write.
     """
 
@@ -28,6 +28,7 @@ class stompAMQ(StompAMQ):
                       ack='auto')
             self.logger.debug('Notification %s sent', str(notification))
         except Exception as exc:
-            self.logger.error('Notification: %s not send, error: %s', str(notification), str(exc))
+            self.logger.error(
+                'Notification: %s not send, error: %s', str(notification), str(exc))
             return body
         return

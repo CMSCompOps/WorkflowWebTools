@@ -26,7 +26,8 @@ def save_json(json_obj, filename='tmp'):
     """
 
     with open('%s.json' % filename, 'w') as tmp:
-        tmp.write(json.dumps(json_obj, sort_keys=True, indent=4, separators=(',', ': ')))
+        tmp.write(json.dumps(json_obj, sort_keys=True,
+                             indent=4, separators=(',', ': ')))
 
 
 def get_yamlconfig(configPath):
@@ -39,7 +40,8 @@ def get_yamlconfig(configPath):
     :rtype: dict
     '''
 
-    if not os.path.isfile(configPath): return {}
+    if not os.path.isfile(configPath):
+        return {}
 
     try:
         return yaml.load(open(configPath).read())
@@ -55,7 +57,8 @@ def invalidate_caches(cacheDir=None):
     :returns: None
     '''
 
-    cache_dir = cacheDir or os.path.join(os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
+    cache_dir = cacheDir or os.path.join(
+        os.environ.get('TMPDIR', '/tmp'), 'workflowinfo')
 
     try:
         shutil.rmtree(cache_dir)
@@ -69,13 +72,13 @@ def invalidate_caches(cacheDir=None):
         pass
 
 
-def get_workflow_from_status(path):
+def _get_workflow_from_status(path):
     '''
-    get a dict of :py:class:`WorkflowInfo` objects by parseing the statuses.json file given the path.
+    get a dict of :py:class:`WorkflowInfo` objects by parsing the statuses.json file given the path.
     {'workflow' : WorkflowInfo}
 
     :param str path: path of statuses.json
-    :returns: dict of :py:class:`WorkflowInfo`s with its string as key
+    :returns: dict of :py:class:`WorkflowInfo` with its string as key
 
     :rtype: dict
     '''
@@ -84,14 +87,14 @@ def get_workflow_from_status(path):
 
     wfs = errorutils.get_workflow_list_from_location(path)
     if wfs:
-        wf_dict = {wf : workflowinfo.WorkflowInfo(wf) for wf in wfs}
+        wf_dict = {wf: workflowinfo.WorkflowInfo(wf) for wf in wfs}
 
     return wf_dict
 
 
 def get_workflowlist_from_db(config, queryCmd):
     '''
-    get a list of workflows from oracle db from a config dictionary which has a 'oracle' key.
+    get a list of workflows from oracle db from a config dictionary which has a ``oracle`` key.
 
     :param dict config: config dictionary
     :param str queryCmd: SQL query command
@@ -100,9 +103,11 @@ def get_workflowlist_from_db(config, queryCmd):
     :rtype: list
     '''
 
-    if 'oracle' not in config: return []
+    if 'oracle' not in config:
+        return []
 
-    oracle_db_conn = cx_Oracle.connect(*config['oracle']) # pylint:disable=c-extension-no-member
+    oracle_db_conn = cx_Oracle.connect(
+        *config['oracle'])  # pylint:disable=c-extension-no-member
     oracle_cursor = oracle_db_conn.cursor()
     oracle_cursor.execute(queryCmd)
     wkfs = [row for row, in oracle_cursor]
@@ -114,11 +119,11 @@ def get_workflowlist_from_db(config, queryCmd):
 def get_workflow_from_db(configPath, queryCmd):
     '''
     get a list of :py:class:`WorkflowInfo` objects by parsing the oracle db
-    indicated in `config.yml` pointed by configpath.
+    indicated in ``config.yml`` pointed by configpath.
 
     :param str configPath: path of config file
     :param str queryCmd: SQL query command
-    :returns: list of :py:class:`WorkflowInfo`s
+    :returns: list of :py:class:`WorkflowInfo`
 
     :rtype: list
     '''
@@ -126,7 +131,8 @@ def get_workflow_from_db(configPath, queryCmd):
     wf_list = []
 
     config = get_yamlconfig(configPath)
-    if not config: return wf_list
+    if not config:
+        return wf_list
 
     wfs = get_workflowlist_from_db(config, queryCmd)
     if wfs:
@@ -138,9 +144,10 @@ def get_workflow_from_db(configPath, queryCmd):
 def cleanup_shortlog(desc):
     """
     clean up given string by:
-    1. remove any HTML tag <>
-    2. remove square brackets label []
-    3. reemove char '\'
+
+    1. remove any HTML tag ``<>``
+    2. remove square brackets label ``[]``
+    3. remove char ``\\``
     4. replace successive whitespace with a single one
     5. remove single quote/double quote
 
@@ -160,22 +167,22 @@ def cleanup_shortlog(desc):
 
 
 def short_errorlog(log,
-                   buzzwords=['error', 'fail', 'exception', 'maxrss', 'timeout'],
-                   ignorewords = ['start', 'begin', 'end', 'above', 'below']):
-    """
+                   buzzwords=['error', 'fail',
+                              'exception', 'maxrss', 'timeout'],
+                   ignorewords=['start', 'begin', 'end', 'above', 'below']):
+    r"""
     pruned the lengthy error logs extracted from wmstats to a short message,
-    with a logic of combination of `buzzwords` and `ignorewords`.
+    with a logic of combination of ``buzzwords`` and ``ignorewords``.
 
-    First if `log` is short enouggh that does not contain a \n, return it.
-    Else split the log with common delimiters to list,
-    then clean up each entry with :py:func:`cleanup_shortlog`,
-    from begining, if a entry does not contain any word in `ignorewords` list, it shall need attention;
-    if a entry contains any word in buzzwords, it shall be buzzed;
-    if a buzzed entry contains less than 3 words, it shall be skipped.( not informative enough)
+    - First if ``log`` is short enouggh that does not contain a ``\n``, return it.
+    - Else split the log with common delimiters to list, then clean up each entry with :py:func:`cleanup_shortlog`,
+        - from begining, if a entry does not contain any word in ``ignorewords`` list, it shall need attention;
+        - if a entry contains any word in buzzwords, it shall be buzzed;
+        - if a buzzed entry contains less than 3 words, it shall be skipped.( not informative enough)
 
-    if anything in buzzed list, return a string concatenating all buzzed entries;
-    else if anything in attentioned list, return the first entry;
-    else returns the first entry after clean up only.
+    - if anything in buzzed list, return a string concatenating all buzzed entries;
+    - else if anything in attentioned list, return the first entry;
+    - else returns the first entry after clean up only.
 
     :param str log: length log string from wmstats
     :param list buzzwords: list of words that shall draw attention
@@ -186,26 +193,29 @@ def short_errorlog(log,
     """
 
     log = log.strip()
-    if '\n' not in log: return log
+    if '\n' not in log:
+        return log
 
     piecesList = re.split('; |, |:|\*|\n+', log)
     piecesList = [cleanup_shortlog(x) for x in piecesList]
 
     attentionedPieces = list()
-    buzzedPieces      = list()
+    buzzedPieces = list()
 
     for piece in piecesList:
         piece = piece.strip()
         raw = piece.lower()
 
-        if any(kw in raw for kw in ignorewords): continue
-        attentionedPieces.append( piece )
+        if any(kw in raw for kw in ignorewords):
+            continue
+        attentionedPieces.append(piece)
 
         if any(kw in raw for kw in buzzwords):
-            buzzedPieces.append( piece )
+            buzzedPieces.append(piece)
 
     if buzzedPieces:
-        buzzedPieces = [x for x in set(buzzedPieces) if len(x.split(' '))>2] # too short to be informative
+        buzzedPieces = [x for x in set(buzzedPieces) if len(
+            x.split(' ')) > 2]  # too short to be informative
     if buzzedPieces:
         return '; '.join(buzzedPieces)
 
@@ -217,16 +227,18 @@ def short_errorlog(log,
 
 
 def extract_keywords(description,
-                     buzzwords = ['error', 'errors', 'errormsg', 'fail', 'failed', 'failure', 'kill', 'killed', 'exception'],
-                     blacklistwords = ['start', 'begin', 'end', 'above', 'below'],
-                     whitelistwords = ['timeout', 'maxrss', 'nojobreport']):
+                     buzzwords=['error', 'errors', 'errormsg', 'fail',
+                                'failed', 'failure', 'kill', 'killed', 'exception'],
+                     blacklistwords=['start', 'begin',
+                                     'end', 'above', 'below'],
+                     whitelistwords=['timeout', 'maxrss', 'nojobreport']):
     """
     extract keywords from shortened error log,
-    with a logic of combination of `buzzwords`, `blacklistwords` and `whitelistwords`.
+    with a logic of combination of ``buzzwords``, ``blacklistwords`` and ``whitelistwords``.
 
-    For each word in the `description`, if it's in `whitelistwords`, add to return;
-    if any word in `buzzwords` is a subset of this word, add to return.
-    In the end, if any word in `blacklistwords` shows up in the to-return list, removes it.
+    For each word in the ``description``, if it's in ``whitelistwords``, add to return;
+    if any word in ``buzzwords`` is a subset of this word, add to return.
+    In the end, if any word in ``blacklistwords`` shows up in the to-return list, removes it.
 
     :param str description: shortened error log
     :param list buzzwords: list of words that shall draw attention
@@ -259,11 +271,11 @@ def extract_keywords(description,
 def error_logs(workflow):
     """
     Given a :py:class:`WorkflowInfo`, builds up a structured entity
-    representing all available necessary error information via WorkflowInfo's property.
+    representing all available necessary error information via WorkflowInfo's property.::
 
-        {taskName :
-            {errorCode :
-                {siteName :
+        {'taskName' :
+            {'errorCode' :
+                {'siteName' :
 
                     [
                         {
@@ -278,10 +290,10 @@ def error_logs(workflow):
             }
         }
 
-    :param :py:class:`WorkflowInfo` workflow: A :py:class:`WorkflowInfo` object
+    :param workflow: A :py:class:`WorkflowInfo` object
     :returns: error info parsed from logs
 
-    :rtype: collection.defaultdict
+    :rtype: collections.defaultdict
     """
 
     error_logs = defaultdict(
@@ -292,11 +304,11 @@ def error_logs(workflow):
         )
     )
 
-
     wf_jobdetail = workflow._get_jobdetail()
     wf_stepinfo = wf_jobdetail['result'][0].get(workflow.workflow, {})
 
-    if not wf_stepinfo: return error_logs
+    if not wf_stepinfo:
+        return error_logs
 
     for stepname, stepdata in wf_stepinfo.iteritems():
         _taskName = stepname.split('/')[-1]
@@ -305,7 +317,8 @@ def error_logs(workflow):
             (error, sitedata) for status in ['jobfailed', 'submitfailed']
             for error, sitedata in stepdata.get(status, {}).items()
         ]:
-            if error == '0': continue
+            if error == '0':
+                continue
             _errorcode = int(error)
 
             for _sitename, siteinfo in sitedata.iteritems():
@@ -314,14 +327,15 @@ def error_logs(workflow):
                 for sample in siteinfo['samples']:
                     _timestamp = sample['timestamp']
                     errorcells = [e for cateInfo in sample['errors'].values()
-                                    for e in cateInfo]
+                                  for e in cateInfo]
                     errorcells_unique = list()
                     for ec in errorcells:
-                        if ec in errorcells_unique: continue
+                        if ec in errorcells_unique:
+                            continue
                         errorcells_unique.append(ec)
 
-                    _secondaryCodes    = list()
-                    _errorKeywords     = list()
+                    _secondaryCodes = list()
+                    _errorKeywords = list()
                     _errorChainAsDicts = list()
 
                     for ec in errorcells_unique:
@@ -333,7 +347,6 @@ def error_logs(workflow):
                         if code_ != _errorcode:
                             _secondaryCodes.append(code_)
 
-
                         _errorKeywords.extend(list(
                             extract_keywords(' '.join([
                                 type_,
@@ -342,32 +355,43 @@ def error_logs(workflow):
                         ))
 
                         _errorChainAsDicts.append({
-                            "errorType"   : type_,
-                            "exitCode"    : code_,
-                            "description" : shortdetail_
+                            "errorType": type_,
+                            "exitCode": code_,
+                            "description": shortdetail_
                         })
 
                     _errorsamples.append({
-                        'secondaryErrorCodes' : list(set(_secondaryCodes)),
-                        'errorKeywords'       : list(set(_errorKeywords)),
-                        'errorChain'          : _errorChainAsDicts,
-                        'timeStamp'           : _timestamp
+                        'secondaryErrorCodes': list(set(_secondaryCodes)),
+                        'errorKeywords': list(set(_errorKeywords)),
+                        'errorChain': _errorChainAsDicts,
+                        'timeStamp': _timestamp
                     })
 
                 error_logs[_taskName][_errorcode][_sitename] = _errorsamples
-
 
     return error_logs
 
 
 def error_summary(workflow):
     """
-    Given a :py:class:`WorkflowInfo`,  build a minimal error summary via `workflow.get_errors` method.
+    Given a :py:class:`WorkflowInfo`,  build a minimal error summary via :py:func:`workflow.get_errors` method.::
 
-        {taskName : {'errors': [{'errorCode' : errorCode, 'siteName' : siteName, 'counts' : counts}, ...],
-                     'siteNotReported': []}
+        {'taskName':
+            {'errors': [
+                {
+                    'errorCode' : errorCode,
+                    'siteName' : siteName,
+                    'counts' : counts
+                },
 
-    :param :py:class:`WorkflowInfo` workflow: A :py:class:`WorkflowInfo` object
+                 ...
+
+                ],
+            'siteNotReported': []
+            }
+        }
+
+    :param workflow: A :py:class:`WorkflowInfo` object
     :returns: A dict representing mimnial error summary
 
     :rtype: dict
@@ -376,28 +400,31 @@ def error_summary(workflow):
     error_summary = dict()
 
     errorInfo = workflow.get_errors(get_unreported=True)
-    if not errorInfo: return error_summary
+    if not errorInfo:
+        return error_summary
 
     for fullTaskName, taskErrors in errorInfo.iteritems():
         taskName = fullTaskName.split('/')[-1]
-        if not taskName: continue
+        if not taskName:
+            continue
 
         errorList = list()
         noReportSite = list(taskErrors.get('NotReported', {}).keys())
         for errorCode, siteCnt in taskErrors.iteritems():
-            if errorCode == 'NotReported': continue
+            if errorCode == 'NotReported':
+                continue
 
             for siteName, counts in siteCnt.iteritems():
                 errorList.append({
-                    'errorCode' : int(errorCode),
-                    'siteName'  : siteName,
-                    'counts'    : counts
-                    })
+                    'errorCode': int(errorCode),
+                    'siteName': siteName,
+                    'counts': counts
+                })
 
         error_summary[taskName] = {
-                'errors': errorList,
-                'siteNotReported': noReportSite
-                }
+            'errors': errorList,
+            'siteNotReported': noReportSite
+        }
 
     return error_summary
 
@@ -405,9 +432,9 @@ def error_summary(workflow):
 def populate_error_for_workflow(workflow):
     """
     Given a :py:class:`WorkflowInfo`,  build an ultimate error summary with
-    :py:func:`error_logs`, :py:func:`error_summary` method and wmstats `request` API.
+    :py:func:`error_logs`, :py:func:`error_summary` method and wmstats API.
 
-    :param :py:class:`WorkflowInfo` workflow: A :py:class:`WorkflowInfo` object
+    :param workflow: A :py:class:`WorkflowInfo` object
     :returns: A dict representing all available error info
 
     :rtype: dict
@@ -418,40 +445,41 @@ def populate_error_for_workflow(workflow):
     assert(isinstance(workflow, workflowinfo.WorkflowInfo))
 
     workflow_summary = {
-            "name" : workflow.workflow,
-            "status" : None,
-            "type" : None,
-            "failureRate": 0.,
-            "totalError": 0,
-            "failureKeywords": [],
-            "transitions" : [],
-            "tasks": {}
-            }
+        "name": workflow.workflow,
+        "status": None,
+        "type": None,
+        "failureRate": 0.,
+        "totalError": 0,
+        "failureKeywords": [],
+        "transitions": [],
+        "tasks": {}
+    }
 
     workflow_summary['failureRate'] = workflow.get_failure_rate()
     wf_reqdetail = workflow._get_reqdetail()
     #save_json(wf_reqdetail, 'wf_reqdetail')
 
     wfData = wf_reqdetail.get(workflow.workflow, {})
-    if not wfData: return workflow_summary
+    if not wfData:
+        return workflow_summary
 
     # info extracted from wmstats request API
-    agentJobInfo   = wfData.get('AgentJobInfo', {})
-    requestStatus  = wfData.get('RequestStatus', None)
-    requestType    = wfData.get('RequestType', None)
+    agentJobInfo = wfData.get('AgentJobInfo', {})
+    requestStatus = wfData.get('RequestStatus', None)
+    requestType = wfData.get('RequestType', None)
     if not all([agentJobInfo, requestStatus, requestType]):
         return workflow_summary
 
     requestTransition = wfData.get('RequestTransition', [])
 
     workflow_summary['status'] = requestStatus
-    workflow_summary['type']   = requestType
+    workflow_summary['type'] = requestType
     workflow_summary['transitions'] = requestTransition
 
     nfailure = 0
     for agent, agentdata in agentJobInfo.iteritems():
         status = agentdata.get('status', {})
-        tasks  = agentdata.get('tasks', {})
+        tasks = agentdata.get('tasks', {})
         if not all([status, tasks]):
             continue
 
@@ -465,7 +493,7 @@ def populate_error_for_workflow(workflow):
             if len(taskFullName.split('/')) > 3:
                 inputTask = taskFullName.split('/')[-2]
 
-            jobType  = taskData.get('jobtype', None)
+            jobType = taskData.get('jobtype', None)
             taskStatus = taskData.get('status', {})
 
             taskSiteError = dict()
@@ -474,7 +502,8 @@ def populate_error_for_workflow(workflow):
                 for site, siteData in taskData.get('sites', {}).iteritems():
                     errCnt = 0
                     errCnts = siteData.get('failure', {})
-                    if not errCnts: continue
+                    if not errCnts:
+                        continue
 
                     for ftype, cnt in errCnts.iteritems():
                         errCnt += cnt
@@ -499,12 +528,12 @@ def populate_error_for_workflow(workflow):
                 workflow_summary['tasks'][taskName] = _task
             else:
                 workflow_summary['tasks'][taskName] = {
-                        "inputTask"       : inputTask,
-                        "jobType"         : jobType,
-                        "siteErrors"      : taskSiteError,
-                        "errors"          : [],
-                        "siteNotReported" : []
-                        }
+                    "inputTask": inputTask,
+                    "jobType": jobType,
+                    "siteErrors": taskSiteError,
+                    "errors": [],
+                    "siteNotReported": []
+                }
 
     # remove tasks that does not have any error
     taskToDel = list()
@@ -516,36 +545,39 @@ def populate_error_for_workflow(workflow):
 
     workflow_summary['totalError'] = nfailure
 
-
     if workflow_summary['status'] != 'rejected':
 
         wf_errorSummary = error_summary(workflow)
-        wf_errorLog     = error_logs(workflow)
+        wf_errorLog = error_logs(workflow)
 
         # add information from errorSummary
         for taskName, taskErrors in wf_errorSummary.iteritems():
             if taskName in workflow_summary['tasks'].keys():
-                workflow_summary['tasks'][taskName].update( taskErrors )
+                workflow_summary['tasks'][taskName].update(taskErrors)
 
         # add information from errorLog
         for taskName, taskErrorLogInfo in wf_errorLog.iteritems():
 
-            if taskName not in workflow_summary['tasks'].keys(): continue
+            if taskName not in workflow_summary['tasks'].keys():
+                continue
             for errorCode, siteInfo in taskErrorLogInfo.iteritems():
                 for site, info in siteInfo.iteritems():
 
                     for e in workflow_summary['tasks'][taskName].get('errors', []):
-                        if e.get('siteName', None) != site: continue
-                        if e.get('errorCode', None) != errorCode: continue
+                        if e.get('siteName', None) != site:
+                            continue
+                        if e.get('errorCode', None) != errorCode:
+                            continue
 
-                        if len(info): e.update(info[0])
+                        if len(info):
+                            e.update(info[0])
 
         # fill failureKeywords list
-        allKeywords = [kw \
-                for task in workflow_summary['tasks'].values()
-                for error in task.get('errors', []) \
-                for kw in error.get('errorKeywords', []) \
-                ]
+        allKeywords = [kw
+                       for task in workflow_summary['tasks'].values()
+                       for error in task.get('errors', [])
+                       for kw in error.get('errorKeywords', [])
+                       ]
         workflow_summary['failureKeywords'] = list(set(allKeywords))
 
     # last step, nest in task key(TaskName) as a key-value pair
@@ -553,29 +585,30 @@ def populate_error_for_workflow(workflow):
     for taskname, taskinfo in workflow_summary['tasks'].iteritems():
         taskinfo.update({"name": taskname})
         taskinfo['siteErrors'] = [
-                {
-                    "site"   : site,
-                    "counts" : counts
-                } for site, counts in taskinfo['siteErrors'].iteritems()
-            ] # convert 'siteErrors' from a dict to a list of dict
+            {
+                "site": site,
+                "counts": counts
+            } for site, counts in taskinfo['siteErrors'].iteritems()
+        ]  # convert 'siteErrors' from a dict to a list of dict
         tasksAsList.append(taskinfo)
     workflow_summary['tasks'] = tasksAsList
 
     return workflow_summary
 
 
-def get_acdc_response(wfstr):
+def _get_acdc_response(wfstr):
     """
     debug
     """
 
     from cmstoolbox.webtools import get_json
     response = get_json(
-            'cmsweb.cern.ch',
-            '/couchdb/acdcserver/_design/ACDC/_view/byCollectionName',
-            {'key':'"{0}"'.format(wfstr), 'include_docs': 'true', 'reduce': 'false'},
-            use_cert=True
-        )
+        'cmsweb.cern.ch',
+        '/couchdb/acdcserver/_design/ACDC/_view/byCollectionName',
+        {'key': '"{0}"'.format(
+                wfstr), 'include_docs': 'true', 'reduce': 'false'},
+        use_cert=True
+    )
     return response
 
 
@@ -592,13 +625,13 @@ def filter_n_collector(res, q, minFailureRate=0.2):
     return True
 
 
-
 def main():
 
     start_time = time.time()
 
-    #status_location = '/home/wsi/workdir/statuses.json' # dummy
-    CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yml')
+    # status_location = '/home/wsi/workdir/statuses.json' # dummy
+    CONFIG_FILE_PATH = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'config.yml')
     #DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE 'running%'"
     DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'"
     wfs = get_workflow_from_db(CONFIG_FILE_PATH, DB_QUERY_CMD)
@@ -610,16 +643,16 @@ def main():
     q = Queue()
     num_threads = min(150, len(wfs))
 
-    for wf in wfs: q.put(wf)
+    for wf in wfs:
+        q.put(wf)
     results = list()
     for _ in range(num_threads):
         t = threading.Thread(target=filter_n_collector, args=(results, q, ))
-        t.daemon = True # seting threads as "daemon" allows main program to exit
-                          # eventually even if these dont finish correctly.
+        t.daemon = True  # seting threads as "daemon" allows main program to exit
+        # eventually even if these dont finish correctly.
         t.start()
     q.join()
     print("Number of workflows that has >20% failure rate: ", len(results))
-
 
     elasped_time = time.time() - start_time
     print('Takes {0} s in total.'.format(elasped_time))
@@ -629,11 +662,12 @@ def main():
     # key, ws = wfs[1]
     # print(key)
     # pprint(populate_error_for_workflow(ws))
-    #pprint(error_summary(ws))
-    #pprint(error_logs(ws))
+    # pprint(error_summary(ws))
+    # pprint(error_logs(ws))
     # save_json(error_logs(ws), 'wf_errorlog')
     # save_json(populate_error_for_workflow(ws), 'wf_document')
     save_json(results, 'wfc_results')
+
 
 if __name__ == '__main__':
     main()
