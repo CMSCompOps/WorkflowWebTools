@@ -19,7 +19,7 @@ from cmstoolbox.sitereadiness import site_list
 
 from . import serverconfig
 
-def cached_json(attribute, timeout=180):
+def cached_json(attribute, timeout=None):
     """
     A decorator for caching dictionaries in local files.
 
@@ -47,8 +47,7 @@ def cached_json(attribute, timeout=180):
             :returns: Output of the originally decorated function
             :rtype: dict
             """
-            tmout = serverconfig.config_dict()['cache_refresh'].get(attribute) or timeout
-            if tmout == -1: tmout = None
+            tmout = timeout or serverconfig.config_dict()['cache_refresh'].get(attribute)
 
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)

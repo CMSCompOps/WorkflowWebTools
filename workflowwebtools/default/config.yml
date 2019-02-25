@@ -78,10 +78,7 @@ cluster:
     midpoint: 50
 # Refresh cached jsons in WorkflowWebTools.workflowinfo jsons
 # This is maximum age in seconds
-# If you want a cache invariant, specify it with -1 explicitly,
-# otherwise the default invalidation period is 180s.
 cache_refresh:
   errors: 345600
-  workflow_params: -1
 workspace: '.'
 refresh_period: 15
