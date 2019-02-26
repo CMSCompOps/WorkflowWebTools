@@ -5,12 +5,12 @@ import os
 import re
 import sys
 import json
-import yaml
 import time
 import shutil
 import threading
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
+import yaml
 import cx_Oracle
 from workflowwebtools import workflowinfo
 from workflowwebtools import errorutils
