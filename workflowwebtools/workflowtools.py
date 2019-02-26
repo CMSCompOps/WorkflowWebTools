@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Defines the class that runs the server
 """

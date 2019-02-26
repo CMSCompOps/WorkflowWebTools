@@ -46,7 +46,7 @@ These dictionaries are used to generate the procedures table above.
 import re
 import textwrap
 
-from tabulate import tabulate
+from tabulate import tabulate # pylint: disable=import-error
 
 #
 # These are the procedures listed on the WTC twiki:
