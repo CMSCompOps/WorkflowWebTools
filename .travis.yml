@@ -8,4 +8,4 @@ env: TMPDIR=$PWD/tmp
 install:
   - python setup.py install
 script:
-  - opsspace-test
+  - package=workflowwebtools opsspace-test

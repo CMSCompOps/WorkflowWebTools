@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 """
 Module containing and returning information about workflows.
 
