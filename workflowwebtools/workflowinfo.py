@@ -438,7 +438,10 @@ class WorkflowInfo(Info):
         all_site_list = site_list()
 
         for site in site_set:
-            clean_site = re.sub(r'_(ECHO_)?(Disk|MSS)$', '', site)
+            if site.startswith('T0_') or site.endswith('_MSS') or site.endswith('_Export'):
+                continue
+
+            clean_site = re.sub(r'_(ECHO_)?(Disk)$', '', site)
             if clean_site not in out_list and clean_site and \
                     clean_site in all_site_list:
                 out_list.append(clean_site)
@@ -504,6 +507,22 @@ class WorkflowInfo(Info):
         """
 
         return str(self.get_workflow_parameters().get('PrepID', 'NoPrepID'))
+
+    def get_monitoring_info(self):
+        """
+        :returns: the information to send to CMSMONIT
+        :rtype: dict
+        """
+        # Dummy call to get self.explanations filled
+        self.get_explanation(0)
+
+        return {
+            'errors': self.get_errors(True),
+            'prepID': self.get_prep_id(),
+            'params': self.get_workflow_parameters(),
+            'recovery': self.get_recovery_info(),
+            'logs': self.explanations
+            }
 
 
 class PrepIDInfo(Info):

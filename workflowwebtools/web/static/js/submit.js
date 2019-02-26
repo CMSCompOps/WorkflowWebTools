@@ -1,7 +1,8 @@
 var allHeader = "All Steps (use this or fill all others)";
 
 function normalize (s) {
-    return s.replace(/^_+/, "");
+    return s.replace(/__\d*$/, ""). // Remove the counter for separating radios
+        replace(/^_+/, "");         // Remove leading "_". Don't remember what those are from.
 }
 
 function printSiteLists (method, params) {
@@ -107,6 +108,8 @@ function makeTable (option, params) {
     else
         addParamTable().style.margin = "15px 0px 15px 0px";
 
+    counter = 0;
+
     $(".paramtable").each(function () {
         var paramtable = this;
         option.opts.forEach(function (opt) {
@@ -117,7 +120,7 @@ function makeTable (option, params) {
                 optDiv.appendChild(document.createTextNode("    " + value + "  "));
                 var radio = optDiv.appendChild(document.createElement("input"));
                 radio.type = "radio";
-                radio.name = opt.name;
+                radio.name = opt.name + "__" + counter;
                 radio.value = value;
                 radio.ondblclick = function() {
                     this.checked = false;
@@ -133,6 +136,9 @@ function makeTable (option, params) {
             input.type = "text";
             input.name = text;
         });
+
+        // Increment counter so that radio buttons are split
+        counter++;
     });
 };
 
@@ -313,6 +319,18 @@ function buildSubmit (workflow, sitesToRun) {
     return output;
 }
 
+
+function showStatus(workflow) {
+    $.ajax({
+        url: "/getstatus",
+        data: {"workflow": workflow},
+        success: function (status) {
+            document.getElementById("actionstatus").innerHTML = "Action: " + status.status;
+        }
+    });
+}
+
+
 function makeForm(workflow) {
 
     $.ajax({
@@ -326,14 +344,19 @@ function makeForm(workflow) {
             form.action = "javascript:;";
             form.onsubmit = function () {
                 submission = buildSubmit(workflow, params.sitestorun);
-                if (confirm("Will submit " + JSON.stringify(submission)))
+                if (confirm("Will submit " + JSON.stringify(submission))) {
                     $.ajax({
                         url: "/submit2",
                         type: "POST",
                         dataType: "json",
                         contentType : 'application/json',
-                        data: JSON.stringify({documents: submission})
+                        data: JSON.stringify({documents: submission}),
+                        success: function () {
+                            showStatus(workflow);
+                            alert('Action Submitted');
+                        }
                     });
+                }
             };
 
             addOptions(form, params);
@@ -361,4 +384,5 @@ function makeForm(workflow) {
 function prepareSubmit (workflow) {
     makeForm(workflow);
     setReasons();
+    showStatus(workflow);
 };
