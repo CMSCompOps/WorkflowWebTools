@@ -794,34 +794,6 @@ class WorkflowTools(object):
 
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def getfailedworkflows(self, failurerate=0.2):
-        """
-        The page at ``https://localhost:8080/getfailedworkflows``
-        returns a list of workflows with failure rate larger than ``failurerate``.
-
-        :param float failurerate: The failure rate threshold to report workflows
-
-        :returns: JSON-formatted information containing workflow names and
-                  corresponding failure rate.
-
-        :rtype: JSON
-        """
-        wflist = errorutils.get_workflow_list_from_location(
-                    serverconfig.all_errors_path()
-                 )
-
-        wf_rate = dict()
-        for wf in wflist:
-            frate = workflowinfo.WorkflowInfo(wf).get_failure_rate()
-            if isinstance(frate, dict): frate = 0.
-            if frate < failurerate: continue
-            wf_rate.update( {wf: round(frate, 5)} )
-
-        return wf_rate
-
-
-    @cherrypy.expose
     def explainerror(self, errorcode='0', workflowstep='/'):
         """Returns an explaination of the error code, along with a link returning to table
 

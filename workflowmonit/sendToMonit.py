@@ -3,16 +3,14 @@ from __future__ import print_function
 
 import os
 import sys
-import yaml
 import time
-import socket
 import sqlite3
 import logging
 import threading
 import logging.config
 from Queue import Queue
 
-from workflowwebtools import workflowinfo
+import yaml
 from workflowmonit.stompAMQ import stompAMQ
 import workflowmonit.workflowCollector as wc
 
