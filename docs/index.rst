@@ -14,6 +14,7 @@ Welcome to WorkflowWebTools!
    machine_learning
    python_modules
    javascript
+   workflowmonit
    troubleshooting
 
 Indices and tables

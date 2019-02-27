@@ -2,3 +2,4 @@ sphinx
 sphinx_rtd_theme
 sphinxcontrib-programoutput
 sphinxcontrib-autoanysrc
+-r ../workflowmonit/requirements.txt

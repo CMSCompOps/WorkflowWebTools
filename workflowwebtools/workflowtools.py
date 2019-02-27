@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Defines the class that runs the server
 """
@@ -797,6 +799,7 @@ class WorkflowTools(object):
             manageactions.report_actions(input_json['workflows'], output)
 
         return output
+
 
     @cherrypy.expose
     def explainerror(self, errorcode='0', workflowstep='/'):

@@ -1,0 +1,32 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(levelname)s - %(module)s.%(funcName)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+  agentmonit:
+    class: logging.FileHandler
+    level: INFO
+    formatter: simple
+    filename: agentmonit.log
+  workflowmonit:
+    class: logging.FileHandler
+    level: INFO
+    formatter: simple
+    filename: workflowmonit.log
+loggers:
+  agentmonitLogger:
+    level: INFO
+    handlers: [agentmonit]
+    propagate: no
+  workflowmonitLogger:
+    level: INFO
+    handlers: [workflowmonit]
+    propagate: no
+root:
+  level: DEBUG
+  handlers: [console]

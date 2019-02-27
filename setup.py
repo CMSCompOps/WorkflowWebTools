@@ -18,7 +18,7 @@ setuptools.setup(
                                  'templates/*']
         },
     install_requires=[
-        'cmstoolbox',
+        'cmstoolbox>=0.11.3',
         'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
