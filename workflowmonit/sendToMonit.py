@@ -13,6 +13,7 @@ from Queue import Queue
 import yaml
 from workflowmonit.stompAMQ import stompAMQ
 import workflowmonit.workflowCollector as wc
+import workflowmonit.alertingDefs as ad
 
 CRED_FILE_PATH = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'credential.yml')
@@ -278,6 +279,11 @@ def main():
     cred = wc.get_yamlconfig(CRED_FILE_PATH)
     docs = buildDoc(CONFIG_FILE_PATH)
 
+    # handling alerts
+    recipients = wc.get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
+    ad.alertWithEmail(docs, recipients)
+
+    # backup documents
     if not os.path.isdir(LOGDIR):
         os.makedirs(LOGDIR)
 
