@@ -35,6 +35,6 @@ setuptools.setup(
         'cx_Oracle',
         'pandas',
         'keras',
-        'tensorflow'
+        'tensorflow<2.0'
         ]
     )

@@ -54,7 +54,7 @@ def config_dict():
     output = {}
 
     with open(LOCATION, 'r') as config:
-        output = yaml.load(config)
+        output = yaml.load(config, Loader=yaml.FullLoader)
 
     return output
 
