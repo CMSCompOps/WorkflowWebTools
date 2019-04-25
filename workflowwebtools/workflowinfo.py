@@ -71,7 +71,7 @@ def cached_json(attribute, timeout=None):
                         with open(file_name, 'r') as cache_file:
                             check_var = json.load(cache_file)
                     except ValueError:
-                        print 'JSON file no good. Deleting %s. Try again later.' % file_name
+                        print('JSON file no good. Deleting %s. Try again later.' % file_name)
                         os.remove(file_name)
 
                 # If still None, call the wrapped function
@@ -205,7 +205,7 @@ class Info(object):
         """
         Reset the cache for this object and clear out the files.
         """
-        print 'Reseting %s' % self
+        print('Reseting %s' % self)
 
         if not os.path.exists(self.bak_dir):
             os.mkdir(self.bak_dir)
@@ -264,8 +264,8 @@ class WorkflowInfo(Info):
                         return item
 
         except Exception as error:
-            print 'Failed to get from reqmgr', self.workflow
-            print str(error)
+            print('Failed to get from reqmgr', self.workflow)
+            print(str(error))
 
         return None
 
