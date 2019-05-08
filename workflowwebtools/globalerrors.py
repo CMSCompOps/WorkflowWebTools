@@ -405,20 +405,20 @@ def group_errors(input_errors, grouping_function, **kwargs):
 
     output = default_errors_format()
 
-    for subgroup, values in input_errors.iteritems():
+    for subgroup, values in input_errors.items():
 
         group = grouping_function(subgroup)
 
         # We have three variables for everything, so we can write this by hand
         # Not ideal
-        for row, row_val in values['errors'].iteritems():
-            for col, numerrors in row_val.iteritems():
+        for row, row_val in values['errors'].items():
+            for col, numerrors in row_val.items():
                 output[group]['errors'][row][col] += numerrors
 
         output[group]['sub'][subgroup] = values
         output[group]['total'] += values['total']
 
-        for key, func in kwargs.iteritems():
+        for key, func in kwargs.items():
             output[group][key] = func(group)
 
     return output

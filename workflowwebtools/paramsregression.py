@@ -42,7 +42,7 @@ def convert_to_dense(errors, keys=None, allerrors=None, allsites=None):
         allsites = set()
 
         for status in keys:
-            for error, sites in errors[status].iteritems():
+            for error, sites in errors[status].items():
                 allerrors.add(int(error))
                 for site in sites:
                     allsites.add(site)
@@ -99,7 +99,7 @@ def get_classifier(raw_data, parameter, **kwargs):
             matrix = raw_data[key]['errors'][status]
             # Only do this for sparse matrices
             if not isinstance(matrix, list):
-                for error, sites in matrix.iteritems():
+                for error, sites in matrix.items():
                     allerrors.add(int(error))
                     for site in sites:
                         allsites.add(site)

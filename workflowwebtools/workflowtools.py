@@ -195,11 +195,11 @@ class WorkflowTools(object):
              "status": self.get_status(workflow),
              "errors": obj['obj'].sum_errors()
             }
-            for workflow, obj in workflow_objs.iteritems()
+            for workflow, obj in workflow_objs.items()
             ]
 
         self.lock.acquire()
-        for workflow, obj in workflow_objs.iteritems():
+        for workflow, obj in workflow_objs.items():
             if workflow not in self.workflows:
                 self.workflows[workflow] = obj['obj']
         self.lock.release()
@@ -316,7 +316,7 @@ class WorkflowTools(object):
                 'long': longreason
             }
             for shortreason, longreason in
-            sorted(reasonsmanip.reasons_list().iteritems())
+            sorted(reasonsmanip.reasons_list().items())
         ]
 
 
@@ -329,17 +329,17 @@ class WorkflowTools(object):
         output = []
 
         # Need to track total sites, so we need to do nested loops here
-        for step, ecs in sorted(errors.iteritems()):
+        for step, ecs in sorted(errors.items()):
             allsites = set()
 
             codes = []
             for code, sites in sorted([
                     (-1 if code == 'NotReported' else int(code), sites)
-                    for code, sites in ecs.iteritems()]):
+                    for code, sites in ecs.items()]):
 
                 sites = {
                     site: (num or int(code < 0))
-                    for site, num in sorted(sites.iteritems())
+                    for site, num in sorted(sites.items())
                 }
                 allsites.update(sites.keys())
 
@@ -667,7 +667,7 @@ class WorkflowTools(object):
             for workflow in workflows:
                 # Check sites of recovered workflows
                 if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
-                    for subtask, params in check_actions[workflow]['Parameters'].iteritems():
+                    for subtask, params in check_actions[workflow]['Parameters'].items():
                         # Empty sites are noted
                         if not params.get('sites'):
                             blank_sites_subtask.append('/%s/%s' % (workflow, subtask))

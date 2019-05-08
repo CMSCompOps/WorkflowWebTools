@@ -24,7 +24,7 @@ setuptools.setup(
         'mako',
         'numpy>=1.6.1',
         'scipy==1.1.0',
-        'sklearn',
+        'scikit-learn==0.20.3',
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',

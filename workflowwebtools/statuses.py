@@ -34,5 +34,5 @@ def get_manual_workflows(location):
     """
 
     return [workflow for workflow, statuses
-            in open_statuses(location).iteritems()
+            in open_statuses(location).items()
             if True in ['manual' in status for status in statuses]]

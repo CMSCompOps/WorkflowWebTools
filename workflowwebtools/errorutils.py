@@ -90,7 +90,7 @@ def open_location(data_location):
         return raw
 
     return errors_from_list([
-        workflow for workflow, statuses in raw.iteritems()
+        workflow for workflow, statuses in raw.items()
         if True in ['manual' in status for status in statuses]
     ])
 
