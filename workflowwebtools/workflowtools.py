@@ -375,7 +375,7 @@ class WorkflowTools(object):
         This should help operators understand what the error means.
 
         At the top of the page, there are links back for :ref:`global-view-ref`,
-        :ref:`show-logs-ref`, related JIRA tickets,
+        workflow logs, related JIRA tickets,
         and ReqMgr2 information about the workflow and prep ID.
 
         The main function of this page is to submit actions.

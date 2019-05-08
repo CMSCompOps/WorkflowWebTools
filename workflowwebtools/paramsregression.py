@@ -152,8 +152,7 @@ def get_classifier(raw_data, parameter, **kwargs):
                 else:
                     status = 'WRONG'
                 print('[%s] %i : %i -- %s : %s' %
-                      (status, want, result, class_labels[want], class_labels[result])
-                      )
+                      (status, want, result, class_labels[want], class_labels[result]))
 
             print('%f (%i/%i)' % (100.0 * right/len(target), right, len(target)))
 

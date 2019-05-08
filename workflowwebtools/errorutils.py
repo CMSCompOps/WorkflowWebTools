@@ -85,8 +85,7 @@ def open_location(data_location):
     if raw is None:
         return raw
 
-    keys = raw.keys()
-    if not (keys and isinstance(raw[keys[0]], list)):
+    if not (raw and isinstance(raw[list(raw)[0]], list)):
         return raw
 
     return errors_from_list([
