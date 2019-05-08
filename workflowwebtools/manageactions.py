@@ -5,6 +5,8 @@
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+from __future__ import print_function
+
 import time
 import datetime
 import ssl
@@ -324,4 +326,4 @@ def fix_sites(**kwargs):
         coll.update_one({'workflow': workflow},
                         {'$set': {'parameters': output}})
 
-    print params
+    print(params)

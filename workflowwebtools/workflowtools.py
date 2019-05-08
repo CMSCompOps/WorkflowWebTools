@@ -24,7 +24,6 @@ from workflowwebtools import workflowinfo
 from workflowwebtools import serverconfig
 from workflowwebtools import manageactions
 from workflowwebtools import manageusers
-from workflowwebtools import showlog
 from workflowwebtools import reasonsmanip
 from workflowwebtools import listpage
 from workflowwebtools import globalerrors
@@ -135,30 +134,6 @@ class WorkflowTools(object):
         self.clusterer = clusterworkflows.get_clusterer(
             data['workflow_history'], data['all_errors'])
         return render('complete.html')
-
-    @cherrypy.expose
-    def showlog(self, search='', module='', limit=50):
-        """
-        This page, located at ``https://localhost:8080/showlog``,
-        returns logs that are stored in an elastic search server.
-        If directed here from :ref:`workflow-view-ref`, then
-        the search will be for the relevant workflow.
-
-        :param str search: The search string
-        :param str module: The module to look at, if only interested in one
-        :param int limit: The limit of number of logs to show on a single page
-        :returns: the logs from elastic search
-        :rtype: str
-        """
-        logdata = showlog.give_logs(search, module, int(limit))
-        if isinstance(logdata, dict):
-            return render('showlog.html',
-                          logdata=logdata,
-                          search=search,
-                          module=module,
-                          limit=limit)
-
-        return logdata
 
     @cherrypy.expose
     def globalerror2(self, reset=False):

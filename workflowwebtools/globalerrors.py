@@ -118,7 +118,7 @@ class ErrorInfo(object):
         if not self.data_location:
             current_workflows = self.return_workflows()
 
-            prep_ids = set([self.get_workflow(wf).get_prep_id() for wf in current_workflows])
+            prep_ids = {self.get_workflow(wf).get_prep_id() for wf in current_workflows}
 
             other_workflows = sum([self.get_prepid(prep_id).get_workflows() \
                                        for prep_id in prep_ids], [])

@@ -2,7 +2,10 @@
 
 import os
 import json
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse # pylint: disable=import-error
 
 from cmstoolbox.webtools import get_json
 

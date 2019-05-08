@@ -10,7 +10,10 @@ to generate an ErrorInfo instance in other applications.
 import os
 import json
 import re
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse # pylint: disable=import-error
 
 import validators
 import cherrypy
