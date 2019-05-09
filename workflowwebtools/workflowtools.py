@@ -24,7 +24,6 @@ from workflowwebtools import workflowinfo
 from workflowwebtools import serverconfig
 from workflowwebtools import manageactions
 from workflowwebtools import manageusers
-from workflowwebtools import showlog
 from workflowwebtools import reasonsmanip
 from workflowwebtools import listpage
 from workflowwebtools import globalerrors
@@ -137,30 +136,6 @@ class WorkflowTools(object):
         return render('complete.html')
 
     @cherrypy.expose
-    def showlog(self, search='', module='', limit=50):
-        """
-        This page, located at ``https://localhost:8080/showlog``,
-        returns logs that are stored in an elastic search server.
-        If directed here from :ref:`workflow-view-ref`, then
-        the search will be for the relevant workflow.
-
-        :param str search: The search string
-        :param str module: The module to look at, if only interested in one
-        :param int limit: The limit of number of logs to show on a single page
-        :returns: the logs from elastic search
-        :rtype: str
-        """
-        logdata = showlog.give_logs(search, module, int(limit))
-        if isinstance(logdata, dict):
-            return render('showlog.html',
-                          logdata=logdata,
-                          search=search,
-                          module=module,
-                          limit=limit)
-
-        return logdata
-
-    @cherrypy.expose
     def globalerror2(self, reset=False):
         if reset:
             self.reset()
@@ -220,11 +195,11 @@ class WorkflowTools(object):
              "status": self.get_status(workflow),
              "errors": obj['obj'].sum_errors()
             }
-            for workflow, obj in workflow_objs.iteritems()
+            for workflow, obj in workflow_objs.items()
             ]
 
         self.lock.acquire()
-        for workflow, obj in workflow_objs.iteritems():
+        for workflow, obj in workflow_objs.items():
             if workflow not in self.workflows:
                 self.workflows[workflow] = obj['obj']
         self.lock.release()
@@ -341,7 +316,7 @@ class WorkflowTools(object):
                 'long': longreason
             }
             for shortreason, longreason in
-            sorted(reasonsmanip.reasons_list().iteritems())
+            sorted(reasonsmanip.reasons_list().items())
         ]
 
 
@@ -354,17 +329,17 @@ class WorkflowTools(object):
         output = []
 
         # Need to track total sites, so we need to do nested loops here
-        for step, ecs in sorted(errors.iteritems()):
+        for step, ecs in sorted(errors.items()):
             allsites = set()
 
             codes = []
             for code, sites in sorted([
                     (-1 if code == 'NotReported' else int(code), sites)
-                    for code, sites in ecs.iteritems()]):
+                    for code, sites in ecs.items()]):
 
                 sites = {
                     site: (num or int(code < 0))
-                    for site, num in sorted(sites.iteritems())
+                    for site, num in sorted(sites.items())
                 }
                 allsites.update(sites.keys())
 
@@ -400,7 +375,7 @@ class WorkflowTools(object):
         This should help operators understand what the error means.
 
         At the top of the page, there are links back for :ref:`global-view-ref`,
-        :ref:`show-logs-ref`, related JIRA tickets,
+        workflow logs, related JIRA tickets,
         and ReqMgr2 information about the workflow and prep ID.
 
         The main function of this page is to submit actions.
@@ -692,7 +667,7 @@ class WorkflowTools(object):
             for workflow in workflows:
                 # Check sites of recovered workflows
                 if check_actions[workflow]['Action'] in ['acdc', 'recovery']:
-                    for subtask, params in check_actions[workflow]['Parameters'].iteritems():
+                    for subtask, params in check_actions[workflow]['Parameters'].items():
                         # Empty sites are noted
                         if not params.get('sites'):
                             blank_sites_subtask.append('/%s/%s' % (workflow, subtask))

@@ -10,7 +10,10 @@ to generate an ErrorInfo instance in other applications.
 import os
 import json
 import re
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse # pylint: disable=import-error
 
 import validators
 import cherrypy
@@ -82,12 +85,11 @@ def open_location(data_location):
     if raw is None:
         return raw
 
-    keys = raw.keys()
-    if not (keys and isinstance(raw[keys[0]], list)):
+    if not (raw and isinstance(raw[list(raw)[0]], list)):
         return raw
 
     return errors_from_list([
-        workflow for workflow, statuses in raw.iteritems()
+        workflow for workflow, statuses in raw.items()
         if True in ['manual' in status for status in statuses]
     ])
 

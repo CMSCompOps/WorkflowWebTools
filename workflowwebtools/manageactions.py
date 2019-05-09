@@ -5,6 +5,8 @@
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+from __future__ import print_function
+
 import time
 import datetime
 import ssl
@@ -34,7 +36,7 @@ def extract_reasons_params(action, **kwargs):
     if not isinstance(tasks_to_do, list):
         tasks_to_do = [tasks_to_do]
 
-    for key, item in kwargs.iteritems():
+    for key, item in kwargs.items():
 
         if 'shortreason' in key:
             short_re = item or reasonsmanip.DEFAULT_SHORT
@@ -138,7 +140,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
                 # Get any existing thing (most likely not there)
                 step_params = wf_params.get(short_step_name, {})
 
-                for key, val in all_steps.iteritems():
+                for key, val in all_steps.items():
                     # This also includes if the key value is set but blank
                     if not step_params.get(key):
                         step_params[key] = val
@@ -313,7 +315,7 @@ def fix_sites(**kwargs):
 
     coll = get_actions_collection()
 
-    for task, value in params.iteritems():
+    for task, value in params.items():
         split_task = task.split('/')
         workflow = split_task[1]
         subtask = '/'.join(split_task[2:])
@@ -324,4 +326,4 @@ def fix_sites(**kwargs):
         coll.update_one({'workflow': workflow},
                         {'$set': {'parameters': output}})
 
-    print params
+    print(params)

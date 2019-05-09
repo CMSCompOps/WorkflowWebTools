@@ -2,7 +2,10 @@
 
 import os
 import json
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse # pylint: disable=import-error
 
 from cmstoolbox.webtools import get_json
 
@@ -31,5 +34,5 @@ def get_manual_workflows(location):
     """
 
     return [workflow for workflow, statuses
-            in open_statuses(location).iteritems()
+            in open_statuses(location).items()
             if True in ['manual' in status for status in statuses]]
