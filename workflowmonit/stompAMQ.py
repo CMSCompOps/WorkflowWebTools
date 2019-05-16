@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
-
 import json
 
 from WMCore.Services.StompAMQ.StompAMQ import StompAMQ

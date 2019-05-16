@@ -44,7 +44,7 @@ def get_yamlconfig(configPath):
         return {}
 
     try:
-        return yaml.load(open(configPath).read())
+        return yaml.load(open(configPath).read(), Loader=yaml.FullLoader)
     except:
         return {}
 
@@ -290,7 +290,7 @@ def error_logs(workflow):
     if not wf_stepinfo:
         return error_logs
 
-    for stepname, stepdata in wf_stepinfo.iteritems():
+    for stepname, stepdata in wf_stepinfo.items():
         _taskName = stepname.split('/')[-1]
         # Get the errors from both 'jobfailed' and 'submitfailed' details
         for error, sitedata in [
@@ -301,7 +301,7 @@ def error_logs(workflow):
                 continue
             _errorcode = int(error)
 
-            for _sitename, siteinfo in sitedata.iteritems():
+            for _sitename, siteinfo in sitedata.items():
                 _errorsamples = list()
 
                 for sample in siteinfo['samples']:
@@ -383,18 +383,18 @@ def error_summary(workflow):
     if not errorInfo:
         return error_summary
 
-    for fullTaskName, taskErrors in errorInfo.iteritems():
+    for fullTaskName, taskErrors in errorInfo.items():
         taskName = fullTaskName.split('/')[-1]
         if not taskName:
             continue
 
         errorList = list()
         noReportSite = list(taskErrors.get('NotReported', {}).keys())
-        for errorCode, siteCnt in taskErrors.iteritems():
+        for errorCode, siteCnt in taskErrors.items():
             if errorCode == 'NotReported':
                 continue
 
-            for siteName, counts in siteCnt.iteritems():
+            for siteName, counts in siteCnt.items():
                 errorList.append({
                     'errorCode': int(errorCode),
                     'siteName': siteName,
@@ -457,16 +457,16 @@ def populate_error_for_workflow(workflow):
     workflow_summary['transitions'] = requestTransition
 
     nfailure = 0
-    for agent, agentdata in agentJobInfo.iteritems():
+    for agent, agentdata in agentJobInfo.items():
         status = agentdata.get('status', {})
         tasks = agentdata.get('tasks', {})
         if not all([status, tasks]):
             continue
 
-        for ftype, num in status.get('failure', {}).iteritems():
+        for ftype, num in status.get('failure', {}).items():
             nfailure += num
 
-        for taskFullName, taskData in tasks.iteritems():
+        for taskFullName, taskData in tasks.items():
             taskName = taskFullName.split('/')[-1]
 
             inputTask = None
@@ -479,13 +479,13 @@ def populate_error_for_workflow(workflow):
             taskSiteError = dict()
 
             if taskStatus and taskStatus.get('failure', {}):
-                for site, siteData in taskData.get('sites', {}).iteritems():
+                for site, siteData in taskData.get('sites', {}).items():
                     errCnt = 0
                     errCnts = siteData.get('failure', {})
                     if not errCnts:
                         continue
 
-                    for ftype, cnt in errCnts.iteritems():
+                    for ftype, cnt in errCnts.items():
                         errCnt += cnt
 
                     taskSiteError[site] = errCnt
@@ -499,7 +499,7 @@ def populate_error_for_workflow(workflow):
                 if 'siteErrors' not in _task.keys():
                     _task["siteErrors"] = taskSiteError
                 else:
-                    for site, errors in taskSiteError.iteritems():
+                    for site, errors in taskSiteError.items():
                         if site in _task["siteErrors"].keys():
                             _task["siteErrors"][site] += errors
                         else:
@@ -517,7 +517,7 @@ def populate_error_for_workflow(workflow):
 
     # remove tasks that does not have any error
     taskToDel = list()
-    for taskname, taskinfo in workflow_summary['tasks'].iteritems():
+    for taskname, taskinfo in workflow_summary['tasks'].items():
         if 'siteErrors' in taskinfo and (not taskinfo['siteErrors']):
             taskToDel.append(taskname)
     for taskname in taskToDel:
@@ -531,17 +531,17 @@ def populate_error_for_workflow(workflow):
         wf_errorLog = error_logs(workflow)
 
         # add information from errorSummary
-        for taskName, taskErrors in wf_errorSummary.iteritems():
+        for taskName, taskErrors in wf_errorSummary.items():
             if taskName in workflow_summary['tasks'].keys():
                 workflow_summary['tasks'][taskName].update(taskErrors)
 
         # add information from errorLog
-        for taskName, taskErrorLogInfo in wf_errorLog.iteritems():
+        for taskName, taskErrorLogInfo in wf_errorLog.items():
 
             if taskName not in workflow_summary['tasks'].keys():
                 continue
-            for errorCode, siteInfo in taskErrorLogInfo.iteritems():
-                for site, info in siteInfo.iteritems():
+            for errorCode, siteInfo in taskErrorLogInfo.items():
+                for site, info in siteInfo.items():
 
                     for e in workflow_summary['tasks'][taskName].get('errors', []):
                         if e.get('siteName', None) != site:
@@ -562,13 +562,13 @@ def populate_error_for_workflow(workflow):
 
     # last step, nest in task key(TaskName) as a key-value pair
     tasksAsList = []
-    for taskname, taskinfo in workflow_summary['tasks'].iteritems():
+    for taskname, taskinfo in workflow_summary['tasks'].items():
         taskinfo.update({"name": taskname})
         taskinfo['siteErrors'] = [
             {
                 "site": site,
                 "counts": counts
-            } for site, counts in taskinfo['siteErrors'].iteritems()
+            } for site, counts in taskinfo['siteErrors'].items()
         ]  # convert 'siteErrors' from a dict to a list of dict
         tasksAsList.append(taskinfo)
     workflow_summary['tasks'] = tasksAsList
