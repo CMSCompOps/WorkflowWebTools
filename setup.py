@@ -18,13 +18,13 @@ setuptools.setup(
                                  'templates/*']
         },
     install_requires=[
-        'cmstoolbox>=0.11.3',
+        'cmstoolbox>=0.12.0',
         'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
         'numpy>=1.6.1',
         'scipy==1.1.0',
-        'sklearn',
+        'scikit-learn==0.20.3',
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',
@@ -35,6 +35,6 @@ setuptools.setup(
         'cx_Oracle',
         'pandas',
         'keras',
-        'tensorflow'
+        'tensorflow<2.0'
         ]
     )

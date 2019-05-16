@@ -48,13 +48,13 @@ def config_dict():
                 '\n\n  Copied a default configuration to %s.\n  '
                 'Please check it, and then run "workflowtool" again.\n'
                 % LOCATION)
-        else:
-            LOCATION = os.path.join(default_loc)
+
+        LOCATION = os.path.join(default_loc)
 
     output = {}
 
     with open(LOCATION, 'r') as config:
-        output = yaml.load(config)
+        output = yaml.load(config, Loader=yaml.FullLoader)
 
     return output
 

@@ -28,7 +28,7 @@ class TestReportResponse(unittest.TestCase):
         self.coll = manageactions.get_actions_collection()
         # Check that test database is empty
         if self.coll.count() != 0:
-            print 'Test database not empty, abort!!'
+            print('Test database not empty, abort!!')
             exit(123)
 
         now = time.time()

@@ -55,12 +55,6 @@ Manage Actions
 .. automodule:: WorkflowWebTools.manageactions
    :members:
 
-Show Log
-~~~~~~~~
-
-.. automodule:: WorkflowWebTools.showlog
-   :members:
-
 Classifying Errors
 ~~~~~~~~~~~~~~~~~~
 

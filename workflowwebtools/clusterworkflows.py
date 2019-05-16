@@ -208,7 +208,7 @@ def get_clustered_group(workflow, clusterer, session=None):
     group = predictions.get(workflow)
 
     if group is not None:
-        for wkf, cluster in predictions.iteritems():
+        for wkf, cluster in predictions.items():
             if cluster == group and wkf != workflow:
                 output.append(wkf)
 

@@ -4,6 +4,8 @@
 A module that evaluates a model and returns the prediction
 """
 
+from __future__ import print_function
+
 import os
 import random
 import itertools
@@ -50,8 +52,8 @@ def build_table(df, template_table):
                 if cond:
                     chosen_site = site
 
-                print "Detected a site %s which was not present in the training dataset" % site
-                print "We would use a proxy site for this based on whether it is T1, T2 or T3"
+                print("Detected a site %s which was not present in the training dataset" % site)
+                print("We would use a proxy site for this based on whether it is T1, T2 or T3")
                 tier = site.split("_")[0][1]
                 if chosen_site is None:
                     if tier == '1':
@@ -60,15 +62,15 @@ def build_table(df, template_table):
                     elif tier == '2':
                         chosen_num = random.randint(0, n2-1)
                         chosen_site = tier2_sites[chosen_num]
-                        print 'The chosen site is ', chosen_site
+                        print('The chosen site is ', chosen_site)
                     elif tier == '3':
                         chosen_num = random.randint(0, n3-1)
                         chosen_site = tier3_sites[chosen_num]
-                        print 'The chosen site is ', chosen_site
+                        print('The chosen site is ', chosen_site)
                     elif tier == '0':
                         chosen_num = random.randint(0, n0-1)
                         chosen_site = tier0_sites[chosen_num]
-                        print 'The chosen site is ', chosen_site
+                        print('The chosen site is ', chosen_site)
                     else:
                         continue
                 if chosen_site is None:
