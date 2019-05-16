@@ -237,11 +237,11 @@ class TestReasons(unittest.TestCase):
         if os.path.exists('reasons.db'):
             os.remove('reasons.db')
 
-        print 'before', rm.reasons_list()
+        print('before', rm.reasons_list())
 
         rm.update_reasons(self.reasons)
 
-        print 'after', rm.reasons_list()
+        print('after', rm.reasons_list())
 
 
     def tearDown(self):
@@ -291,7 +291,7 @@ class TestActions(unittest.TestCase):
         rm.update_reasons(self.reasons1)
 
         if ma.get_actions_collection().count() != 0:
-            print 'Test database not empty, abort!!'
+            print('Test database not empty, abort!!')
             exit(123)
 
         file_name = WorkflowInfo(self.request_base['workflows']).cache_filename('workflow_params')

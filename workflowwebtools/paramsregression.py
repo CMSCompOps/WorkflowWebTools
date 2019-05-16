@@ -11,6 +11,8 @@ for error handling workflows.
 :author: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+from __future__ import print_function
+
 import sys
 import json
 
@@ -40,7 +42,7 @@ def convert_to_dense(errors, keys=None, allerrors=None, allsites=None):
         allsites = set()
 
         for status in keys:
-            for error, sites in errors[status].iteritems():
+            for error, sites in errors[status].items():
                 allerrors.add(int(error))
                 for site in sites:
                     allsites.add(site)
@@ -51,7 +53,7 @@ def convert_to_dense(errors, keys=None, allerrors=None, allsites=None):
     # Build the dense output
     output = {}
     for status in keys:
-        output[status] = [[0] * len(allsites) for _ in xrange(len(allerrors))]
+        output[status] = [[0] * len(allsites) for _ in allerrors]
         for i_error, error in enumerate(allerrors):
             for i_site, site in enumerate(allsites):
                 output[status][i_error][i_site] += errors[status].get(str(error), {}).get(site, 0)
@@ -75,7 +77,7 @@ def get_classifier(raw_data, parameter, **kwargs):
     :rtype: sklearn.neural_network.MLPClassifier
     """
 
-    primary_ids = sorted(set([key.split('/')[1] for key in raw_data.keys()]))
+    primary_ids = sorted({key.split('/')[1] for key in raw_data.keys()})
 
     # Only split samples when running interactive tests
     training_ids = primary_ids[0::2] if __name__ == '__main__' else primary_ids
@@ -97,7 +99,7 @@ def get_classifier(raw_data, parameter, **kwargs):
             matrix = raw_data[key]['errors'][status]
             # Only do this for sparse matrices
             if not isinstance(matrix, list):
-                for error, sites in matrix.iteritems():
+                for error, sites in matrix.items():
                     allerrors.add(int(error))
                     for site in sites:
                         allsites.add(site)
@@ -149,15 +151,15 @@ def get_classifier(raw_data, parameter, **kwargs):
                     right += 1
                 else:
                     status = 'WRONG'
-                print '[%s] %i : %i -- %s : %s' % \
-                    (status, want, result, class_labels[want], class_labels[result])
+                print('[%s] %i : %i -- %s : %s' %
+                      (status, want, result, class_labels[want], class_labels[result]))
 
-            print '%f (%i/%i)' % (100.0 * right/len(target), right, len(target))
+            print('%f (%i/%i)' % (100.0 * right/len(target), right, len(target)))
 
-        print '\nTraining:\n'
+        print('\nTraining:\n')
         print_results(training_data, training_target)
 
-        print '\nTesting:\n'
+        print('\nTesting:\n')
         print_results(testing_data, testing_target)
 
     return classifier

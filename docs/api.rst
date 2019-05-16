@@ -16,7 +16,6 @@ From the URL root index, users will be able to directly access the following:
 - :ref:`global-view-ref`
 - :ref:`new-user-ref`
 - :ref:`reset-pass-ref`
-- :ref:`show-logs-ref`
 
 .. _global-view-ref:
 
@@ -52,13 +51,6 @@ Reporting Completed Actions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automethod:: workflowtools.WorkflowTools.reportaction
-
-.. _show-logs-ref:
-
-Viewing Workflow Logs
-~~~~~~~~~~~~~~~~~~~~~
-
-.. automethod:: workflowtools.WorkflowTools.showlog
 
 .. _new-user-ref:
 

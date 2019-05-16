@@ -6,6 +6,8 @@ Module containing and returning information about workflows.
 :authors: Daniel Abercrombie <dabercro@mit.edu>
 """
 
+from __future__ import print_function
+
 import os
 import re
 import json
@@ -71,7 +73,7 @@ def cached_json(attribute, timeout=None):
                         with open(file_name, 'r') as cache_file:
                             check_var = json.load(cache_file)
                     except ValueError:
-                        print 'JSON file no good. Deleting %s. Try again later.' % file_name
+                        print('JSON file no good. Deleting %s. Try again later.' % file_name)
                         os.remove(file_name)
 
                 # If still None, call the wrapped function
@@ -131,11 +133,11 @@ def errors_for_workflow(workflow, url='cmsweb.cern.ch'):
     if not result['result']:
         return output
 
-    for step, stepdata in result['result'][0].get(workflow, {}).iteritems():
+    for step, stepdata in result['result'][0].get(workflow, {}).items():
         errors = {}
-        for code, codedata in stepdata.get('jobfailed', {}).iteritems():
+        for code, codedata in stepdata.get('jobfailed', {}).items():
             sites = {}
-            for site, sitedata in codedata.iteritems():
+            for site, sitedata in codedata.items():
                 if sitedata['errorCount']:
                     sites[site] = sitedata['errorCount']
 
@@ -205,7 +207,7 @@ class Info(object):
         """
         Reset the cache for this object and clear out the files.
         """
-        print 'Reseting %s' % self
+        print('Reseting %s' % self)
 
         if not os.path.exists(self.bak_dir):
             os.mkdir(self.bak_dir)
@@ -259,13 +261,13 @@ class WorkflowInfo(Info):
                               use_https=True, use_cert=True)
 
             for params in result['result']:
-                for key, item in params.iteritems():
+                for key, item in params.items():
                     if key == self.workflow:
                         return item
 
         except Exception as error:
-            print 'Failed to get from reqmgr', self.workflow
-            print str(error)
+            print('Failed to get from reqmgr', self.workflow)
+            print(str(error))
 
         return None
 
@@ -349,13 +351,13 @@ class WorkflowInfo(Info):
 
         nsuccess = 0
         nfailure = 0
-        for agent, agentdata in wf_agents.iteritems():
+        for agent, agentdata in wf_agents.items():
             status = agentdata.get('status', {})
             if not status: continue
 
             nsuccess += status.get('success', 0)
 
-            for ftype, num in status.get('failure', {}).iteritems():
+            for ftype, num in status.get('failure', {}).items():
                 nfailure += num
 
         try:
@@ -405,7 +407,7 @@ class WorkflowInfo(Info):
             task = doc['fileset_name']
             # For each task, we have the following keys:
             # sites - a set of sites that the recovery docs say to run on.
-            for replica, info in doc['files'].iteritems():
+            for replica, info in doc['files'].items():
                 # For fake files, just return the site whitelist
                 if replica.startswith('MCFakeFile'):
                     locations = site_white_list
@@ -476,14 +478,14 @@ class WorkflowInfo(Info):
         if self.explanations is None:
             self.explanations = defaultdict(lambda: defaultdict(lambda: []))
             result = self._get_jobdetail()
-            for stepname, stepdata in result['result'][0].get(self.workflow, {}).iteritems():
+            for stepname, stepdata in result['result'][0].get(self.workflow, {}).items():
                 # Get the errors from both 'jobfailed' and 'submitfailed' details
                 for error, site in [(error, site) for status in ['jobfailed', 'submitfailed'] \
                                         for error, site in stepdata.get(status, {}).items()]:
                     if error == '0':
                         continue
 
-                    for sitename, samples in site.iteritems():
+                    for sitename, samples in site.items():
                         for detail in [values for sample in samples['samples']
                                        for errs in sample['errors'].values()
                                        for values in errs]:
@@ -564,7 +566,7 @@ class PrepIDInfo(Info):
         request = self.get_requests()
 
         return [(workflow, time.mktime(datetime.datetime(*value['RequestDate']).timetuple())) \
-                    for workflow, value in request.iteritems()]
+                    for workflow, value in request.items()]
 
     def get_workflows(self):
         """
