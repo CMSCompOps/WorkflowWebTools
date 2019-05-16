@@ -269,36 +269,40 @@ def sendDoc(cred, docs):
 
 def main():
 
-    with open(LOGGING_CONFIG, 'r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
-
-    global logger
-    logger = logging.getLogger('workflowmonitLogger')
-
-    cred = wc.get_yamlconfig(CRED_FILE_PATH)
-    docs = buildDoc(CONFIG_FILE_PATH)
-
-    # handling alerts
     recipients = wc.get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
-    ad.alertWithEmail(docs, recipients)
 
-    # backup documents
-    if not os.path.isdir(LOGDIR):
-        os.makedirs(LOGDIR)
+    try:
+        with open(LOGGING_CONFIG, 'r') as f:
+            config = yaml.safe_load(f.read())
+            logging.config.dictConfig(config)
 
-    doc_bkp = os.path.join(LOGDIR, 'toSendDoc_{}'.format(
-        time.strftime('%y%m%d-%H%M%S')))
-    wc.save_json(docs, doc_bkp)
-    logger.info('Document saved at: {}.json'.format(doc_bkp))
+        global logger
+        logger = logging.getLogger('workflowmonitLogger')
 
-    failures = sendDoc(cred=cred, docs=docs)
+        cred = wc.get_yamlconfig(CRED_FILE_PATH)
+        docs = buildDoc(CONFIG_FILE_PATH)
 
-    failedDocs_bkp = os.path.join(
-        LOGDIR, 'amqFailedMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-    if len(failures):
-        wc.save_json(failures, failedDocs_bkp)
-        logger.info('Failed message saved at: {}.json'.format(failedDocs_bkp))
+        # handling alerts
+        ad.alertWithEmail(docs, recipients)
+
+        # backup documents
+        if not os.path.isdir(LOGDIR):
+            os.makedirs(LOGDIR)
+
+        doc_bkp = os.path.join(LOGDIR, 'toSendDoc_{}'.format(
+            time.strftime('%y%m%d-%H%M%S')))
+        wc.save_json(docs, doc_bkp)
+        logger.info('Document saved at: {}.json'.format(doc_bkp))
+
+        failures = sendDoc(cred=cred, docs=docs)
+
+        failedDocs_bkp = os.path.join(
+            LOGDIR, 'amqFailedMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+        if len(failures):
+            wc.save_json(failures, failedDocs_bkp)
+            logger.info('Failed message saved at: {}.json'.format(failedDocs_bkp))
+    except Exception as e:
+        ad.errorEmailShooter(str(e), recipients)
 
 
 if __name__ == "__main__":

@@ -76,6 +76,25 @@ def alertWithEmail(docs, recipients):
             s.quit()
 
 
+def errorEmailShooter(msg, recipients):
+    """
+    forward the error message to recipients by emails
+
+    :param msg str: error mesages
+    :param recipients list: list of recipients email address
+    """
+
+    sender = 'toolsandint-workflowmonitalert@cern.ch'
+
+    contentMsg = MIMEText(msg)
+    contentMsg['Subject'] = 'Exception caught for workflowmonit'
+    contentMsg['From'] = sender
+    contentMsg['To'] = ', '.join(recipients)
+    s = smtplib.SMTP('localhost')
+    s.sendmail(sender, recipients, contentMsg.as_string())
+    s.quit()
+
+
 def main():
 
     import os
