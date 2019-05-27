@@ -619,7 +619,10 @@ def main():
     print("Number of workflows retrieved from Oracle DB: ", len(wfs))
     invalidate_caches()
 
-    from Queue import Queue
+    try:
+        from Queue import Queue
+    except ImportError:
+        from queue import Queue
     q = Queue()
     num_threads = min(150, len(wfs))
 

@@ -8,7 +8,10 @@ import sqlite3
 import logging
 import threading
 import logging.config
-from Queue import Queue
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 
 import yaml
 from workflowmonit.stompAMQ import stompAMQ
