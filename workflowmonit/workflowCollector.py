@@ -622,7 +622,7 @@ def main():
     try:
         from Queue import Queue
     except ImportError:
-        from queue import Queue
+        from queue import Queue # pylint: disable=import-error
     q = Queue()
     num_threads = min(150, len(wfs))
 

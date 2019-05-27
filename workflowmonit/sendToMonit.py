@@ -11,7 +11,7 @@ import logging.config
 try:
     from Queue import Queue
 except ImportError:
-    from queue import Queue
+    from queue import Queue # pylint: disable=import-error
 
 import yaml
 from workflowmonit.stompAMQ import stompAMQ
