@@ -19,7 +19,7 @@ setuptools.setup(
         },
     install_requires=[
         'cmstoolbox>=0.12.0',
-        'CMSMonitoring>=0.1.3',
+        'CMSMonitoring',
         'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
