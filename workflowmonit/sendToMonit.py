@@ -245,7 +245,7 @@ def sendDoc(cred, docs):
             password = None,
             producer = cred['producer'],
             topic = cred['topic'],
-            validation_schema = None
+            validation_schema = None,
             host_and_ports=[
                 (cred['hostport']['host'], cred['hostport']['port'])],
             logger=logger,
