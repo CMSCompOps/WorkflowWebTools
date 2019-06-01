@@ -6,6 +6,7 @@ import re
 import sys
 import json
 import time
+import gzip
 import shutil
 import threading
 from collections import defaultdict
@@ -16,18 +17,30 @@ from workflowwebtools import workflowinfo
 from workflowwebtools import errorutils
 
 
-def save_json(json_obj, filename='tmp'):
+def save_json(json_obj, filename='tmp', gzipped=False):
     """
     save json object to a local formatted text file, for debug
 
     :param dict json_obj: the json object
     :param str filename: the base name of the file to be saved
-    :returns: None
+    :param bool gipped: if gzip output document, default is False
+    :returns: full filename
+
+    :rtype: str
     """
 
-    with open('%s.json' % filename, 'w') as tmp:
-        tmp.write(json.dumps(json_obj, sort_keys=True,
-                             indent=4, separators=(',', ': ')))
+    fn = "{}.json".format(filename)
+    msg = json.dumps(json_obj, sort_keys=True, indent=4, separators=(',', ': '))
+
+    if gzipped:
+        fn += '.gz'
+        with gzip.open(fn, 'wb') as f:
+            f.write(msg)
+    else:
+        with open(fn, 'w') as f:
+            f.write(msg)
+
+    return fn
 
 
 def get_yamlconfig(configPath):
@@ -619,7 +632,10 @@ def main():
     print("Number of workflows retrieved from Oracle DB: ", len(wfs))
     invalidate_caches()
 
-    from Queue import Queue
+    try:
+        from Queue import Queue
+    except ImportError:
+        from queue import Queue # pylint: disable=import-error
     q = Queue()
     num_threads = min(150, len(wfs))
 
