@@ -268,6 +268,7 @@ def sendDoc(cred, docs):
     except Exception as e:
         logger.exception(
             "Failed to send data to StompAMQ. Error: {}".format(str(e)))
+        raise
 
 
 def main():
