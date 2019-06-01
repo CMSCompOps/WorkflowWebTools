@@ -14,7 +14,7 @@ except ImportError:
     from queue import Queue # pylint: disable=import-error
 
 import yaml
-from workflowmonit.stompAMQ import stompAMQ
+from CMSMonitoring.StompAMQ import StompAMQ
 import workflowmonit.workflowCollector as wc
 import workflowmonit.alertingDefs as ad
 
@@ -243,12 +243,12 @@ def sendDoc(cred, docs):
         return []
 
     try:
-        amq = stompAMQ(
-            None,  # username
-            None,  # password
-            cred['producer'],
-            cred['topic'],
-            # default [('agileinf-mb.cern.ch', 61213)]
+        amq = StompAMQ(
+            username = None,
+            password = None,
+            producer = cred['producer'],
+            topic = cred['topic'],
+            validation_schema = None,
             host_and_ports=[
                 (cred['hostport']['host'], cred['hostport']['port'])],
             logger=logger,
