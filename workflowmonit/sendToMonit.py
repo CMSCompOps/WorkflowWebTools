@@ -258,7 +258,7 @@ def sendDoc(cred, docs):
 
         doctype = 'workflowmonit_{}'.format(cred['producer'])
         notifications = [amq.make_notification(
-            payload=doc, docType=doctype) for doc in docs]
+            payload=doc, docType=doctype)[0] for doc in docs]
         failures = amq.send(notifications)
 
         logger.info("{}/{} docs successfully sent to AMQ.".format(
