@@ -102,14 +102,7 @@ def getCompletedWorkflowsFromDb(configPath):
     """
     Get completed workflow list from local status db (setup to avoid unnecessary caching)
 
-    Workflows whose status is one of
-
-    - *running-closed*
-    - *completed*
-    - *aborted-archived*
-    - *rejected-arcived*
-
-    are removed from further caching.
+    Workflows whose status ends with *archived* are removed from further caching.
 
     :param str configPath: location of config file
     :returns: list of workflow (str)
@@ -130,7 +123,7 @@ def getCompletedWorkflowsFromDb(configPath):
         status TEXT,
         failurerate REAL
     );"""
-    DB_QUERY_CMD = """SELECT * FROM workflowStatuses WHERE status IN ('running-closed', 'completed', 'aborted-archived', 'rejected-archived')"""
+    DB_QUERY_CMD = """SELECT * FROM workflowStatuses WHERE status LIKE '%archived'"""
 
     res = []
     conn = sqlite3.connect(dbPath)
@@ -208,20 +201,21 @@ def buildDoc(configpath):
 
     wc.invalidate_caches('/tmp/wsi/workflowinfo')
 
-    q = TimeoutQueue()
-    num_threads = min(150, len(wkfs))
-    for wf in wkfs:
-        q.put(wf)
-
     results = list()
-    for _ in range(num_threads):
-        t = threading.Thread(target=worker, args=(results, q, completedWfs, ))
-        t.daemon = True
-        t.start()
-    try:
-        q.join_with_timeout(30*60)  # timeout 30min
-    except NotFinished:
-        pass
+
+    q = TimeoutQueue(maxsize=500)
+    num_threads = 500
+    for i, wf in enumerate(wkfs, 1):
+        q.put(wf)
+        if q.full() or i==len(wkfs):
+            for _ in range(num_threads):
+                t = threading.Thread(target=worker, args=(results, q, completedWfs, ))
+                t.daemon = True
+                t.start()
+            try:
+                q.join_with_timeout(30*60)  # timeout 30min
+            except NotFinished:
+                pass
 
     updateWorkflowStatusToDb(configpath, results)
     logger.info('Number of updated workflows: {}'.format(len(results)))
@@ -295,17 +289,18 @@ def main():
 
         doc_bkp = os.path.join(LOGDIR, 'toSendDoc_{}'.format(
             time.strftime('%y%m%d-%H%M%S')))
-        wc.save_json(docs, doc_bkp)
-        logger.info('Document saved at: {}.json'.format(doc_bkp))
+        docfn = wc.save_json(docs, filename=doc_bkp, gzipped=True)
+        logger.info('Document saved at: {}'.format(docfn))
 
         failures = sendDoc(cred=cred, docs=docs)
 
         failedDocs_bkp = os.path.join(
             LOGDIR, 'amqFailedMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
         if len(failures):
-            wc.save_json(failures, failedDocs_bkp)
-            logger.info('Failed message saved at: {}.json'.format(failedDocs_bkp))
+            failedDocFn = wc.save_json(failures, filename=failedDocs_bkp, gzipped=True)
+            logger.info('Failed message saved at: {}'.format(failedDocFn))
     except Exception as e:
+        logger.exception("Exception encounted, sending emails to {}".format(str(recipients)))
         ad.errorEmailShooter(str(e), recipients)
 
 
