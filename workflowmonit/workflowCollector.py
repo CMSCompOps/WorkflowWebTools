@@ -35,7 +35,7 @@ def save_json(json_obj, filename='tmp', gzipped=False):
     if gzipped:
         fn += '.gz'
         with gzip.open(fn, 'wb') as f:
-            f.write(msg)
+            f.write(msg.encode())
     else:
         with open(fn, 'w') as f:
             f.write(msg)
