@@ -23,7 +23,7 @@ def save_json(json_obj, filename='tmp', gzipped=False):
 
     :param dict json_obj: the json object
     :param str filename: the base name of the file to be saved
-    :param bool gipped: if gzip output document, default is False
+    :param bool gzipped: if gzip output document, default is False
     :returns: full filename
 
     :rtype: str
