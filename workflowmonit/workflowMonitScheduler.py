@@ -10,7 +10,7 @@ CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'con
 LOGDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Logs')
 LOGGING_CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configLogging.yml')
 
-schedule.every().hour.do(wms.main)
+schedule.every(30).minutes.do(wms.main)
 
 
 if __name__ == "__main__":
