@@ -51,7 +51,7 @@ def alertWithEmail(docs, recipients):
 
     for doc in docs:
         alertResults = [ad(doc) for ad in AlertDefs]
-        positiveRes = filter(lambda d: d[0], alertResults)
+        positiveRes = [r for r in alertResults if r[0]]
         if positiveRes:
             shortAlertMsgs = [x[1] for x in positiveRes]
             _contentMsg = '\n\n'.join([

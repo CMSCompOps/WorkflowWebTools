@@ -1,4 +1,2 @@
 schedule
-git+https://github.com/dmwm/WMCore.git
-stomp.py
 pyyaml>=5.1
