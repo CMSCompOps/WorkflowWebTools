@@ -33,7 +33,7 @@ setuptools.setup(
         'tabulate',
         'pymongo<3.5.0',
         'cx_Oracle',
-        'pandas',
+        'pandas<0.25.0',
         'keras',
         'tensorflow<2.0'
         ]
