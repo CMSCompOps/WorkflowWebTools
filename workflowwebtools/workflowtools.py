@@ -215,7 +215,7 @@ class WorkflowTools(object):
     @cherrypy.tools.json_out()
     def submit2(self):
         input_json = cherrypy.request.json
-        manageactions.submit2(input_json['documents'])
+        manageactions.submit2(cherrypy.request.login, input_json['documents'])
         self.update_statuses()
         return {'message': 'Done'}
 

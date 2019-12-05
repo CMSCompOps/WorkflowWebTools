@@ -28,7 +28,7 @@ setuptools.setup(
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',
-        'pyyaml',
+        'pyyaml>=5.1',
         'validators',
         'tabulate',
         'pymongo<3.5.0',
