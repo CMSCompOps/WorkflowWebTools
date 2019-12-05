@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import json
 
-from WMCore.Services.StompAMQ.StompAMQ import StompAMQ
+from CMSMonitoring import StompAMQ
 
 
 class stompAMQ(StompAMQ):
     """
-    Overriding :py:mod:`WMCore.Services.StompAMQ.StompAMQ.StompAMQ`'s
+    Overriding :py:mod:`CMSMonitoring.StompAMQ`'s
     :py:func:`_send_single` method. The default ``destination`` -- **queue** is
     not authorizing me to write.
     """
