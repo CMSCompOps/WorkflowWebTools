@@ -22,7 +22,7 @@ setuptools.setup(
         'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
-        'numpy<2.0,>=1.14.5',
+        'numpy>=1.14.5,<1.17',
         'scipy==1.1.0',
         'scikit-learn==0.20.3',
         'passlib>=1.6',
