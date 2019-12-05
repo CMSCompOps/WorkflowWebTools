@@ -28,6 +28,7 @@ setuptools.setup(
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',
+        'pytest>=4.4.2,<5.0'
         'pyyaml>=5.1',
         'validators',
         'tabulate',
