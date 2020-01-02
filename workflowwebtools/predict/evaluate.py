@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, too-complex, invalid-name, too-many-branches, too-many-locals
+# pylint: disable=missing-docstring, invalid-name, too-many-branches, too-many-locals
 
 """
 A module that evaluates a model and returns the prediction
@@ -13,6 +13,8 @@ import itertools
 import numpy as np
 import pandas as pd
 import keras as K
+
+from .. import serverconfig
 
 
 def modified_site_name(site):
@@ -185,6 +187,9 @@ def predict(wf_obj):
     :returns: Prediction results to be passed back to a browser
     :rtype: dict
     """
+
+    if serverconfig.config_dict().get('no_predict'):
+        return {'Action': 'Suggestions turned off'}
 
     return {
         'Action': pred([wf_obj.get_errors(True)])[0]

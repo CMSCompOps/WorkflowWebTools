@@ -1,4 +1,4 @@
-#pylint: disable=too-many-locals, too-complex, global-statement
+#pylint: disable=too-many-locals, global-statement
 
 """
 Generates the content for the errors pages
@@ -22,7 +22,7 @@ from . import errorutils
 from . import serverconfig
 from .reasonsmanip import reasons_list
 
-class ErrorInfo(object):
+class ErrorInfo: # pylint: disable=too-many-instance-attributes
     """Holds the information for any errors for a session"""
 
     def __init__(self, data_location=''):

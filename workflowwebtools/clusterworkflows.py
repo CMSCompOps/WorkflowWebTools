@@ -152,7 +152,8 @@ def get_clusterer(history_path, errors_path=''):
                                        n_init=settings['n_init'],
                                        n_jobs=-1)
 
-    clusterer.fit(numpy.array(data))
+    if not settings.get('skip'):
+        clusterer.fit(numpy.array(data))
 
     cherrypy.log('Done')
 
