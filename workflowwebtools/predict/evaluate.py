@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 import keras as K
 
+from .. import serverconfig
+
 
 def modified_site_name(site):
     site_name = site.split('_')[:-1]
@@ -185,6 +187,9 @@ def predict(wf_obj):
     :returns: Prediction results to be passed back to a browser
     :rtype: dict
     """
+
+    if serverconfig.config_dict().get('no_predict'):
+        return {'Action': 'Suggestions turned off'}
 
     return {
         'Action': pred([wf_obj.get_errors(True)])[0]

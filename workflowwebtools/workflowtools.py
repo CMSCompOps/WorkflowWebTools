@@ -534,6 +534,9 @@ class WorkflowTools(object):
         """
         output = {'similar': [], 'acted': []}
 
+        if serverconfig.config_dict()['cluster'].get('skip'):
+            return output
+
         self.seeworkflowlock.acquire()
 
         try:

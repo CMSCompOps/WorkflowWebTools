@@ -107,6 +107,9 @@ wfwebtool.fillSimilar = function () {
         url: '/similarwfs',
         data: {workflow: wf},            // Then we fill the list of multiple workflows
         success: function (data) {
+            if (!data.similar.length)
+                return;
+
             var button = document.getElementById("showmulti");
             button.style.display = '';
             var wfdiv = document.getElementById("wflist");
