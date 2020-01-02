@@ -188,13 +188,13 @@ def submit2(user, documents): # pylint: disable=missing-docstring
     for document in documents:
         workflow = document['workflow']
         params = document['parameters']
+        params['user'] = user
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, params))
 
         coll.update_one({'workflow': workflow},
                         {'$set':
                              {'timestamp': int(time.time()),
-                              'user': user,
                               'parameters': params,
                               'acted': 0}},
                         upsert=True)
