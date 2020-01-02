@@ -13,4 +13,5 @@ env: TMPDIR=$PWD/tmp
 install:
   - pip install .
 script:
+  - pip list
   - package=workflowwebtools opsspace-test

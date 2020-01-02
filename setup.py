@@ -23,19 +23,18 @@ setuptools.setup(
         'more-itertools<6.0.0',
         'cherrypy<18.0.0',
         'mako',
-        'numpy>=1.6.1',
-        'scipy==1.1.0',
-        'scikit-learn==0.20.3',
+        'numpy>=1.14.5,<1.17',
+        'scikit-learn',
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',
-        'pyyaml',
+        'pytest>=4.4.2,<5.0'
+        'pyyaml>=5.1',
         'validators',
         'tabulate',
         'pymongo<3.5.0',
         'cx_Oracle',
-        'pandas',
-        'keras',
-        'tensorflow<2.0'
+        'pandas<0.25.0',
+        'keras'
         ]
     )

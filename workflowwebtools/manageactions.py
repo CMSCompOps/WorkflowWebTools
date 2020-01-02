@@ -182,12 +182,13 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     return workflows, reasons, params
 
 
-def submit2(documents): # pylint: disable=missing-docstring
+def submit2(user, documents): # pylint: disable=missing-docstring
     coll = get_actions_collection()
 
     for document in documents:
         workflow = document['workflow']
         params = document['parameters']
+        params['user'] = user
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, params))
 
