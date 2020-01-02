@@ -11,7 +11,7 @@ services:
   - mongodb
 env: TMPDIR=$PWD/tmp
 install:
-  - python setup.py install
+  - pip install .
 script:
   - pip list
   - package=workflowwebtools opsspace-test

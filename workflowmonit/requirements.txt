@@ -1,4 +1,2 @@
 schedule
-CMSMonitoring
-stomp.py
 pyyaml>=5.1

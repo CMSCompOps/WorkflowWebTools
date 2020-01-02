@@ -1,14 +1,13 @@
 workflowmonit
 -------------
 
-Component which periodically fetches information of workflows in the system(list extracted from Unified database), process and organizes into static documents, then sends to CMSMONIT service via :py:mod:`workflowmonit.stompAMQ` for storage, monitoring and post-aggregation.
+Component which periodically fetches information of workflows in the system(list extracted from Unified database), process and organizes into static documents, then sends to CMSMONIT service via :py:mod:`CMSMonitoring.StompAMQ` for storage, monitoring and post-aggregation.
 
 - :ref:`usedApi-ref`
 - Composition
     - :ref:`wmCollector-ref`
     - :ref:`wmSender-ref`
     - :ref:`wmScheduler-ref`
-    - :ref:`wmStompAMQ-ref`
 - :ref:`wmDocExample-ref`
 
 .. _usedApi-ref:
@@ -55,20 +54,11 @@ Schedule the ``main`` function of :ref:`wmSender-ref` every hour with :py:mod:`s
         time.sleep(1)
 
 
-.. _wmStompAMQ-ref:
-
-stompAMQ
-~~~~~~~~
-
-.. automodule:: workflowmonit.stompAMQ
-   :members:
-
-
 .. _wmDocExample-ref:
 
 Document examples
 ~~~~~~~~~~~~~~~~~
 
 1. document describling a single workflow `example1 <http://wsi.web.cern.ch/wsi/public/toSaveExample4.json>`_
-2. document wrapped by ``stompAMQ`` as a batch `example2.1 <http://wsi.web.cern.ch/wsi/public/godummy2.json>`_, `example2.2 <http://wsi.web.cern.ch/wsi/public/amqMsg_190208-201142.json>`_
-3. document sent out by ``stomp`` (what ``stompAMQ`` wrapped around) `example3 <http://wsi.web.cern.ch/wsi/public/bab2ef60-b0f2-4b55-9434-95a9cfd00510.json>`_
+2. document wrapped by ``StompAMQ`` as a batch `example2.1 <http://wsi.web.cern.ch/wsi/public/godummy2.json>`_, `example2.2 <http://wsi.web.cern.ch/wsi/public/amqMsg_190208-201142.json>`_
+3. document sent out by ``stomp`` (what ``StompAMQ`` wrapped around) `example3 <http://wsi.web.cern.ch/wsi/public/bab2ef60-b0f2-4b55-9434-95a9cfd00510.json>`_
