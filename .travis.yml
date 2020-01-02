@@ -3,8 +3,6 @@ matrix:
   include:
     - dist: xenial
       python: 3.7
-      env:
-        - nodoc=true
 services:
   - mongodb
 env: TMPDIR=$PWD/tmp
