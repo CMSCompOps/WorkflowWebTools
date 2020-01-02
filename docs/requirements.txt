@@ -3,3 +3,4 @@ sphinx_rtd_theme
 sphinxcontrib-programoutput
 sphinxcontrib-autoanysrc
 -r ../workflowmonit/requirements.txt
+tensorflow  # This should probably be installed separately for production
