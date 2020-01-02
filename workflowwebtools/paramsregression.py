@@ -1,4 +1,4 @@
-#pylint: disable=too-many-locals, too-complex
+#pylint: disable=too-many-locals
 
 """
 The :py:mod:`paramsregression` module uses neural net classifiers to predict parameters

@@ -16,7 +16,6 @@ class NoConfig(Exception):
     """
     An exception that is raised if there is no config file
     """
-    pass
 
 LOCATION = None
 

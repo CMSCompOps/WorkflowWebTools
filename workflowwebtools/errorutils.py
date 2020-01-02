@@ -114,7 +114,7 @@ def get_list_info(status_list):
     return indict
 
 
-def add_to_database(curs, data_location): # pylint: disable=too-complex
+def add_to_database(curs, data_location):
     """Add data from a file to a central database through the passed cursor
 
     :param sqlite3.Cursor curs: is the cursor to the database

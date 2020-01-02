@@ -20,21 +20,21 @@ setuptools.setup(
     install_requires=[
         'cmstoolbox>=0.12.0',
         'CMSMonitoring',
-        'more-itertools<6.0.0',
-        'cherrypy<18.0.0',
+        'more-itertools',
+        'cherrypy',
         'mako',
-        'numpy>=1.14.5,<1.17',
+        'numpy',
         'scikit-learn',
-        'passlib>=1.6',
+        'passlib',
         'bcrypt',
         'pyOpenSSL',
-        'pytest>=4.4.2,<5.0'
+        'pytest>=4.4.2'
         'pyyaml>=5.1',
         'validators',
         'tabulate',
         'pymongo<3.5.0',
         'cx_Oracle',
-        'pandas<0.25.0',
+        'pandas',
         'keras'
         ]
     )

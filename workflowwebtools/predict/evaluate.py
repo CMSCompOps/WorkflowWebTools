@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, too-complex, invalid-name, too-many-branches, too-many-locals
+# pylint: disable=missing-docstring, invalid-name, too-many-branches, too-many-locals
 
 """
 A module that evaluates a model and returns the prediction

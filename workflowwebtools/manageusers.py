@@ -131,10 +131,10 @@ def send_reset_email(email, url):
         stored_string = do_salt_hash(str(validation_string))
 
         confirm_link = (url + '/confirmuser?' +
-                        urllib.urlencode({'code': str(validation_string)}))
+                        urllib.parse.urlencode({'code': str(validation_string)}))
 
         reset_link = (url + '/resetpassword?' +
-                      urllib.urlencode({'code': str(validation_string)}))
+                      urllib.parse.urlencode({'code': str(validation_string)}))
 
         message_text = (
             'Hello ' + user +',\n\n'
@@ -219,7 +219,7 @@ def add_user(email, username, password, url):
     stored_string = do_salt_hash(str(validation_string))
 
     confirm_link = (url + '/confirmuser?' +
-                    urllib.urlencode({'code': str(validation_string)}))
+                    urllib.parse.urlencode({'code': str(validation_string)}))
 
     wm_email = serverconfig.config_dict()['webmaster']['email']
 
