@@ -23,8 +23,7 @@ setuptools.setup(
         'cherrypy<18.0.0',
         'mako',
         'numpy>=1.14.5,<1.17',
-        'scipy==1.1.0',
-        'scikit-learn==0.20.3',
+        'scikit-learn',
         'passlib>=1.6',
         'bcrypt',
         'pyOpenSSL',
@@ -34,7 +33,6 @@ setuptools.setup(
         'pymongo<3.5.0',
         'cx_Oracle',
         'pandas<0.25.0',
-        'keras',
-        'tensorflow<2.0'
+        'keras'
         ]
     )
