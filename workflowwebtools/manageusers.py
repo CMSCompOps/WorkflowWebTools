@@ -260,17 +260,20 @@ def do_salt_hash(to_hash):
     :rtype: str
     """
 
-    random.seed(to_hash)
+    random.seed(to_hash, version=1)
+
+    # https://bugs.python.org/issue27742
+    randint_compat = lambda lo, hi: lo + int(random.random() * (hi + 1 - lo))
 
     with open('keys/salt.txt', 'r') as salt_file:
         salts = [line.strip() for line in salt_file.readlines()]
 
     salt_len = len(salts)
 
-    for _ in range(random.randint(10, 30)):
+    for _ in range(randint_compat(10, 30)):
 
-        to_hash = bcrypt.encrypt(to_hash, rounds=random.randint(5, 10),
-                                 salt=salts[random.randint(0, 200) % salt_len])
-        random.seed(to_hash)
+        to_hash = bcrypt.encrypt(to_hash, rounds=randint_compat(5, 10),
+                                 salt=salts[randint_compat(0, 200) % salt_len])
+        random.seed(to_hash, version=1)
 
     return to_hash

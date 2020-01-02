@@ -18,7 +18,7 @@ setuptools.setup(
                                  'templates/*']
         },
     install_requires=[
-        'cmstoolbox>=0.12.0',
+        'cmstoolbox>=0.14.3',
         'CMSMonitoring',
         'more-itertools',
         'cherrypy',
