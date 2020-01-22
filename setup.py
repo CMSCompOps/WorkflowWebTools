@@ -18,6 +18,7 @@ setuptools.setup(
                                  'templates/*']
         },
     install_requires=[
+        'requests',
         'cmstoolbox>=0.14.3',
         'CMSMonitoring',
         'more-itertools',
