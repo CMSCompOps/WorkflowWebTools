@@ -6,9 +6,11 @@ A module that evaluates a model and returns the prediction
 
 from __future__ import print_function
 
+import json
 import requests
 
 from .. import serverconfig
+from ..web.templates import render
 
 
 def predict(wf_obj):
@@ -20,17 +22,27 @@ def predict(wf_obj):
     :rtype: dict
     """
 
-    if serverconfig.config_dict().get('no_predict'):
+    config = serverconfig.config_dict()
+
+    if config.get('no_predict') or not config.get('aieh'):
         return {'Action': 'Suggestions turned off'}
 
     wf_name = wf_obj.workflow
 
     tasks = sorted(wf_obj.get_errors(True).keys())
 
-    return {
-        'Action': '\n<ul>\n<li>' + '\n<li>'.join([
-            task + '<br>' +
+    table_rows = {
+        task: json.loads(
             requests.get(serverconfig.config_dict()['aieh'],
-                         params={'wf': wf_name, 'tsk': task}).text
-            for task in tasks]) + '\n</ul>'
-    }
+                         params={'wf': wf_name, 'tsk': task}).text)
+        for task in tasks}
+
+    # Set of all models turned into a sorted list
+    allmodels = sorted({model for tasklist in table_rows.values() for model in tasklist})
+
+    return {
+        'Action': render('predictiontable.html',
+                         allmodels=allmodels,
+                         tasks=tasks,
+                         table_rows=table_rows)
+        }

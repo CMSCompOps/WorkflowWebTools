@@ -1,0 +1,16 @@
+<table class="predictiontable">
+  <tr>
+  <td>Task</td>
+  % for model in allmodels:
+  <td>${model}</td>
+  % endfor
+  </tr>
+  % for task in tasks:
+  <tr>
+    <td>${task}</td>
+    % for model in allmodels:
+    <td>${table_rows.get(task, {}).get(model, '')}</td>
+    % endfor
+  </tr>
+  % endfor
+</table>

@@ -11,3 +11,13 @@ div.sitecheck {
 .acted {
     background-color:#00ff00;
 }
+
+.predictiontable {
+    border: solid;
+    border-collapse: collapse;
+}
+
+.predictiontable td {
+    border: 1px solid;
+    padding: 0.5em;
+}
