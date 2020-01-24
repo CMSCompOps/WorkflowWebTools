@@ -31,8 +31,16 @@ wfwebtool.writeParams = function () {
                     'Memory: ' + params.Memory + '<br>' +
                     'Estimated Number of Jobs: ' + (params.TotalEstimatedJobs || '?');
 
-                if (params.RequestType == 'Resubmission')
-                    $('#optclone').remove();
+                if (params.RequestType == 'Resubmission') {
+                    function removeClone () {
+                        var select = $('#optclone');
+                        if (select.length == 1)
+                            select.remove();
+                        else
+                            setTimeout(removeClone, 500);
+                    };
+                    removeClone ();
+                }
 
                 $('a').each(function () {
 

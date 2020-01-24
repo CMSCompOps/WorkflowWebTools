@@ -245,13 +245,16 @@ function addOptions (form, params) {
         }
     ].forEach(function (option) {
 
-        $(form.appendChild(document.createElement("input"))).
+        var optspan = form.appendChild(document.createElement("span"));
+        $(optspan).attr("id", "opt" + option.action);
+
+        $(optspan.appendChild(document.createElement("input"))).
             attr("type", "radio").attr("name", "action").attr("value", option.action).
             click(function () {
                 makeTable(option, params)
             });
 
-        form.appendChild(document.createTextNode(option.description));
+        optspan.appendChild(document.createTextNode(option.description));
 
     });
 
