@@ -1,15 +1,23 @@
 <table class="predictiontable">
   <tr>
   <td>Task</td>
-  % for model in allmodels:
-  <td>${model}</td>
+  % for model in sorted(allmodels):
+  <td>${model}
+    <ul>
+    % for link in sorted(allmodels[model]):
+    % if link != 'value':
+    <li> <a href="${allmodels[model][link]}">${link.replace('_', ' ')}</a>
+    % endif
+    % endfor
+    </ul>
+  </td>
   % endfor
   </tr>
   % for task in tasks:
   <tr>
     <td>${task}</td>
-    % for model in allmodels:
-    <td>${table_rows.get(task, {}).get(model, '')}</td>
+    % for model in sorted(allmodels):
+    <td>${table_rows.get(task, {}).get(model, {}).get('value', '')}</td>
     % endfor
   </tr>
   % endfor

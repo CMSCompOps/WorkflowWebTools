@@ -38,7 +38,7 @@ def predict(wf_obj):
         for task in tasks}
 
     # Set of all models turned into a sorted list
-    allmodels = sorted({model for tasklist in table_rows.values() for model in tasklist})
+    allmodels = table_rows[tasks[0]]
 
     return {
         'Action': render('predictiontable.html',
