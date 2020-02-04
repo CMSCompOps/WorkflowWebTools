@@ -6,7 +6,9 @@
     <ul>
     % for link in sorted(allmodels[model]):
     % if link != 'value':
+    % if type(allmodels[model]) == dict:
     <li> <a href="${allmodels[model][link]}">${link.replace('_', ' ')}</a>
+    % endif
     % endif
     % endfor
     </ul>
@@ -17,7 +19,16 @@
   <tr>
     <td>${task}</td>
     % for model in sorted(allmodels):
-    <td>${table_rows.get(task, {}).get(model, {}).get('value', '')}</td>
+    <td>
+      <%
+         contents = table_rows.get(task, {}).get(model, {})
+      %>
+      % if type(contents) == dict:
+      ${contents.get('value', '')}
+      % else:
+      ${contents}
+      % endif
+    </td>
     % endfor
   </tr>
   % endfor
