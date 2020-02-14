@@ -588,9 +588,9 @@ class WorkflowTools(object):
 
             output = {
                 'maxerror': max_error,
-                'types': main_error_class[0],
-                'recommended': main_error_class[1],
-                'params': main_error_class[2]
+                'types': main_error_class['types'],
+                'recommended': main_error_class['recommended'],
+                'params': main_error_class['params_string']
             }
 
         finally:

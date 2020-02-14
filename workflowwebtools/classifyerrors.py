@@ -50,11 +50,8 @@ def classifyerror(errorcode, workflow):
             match = error_re.match(line)
             if match and match.group(1) not in error_types.keys():
                 error_types[match.group(1)] = match.group(0)
+
             # Get additional parameters
-
-            if '.root' not in line:
-                continue
-
             if additional_re:
                 add_match = additional_re.search(line)
                 if add_match and add_match.group(1) not in additional_params:
@@ -74,9 +71,10 @@ def classifyerror(errorcode, workflow):
     # The procedures use ' |br| |br| ' to break lines because sphinx uses that
     # to replace with raw html
 
-    return (error_types_string,
-            normal_action_string.replace(' |br| |br| ', '<br>'),
-            additional_actions_string.replace(' |br| |br| ', '<br>'))
+    return {'types': error_types_string,
+            'recommended': normal_action_string.replace(' |br| |br| ', '<br>'),
+            'params_string': additional_actions_string.replace(' |br| |br| ', '<br>'),
+            'list_of_params': additional_params}
 
 
 def get_max_errorcode(workflow):

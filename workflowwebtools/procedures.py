@@ -146,6 +146,30 @@ PROCEDURES = {
                   'Work is needed to make this error as rare as possible since there '
                   'are very limited cases to make the file fail to appear.')
         },
+    8020: {
+        'normal': 'ACDC',
+        'cause': 'File was not found and fallback procedure also failed.',
+        'additional': {
+            're': re.compile(r'(root://[-/\w\.]+\.root)'),
+            'action': ('Check that the file exists')
+            }
+        },
+    8021: {
+        'normal': 'ACDC',
+        'cause': 'File was not found and fallback procedure also failed.',
+        'additional': {
+            're': re.compile(r'(root://[-/\w\.]+\.root)'),
+            'action': ('Check that the file exists')
+            }
+        },
+    8028: {
+        'normal': 'ACDC',
+        'cause': 'File was not found and fallback procedure also failed.',
+        'additional': {
+            're': re.compile(r'(root://[-/\w\.]+\.root)'),
+            'action': ('Check that the file exists')
+            }
+        },
     8001: {
         'normal': 'Strong failure, report immediately'
         },
