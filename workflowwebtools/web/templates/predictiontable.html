@@ -1,0 +1,35 @@
+<table class="predictiontable">
+  <tr>
+  <td>Task</td>
+  % for model in sorted(allmodels):
+  <td>${model}
+    <ul>
+    % for link in sorted(allmodels[model]):
+    % if link != 'value':
+    % if type(allmodels[model]) == dict:
+    <li> <a href="${allmodels[model][link]}">${link.replace('_', ' ')}</a>
+    % endif
+    % endif
+    % endfor
+    </ul>
+  </td>
+  % endfor
+  </tr>
+  % for task in tasks:
+  <tr>
+    <td>${task}</td>
+    % for model in sorted(allmodels):
+    <td>
+      <%
+         contents = table_rows.get(task, {}).get(model, {})
+      %>
+      % if type(contents) == dict:
+      ${contents.get('value', '')}
+      % else:
+      Prediction not available
+      % endif
+    </td>
+    % endfor
+  </tr>
+  % endfor
+</table>

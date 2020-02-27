@@ -18,7 +18,8 @@ setuptools.setup(
                                  'templates/*']
         },
     install_requires=[
-        'cmstoolbox>=0.14.3',
+        'requests',
+        'cmstoolbox>=0.15.1',
         'CMSMonitoring',
         'more-itertools',
         'cherrypy',
@@ -33,8 +34,6 @@ setuptools.setup(
         'validators',
         'tabulate',
         'pymongo<3.5.0',
-        'cx_Oracle',
-        'pandas',
-        'keras'
+        'cx_Oracle'
         ]
     )
