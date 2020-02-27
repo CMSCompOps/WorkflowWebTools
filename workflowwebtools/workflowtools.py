@@ -19,6 +19,8 @@ import sqlite3
 import cherrypy
 
 from cmstoolbox import sitereadiness
+from cmstoolbox import checkexists
+
 
 from workflowwebtools import workflowinfo
 from workflowwebtools import serverconfig
@@ -968,3 +970,26 @@ class WorkflowTools(object):
                       sitename=sitename,
                       acted_workflows=acted,
                       info=info)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def problem_files(self, workflow):
+        # Which errors do we want to check files:
+        errors = [84, 85, 92, 8020, 8021, 8028]
+
+        files_to_check = set()
+
+        wfi = self.get(workflow)
+
+        for error in errors:
+            for file_to_add in classifyerrors.classifyerror(error, wfi)['list_of_params']:
+                files_to_check.add(file_to_add)
+
+        return sorted(files_to_check)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def file_exists(self, filename):
+        output = {'xrdfs_locate': int(checkexists.exists(filename))}
+
+        return output

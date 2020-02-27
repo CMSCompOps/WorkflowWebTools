@@ -160,6 +160,36 @@ wfwebtool.predict = function () {
 };
 
 
+wfwebtool.checkFiles = function () {
+
+    var wf = this.url.searchParams.get('workflow');
+    $.ajax({
+            url: '/problem_files',
+            data: {workflow: wf},
+            success: function (data) {
+                if (data.length) {
+                    $('#filehead').show();
+                }
+
+                data.forEach(function(fileName) {
+                        $('#fileinfo').
+                            append('<li>' + fileName + ': <span id="status:' + fileName +
+                                   '"><img class="loading" src="/static/img/loading.gif" alt="Loading..."></span></li>');
+                        $.ajax({
+                                url: '/file_exists',
+                                data: {filename: fileName},
+                                success: function (status) {
+                                    var status_element = document.getElementById('status:' + fileName);
+                                    status_element.innerHTML = status['xrdfs_locate'] ? 'Exists' : 'Not Found';
+                                }
+                            })
+                    })
+            }
+        });
+
+}
+
+
 function reset(wkfl) {
     theSpan = document.getElementById('reset');
     theSpan.innerHTML = 'Refreshing page, please wait...';
@@ -180,4 +210,5 @@ wfwebtool.workflowTable = function () {
     this.writeParams();
     this.fillSimilar();
     this.predict();
+    this.checkFiles();
 };
