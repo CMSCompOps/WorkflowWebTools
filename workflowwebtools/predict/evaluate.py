@@ -33,7 +33,7 @@ def predict(wf_obj):
 
     table_rows = {
         task: json.loads(
-            requests.get(serverconfig.config_dict()['aieh'],
+            requests.get(serverconfig.config_dict()['aieh']['models'],
                          params={'wf': wf_name, 'tsk': task}).text)
         for task in tasks}
 

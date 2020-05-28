@@ -493,7 +493,8 @@ class WorkflowTools(object):
                         'status': status,
                         'drain': drain
                     }
-                    for site, status, drain in sitereadiness.i_site_readiness()
+                    for site, status, drain in sitereadiness.i_site_readiness() \
+                    if not site.startswith('T3')
                 ]
         finally:
             self.readinesslock.release()

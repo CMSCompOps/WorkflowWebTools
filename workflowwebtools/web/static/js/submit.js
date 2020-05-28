@@ -34,7 +34,7 @@ function printSiteLists (method, params) {
                     $(siteListDiv.appendChild(document.createElement("input"))).
                         attr("type", "checkbox").attr("name", "sites").
                         attr("value", site.site).
-                        attr("checked", (method == "Ban" && bad) || (method != "Ban" && run));
+                        attr("checked", (method == "Ban" && bad) || (method != "Ban" && run && !bad));
                     siteListDiv.appendChild(document.createTextNode(site.site));
                 });
                 siteList.appendChild(document.createElement("div")).className = "clear";
