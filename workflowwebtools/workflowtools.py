@@ -994,3 +994,52 @@ class WorkflowTools(object):
         output = {'xrdfs_locate': int(checkexists.exists(filename))}
 
         return output
+
+    def auto_acdc(self, user, workflow, dry):
+        params = self.submissionparams(workflow)
+
+        site_map = {site['site']: site['drain'] for site in params['allsites']}
+
+        submission = [{
+                'workflow': workflow,
+                'parameters': {
+                    'Action': 'acdc',
+                    'Reasons': ['AIEH'],
+                    'ACDCs': [],
+                    'Parameters': {
+                        step: {
+                            'memory': '',
+                            'cores': '',
+                            'sites': [site for site in sitelist if site_map.get(site) == 'enabled']
+                            }
+                        for step, sitelist in params['sitestorun'].items()
+                        }
+                    }
+                }]
+
+        if submission[0]['parameters']['Parameters']:
+            if dry:
+                print(submission)
+            else:
+                manageactions.submit2(user, submission)
+
+    @cherrypy.expose
+    def check_auto_acdc(self, key):
+
+        if key == serverconfig.config_dict()['actions']['key']:
+
+            user = serverconfig.config_dict()['aieh']['user']
+            dry = serverconfig.config_dict()['aieh'].get('dry')
+
+            for workflow in self.workflows:
+
+                if self.wkfparams(workflow).get('RequestType', 'Resubmission') == 'Resubmission' \
+                        or self.get_status(workflow) != 'none':
+                    continue
+
+                if evaluate.static(workflow) == 'acdc':
+                    self.auto_acdc(user, workflow, dry)
+
+            self.update_statuses()
+
+        return 'Done'

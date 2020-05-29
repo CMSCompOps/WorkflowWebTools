@@ -13,6 +13,21 @@ from .. import serverconfig
 from ..web.templates import render
 
 
+def static(workflow):
+    """
+    Returns the action from the static AIEH model for a given workflow
+    :param str workflow: The name of the workflow to check
+    :returns: The action determined by the static model
+    :rtype: str
+    """
+
+    response = json.loads(
+        requests.get(serverconfig.config_dict()['aieh']['static'],
+                     params={'wf': workflow}).text)
+
+    return response['action']
+
+
 def predict(wf_obj):
     """
     Takes the errors for a workflow and makes an action prediction

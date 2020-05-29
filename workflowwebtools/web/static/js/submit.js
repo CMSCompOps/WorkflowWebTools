@@ -269,7 +269,7 @@ function paramsOfDiv (sel) {
     return output;
 }
 
-function buildSubmit (workflow, sitesToRun) {
+function buildSubmit (workflow, sitesToRun, allsites) {
     var action = $("form input[name=action]:checked").val();
     var siteMethod = $("#sitemethods input:radio:checked").val();
 
@@ -287,8 +287,15 @@ function buildSubmit (workflow, sitesToRun) {
                     var stepName = sel.find(".taskparamhead a").html();
                     var stepParams = paramsOfDiv(this);
                     stepParams["sites"] = function () {
-                        if (siteMethod == "Auto")
-                            return sitesToRun[stepName];
+                        if (siteMethod == "Auto") {
+                            // Filter out drained
+                            var siteMap = {};
+                            allsites.forEach(function (site) {
+                                    siteMap[site.site] = site.drain;
+                                });
+
+                            return sitesToRun[stepName].filter(function (site) {return siteMap[site] == 'enabled';});
+                        }
                         if (siteMethod == "Manual")
                             return sel.find(".sitecheck input:checked").map(function (i, ele) { return ele.value }).get();
                         // Otherwise, filter out Banned
@@ -346,7 +353,7 @@ function makeForm(workflow) {
             var form = formDiv.appendChild(document.createElement("form"));
             form.action = "javascript:;";
             form.onsubmit = function () {
-                submission = buildSubmit(workflow, params.sitestorun);
+                submission = buildSubmit(workflow, params.sitestorun, params.allsites);
                 if (confirm("Will submit " + JSON.stringify(submission))) {
                     $.ajax({
                         url: "/submit2",
