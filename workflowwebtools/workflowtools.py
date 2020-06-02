@@ -1023,6 +1023,13 @@ class WorkflowTools(object):
             else:
                 manageactions.submit2(user, submission)
 
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def assistance_manual(self):
+        return errorutils.assistance_manual()
+
+
     @cherrypy.expose
     def check_auto_acdc(self, key):
 
