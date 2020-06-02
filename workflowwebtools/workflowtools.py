@@ -1031,7 +1031,7 @@ class WorkflowTools(object):
             user = serverconfig.config_dict()['aieh']['user']
             dry = serverconfig.config_dict()['aieh'].get('dry')
 
-            for workflow in self.workflows:
+            for workflow in errorutils.assistance_manual():
 
                 if self.wkfparams(workflow).get('RequestType', 'Resubmission') == 'Resubmission' \
                         or self.get_status(workflow) != 'none':
