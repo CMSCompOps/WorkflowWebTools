@@ -32,6 +32,7 @@ from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
+from workflowwebtools import errorutils
 from workflowwebtools.web.templates import render
 from workflowwebtools.predict import evaluate
 

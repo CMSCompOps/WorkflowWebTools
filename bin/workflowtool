@@ -71,7 +71,7 @@ if __name__ == '__main__':
         'tools.auth_basic.realm': 'localhost',
         'tools.auth_basic.checkpassword': manageusers.validate_password
         }
-    for key in ['/cluster', '/resetcache', '/sitesfortasks', '/submit2', '/updatereasons']:
+    for key in ['/cluster', '/resetcache', '/sitesfortasks', '/submit2', '/updatereasons', '/globalerror2']:
         CONF[key] = CONF['/submitaction']
 
     cherrypy.quickstart(WorkflowTools(), '/', CONF)
