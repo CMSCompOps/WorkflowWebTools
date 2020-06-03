@@ -189,6 +189,25 @@ wfwebtool.checkFiles = function () {
 
 }
 
+wfwebtool.checkAutoACDC = function () {
+
+    var wf = this.url.searchParams.get('workflow');
+
+    $.ajax({
+        url: '/auto_acdc?workflow=' + wf,
+        success: function (data) {
+                if ('workflow' in data) {
+                    var button = document.createElement('button');
+                    button.innerHTML = 'Auto ACDC Parameters';
+                    button.onclick = function () { alert(JSON.stringify(data)) };
+
+                    $('#autoacdc').append(button);
+                }
+        }
+    })
+
+
+}
 
 function reset(wkfl) {
     theSpan = document.getElementById('reset');
@@ -211,4 +230,5 @@ wfwebtool.workflowTable = function () {
     this.fillSimilar();
     this.predict();
     this.checkFiles();
+    this.checkAutoACDC();
 };

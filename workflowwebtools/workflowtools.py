@@ -996,12 +996,20 @@ class WorkflowTools(object):
 
         return output
 
-    def auto_acdc(self, user, workflow, dry):
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def auto_acdc(self, workflow):
+
+        action = evaluate.static(workflow)
+
+        if action not in {'acdc', 'acdc_xrootd'}:
+            return {}
+
         params = self.submissionparams(workflow)
 
         site_map = {site['site']: site['drain'] for site in params['allsites']}
 
-        submission = [{
+        submission = {
                 'workflow': workflow,
                 'parameters': {
                     'Action': 'acdc',
@@ -1016,13 +1024,21 @@ class WorkflowTools(object):
                         for step, sitelist in params['sitestorun'].items()
                         }
                     }
-                }]
+                }
 
-        if submission[0]['parameters']['Parameters']:
-            if dry:
-                print(submission)
-            else:
-                manageactions.submit2(user, submission)
+        check_parameters = submission['parameters']['Parameters']
+
+        if not check_parameters:
+            return {}
+
+        for step_dict in check_parameters.values():
+            if not step_dict['sites']:
+                return {}
+            if action == 'acdc_xrootd':
+                step_dict['xrootd'] = 'enabled'
+                step_dict['secondary'] = 'enabled'
+
+        return submission
 
 
     @cherrypy.expose
@@ -1036,8 +1052,9 @@ class WorkflowTools(object):
 
         if key == serverconfig.config_dict()['actions']['key']:
 
-            user = serverconfig.config_dict()['aieh']['user']
-            dry = serverconfig.config_dict()['aieh'].get('dry')
+            aieh_config = serverconfig.config_dict()['aieh']
+            user = aieh_config['user']
+            dry = aieh_config.get('dry')
 
             for workflow in errorutils.assistance_manual():
 
@@ -1045,8 +1062,13 @@ class WorkflowTools(object):
                         or self.get_status(workflow) != 'none':
                     continue
 
-                if evaluate.static(workflow) == 'acdc':
-                    self.auto_acdc(user, workflow, dry)
+                params = self.auto_acdc(workflow)
+
+                if params:
+                    if dry:
+                        print(submission)
+                    else:
+                        manageactions.submit2(user, [submission])
 
             self.update_statuses()
 
