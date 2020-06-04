@@ -1002,7 +1002,7 @@ class WorkflowTools(object):
 
         action = evaluate.static(workflow)
 
-        if action not in {'acdc', 'acdc_xrootd'}:
+        if action['action'] not in {'acdc'}:
             return {}
 
         params = self.submissionparams(workflow)
@@ -1031,10 +1031,10 @@ class WorkflowTools(object):
         if not check_parameters:
             return {}
 
-        for step_dict in check_parameters.values():
+        for step, step_dict in check_parameters.items():
             if not step_dict['sites']:
                 return {}
-            if action == 'acdc_xrootd':
+            if action['tasks'][step]['xrootd'] == 'yes':
                 step_dict['xrootd'] = 'enabled'
                 step_dict['secondary'] = 'enabled'
 

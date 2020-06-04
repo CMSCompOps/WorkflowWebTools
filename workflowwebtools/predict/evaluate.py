@@ -18,14 +18,14 @@ def static(workflow):
     Returns the action from the static AIEH model for a given workflow
     :param str workflow: The name of the workflow to check
     :returns: The action determined by the static model
-    :rtype: str
+    :rtype: dict
     """
 
     response = json.loads(
         requests.get(serverconfig.config_dict()['aieh']['static'],
                      params={'wf': workflow}).text)
 
-    return response['action']
+    return response
 
 
 def predict(wf_obj):
