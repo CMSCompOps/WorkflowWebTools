@@ -46,7 +46,8 @@ if __name__ == '__main__':
             'server.socket_host': _HOST['name'],
             'server.socket_port': _HOST['port'],
             'log.access_file': 'access.log',
-            'log.error_file': 'application.log'
+            'log.error_file': 'application.log',
+            'server.thread_pool': _HOST.get('threads', 30)
         },
         '/': {
             'error_page.401': render('401.html'),
