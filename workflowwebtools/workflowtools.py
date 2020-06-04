@@ -1013,7 +1013,7 @@ class WorkflowTools(object):
                 'workflow': workflow,
                 'parameters': {
                     'Action': 'acdc',
-                    'Reasons': ['AIEH'],
+                    'Reasons': ['AIEH', action.get('description')],
                     'ACDCs': [],
                     'Parameters': {
                         step: {
