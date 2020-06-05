@@ -1002,43 +1002,7 @@ class WorkflowTools(object):
 
         action = evaluate.static(workflow)
 
-        if action['action'] not in {'acdc'}:
-            return {}
-
-        params = self.submissionparams(workflow)
-
-        site_map = {site['site']: site['drain'] for site in params['allsites']}
-
-        submission = {
-                'workflow': workflow,
-                'parameters': {
-                    'Action': 'acdc',
-                    'Reasons': ['AIEH', action.get('description')],
-                    'ACDCs': [],
-                    'Parameters': {
-                        step: {
-                            'memory': '',
-                            'cores': '',
-                            'sites': [site for site in sitelist if site_map.get(site) == 'enabled']
-                            }
-                        for step, sitelist in params['sitestorun'].items()
-                        }
-                    }
-                }
-
-        check_parameters = submission['parameters']['Parameters']
-
-        if not check_parameters:
-            return {}
-
-        for step, step_dict in check_parameters.items():
-            if not step_dict['sites']:
-                return {}
-            if action['tasks'][step]['xrootd'] == 'yes':
-                step_dict['xrootd'] = 'enabled'
-                step_dict['secondary'] = 'enabled'
-
-        return submission
+        return action
 
 
     @cherrypy.expose
