@@ -1002,7 +1002,10 @@ class WorkflowTools(object):
 
         action = evaluate.static(workflow)
 
-        return action
+        if action['parameters']['Action']:
+            return action
+
+        return {}
 
 
     @cherrypy.expose
