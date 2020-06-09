@@ -15,6 +15,10 @@ import os
 import sys
 import cherrypy
 
+from cmstoolbox import webtools
+
+webtools.USER_AGENT = 'workflowwebtools-console'
+
 import workflowwebtools.web
 from workflowwebtools import serverconfig
 from workflowwebtools.web.templates import render

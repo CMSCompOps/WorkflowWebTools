@@ -1017,6 +1017,8 @@ class WorkflowTools(object):
     @cherrypy.expose
     def check_auto_acdc(self, key):
 
+        submitted = []
+
         if key == serverconfig.config_dict()['actions']['key']:
 
             aieh_config = serverconfig.config_dict()['aieh']
@@ -1032,11 +1034,10 @@ class WorkflowTools(object):
                 params = self.auto_acdc(workflow)
 
                 if params:
-                    if dry:
-                        print(workflow)
-                    else:
+                    if not dry:
                         manageactions.submit2(user, [params])
+                    submitted.append(workflow)
 
             self.update_statuses()
 
-        return 'Done'
+        return '\n'.join(submitted)
