@@ -1033,9 +1033,9 @@ class WorkflowTools(object):
 
                 if params:
                     if dry:
-                        print(submission)
+                        print(workflow)
                     else:
-                        manageactions.submit2(user, [submission])
+                        manageactions.submit2(user, [params])
 
             self.update_statuses()
 
