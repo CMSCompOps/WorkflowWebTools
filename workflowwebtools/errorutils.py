@@ -44,6 +44,31 @@ def errors_from_list(workflows):
     return indict
 
 
+def assistance_manual():
+    """
+    Returns the workflows in 'assistance-manual'
+
+    :returns: list of workflows
+    :rtype: list
+    """
+    config_dict = serverconfig.config_dict()
+
+    if 'oracle' in config_dict:
+        try:
+            oracle_db_conn = cx_Oracle.connect(*config_dict['oracle'])
+            oracle_cursor = oracle_db_conn.cursor()
+            oracle_cursor.execute(
+                "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) = 'assistance-manual'") # pylint:disable=line-too-long
+            wkfs = [row for row, in oracle_cursor]
+            oracle_db_conn.close()
+            return wkfs
+
+        except cx_Oracle.DatabaseError:
+            pass
+
+    return []
+
+
 def open_location(data_location):
     """
     This function assumes that the contents of the location is in JSON format.
@@ -56,13 +81,17 @@ def open_location(data_location):
     config_dict = serverconfig.config_dict()
 
     if 'oracle' in config_dict:
-        oracle_db_conn = cx_Oracle.connect(*config_dict['oracle']) # pylint:disable=c-extension-no-member
-        oracle_cursor = oracle_db_conn.cursor()
-        oracle_cursor.execute(
-            "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'")
-        wkfs = [row for row, in oracle_cursor]
-        oracle_db_conn.close()
-        return errors_from_list(wkfs)
+        try:
+            oracle_db_conn = cx_Oracle.connect(*config_dict['oracle'])
+            oracle_cursor = oracle_db_conn.cursor()
+            oracle_cursor.execute(
+                "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) LIKE '%manual%'")
+            wkfs = [row for row, in oracle_cursor]
+            oracle_db_conn.close()
+            return errors_from_list(wkfs)
+
+        except cx_Oracle.DatabaseError:
+            return None
 
     raw = None
 

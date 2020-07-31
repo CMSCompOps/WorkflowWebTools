@@ -19,7 +19,7 @@ setuptools.setup(
         },
     install_requires=[
         'requests',
-        'cmstoolbox>=0.15.1',
+        'cmstoolbox>=0.17.0',
         'CMSMonitoring',
         'more-itertools',
         'cherrypy',

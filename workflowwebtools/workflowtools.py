@@ -32,6 +32,7 @@ from workflowwebtools import globalerrors
 from workflowwebtools import clusterworkflows
 from workflowwebtools import classifyerrors
 from workflowwebtools import actionshistorylink
+from workflowwebtools import errorutils
 from workflowwebtools.web.templates import render
 from workflowwebtools.predict import evaluate
 
@@ -493,7 +494,8 @@ class WorkflowTools(object):
                         'status': status,
                         'drain': drain
                     }
-                    for site, status, drain in sitereadiness.i_site_readiness()
+                    for site, status, drain in sitereadiness.i_site_readiness() \
+                    if not site.startswith('T3')
                 ]
         finally:
             self.readinesslock.release()
@@ -993,3 +995,49 @@ class WorkflowTools(object):
         output = {'xrdfs_locate': int(checkexists.exists(filename))}
 
         return output
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def auto_acdc(self, workflow):
+
+        action = evaluate.static(workflow)
+
+        if action['parameters']['Action']:
+            return action
+
+        return {}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def assistance_manual(self):
+        return errorutils.assistance_manual()
+
+
+    @cherrypy.expose
+    def check_auto_acdc(self, key):
+
+        submitted = []
+
+        if key == serverconfig.config_dict()['actions']['key']:
+
+            aieh_config = serverconfig.config_dict()['aieh']
+            user = aieh_config['user']
+            dry = aieh_config.get('dry')
+
+            for workflow in errorutils.assistance_manual():
+
+                if self.wkfparams(workflow).get('RequestType', 'Resubmission') == 'Resubmission' \
+                        or self.get_status(workflow) != 'none':
+                    continue
+
+                params = self.auto_acdc(workflow)
+
+                if params:
+                    if not dry:
+                        manageactions.submit2(user, [params])
+                    submitted.append(workflow)
+
+            self.update_statuses()
+
+        return '\n'.join(submitted)
