@@ -38,6 +38,7 @@ from workflowwebtools.predict import evaluate
 
 from workflowwebtools import statuses
 
+from cmstoolbox.emailtools import send_email
 
 class WorkflowTools(object):
 
@@ -1039,5 +1040,19 @@ class WorkflowTools(object):
                     submitted.append(workflow)
 
             self.update_statuses()
+        
+        wm_email = serverconfig.config_dict()['webmaster']['email']
+        message_text = (
+            'Hi','\n\n'
+            'Here is the list of workflows automatically submitted by console \n\n' +
+            '\n'.join(submitted) +
+            '\n\n' +
+            'Tools and Integration'
+            )
+
+        email = 'hbakhshi@cern.ch'
+        send_email(wm_email, [email, wm_email],
+                   'Automatic actions',
+                   message_text)
 
         return '\n'.join(submitted)
