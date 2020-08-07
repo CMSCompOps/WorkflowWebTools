@@ -1042,11 +1042,12 @@ class WorkflowTools(object):
             self.update_statuses()
         
         if len(submitted):
+            unified = "https://cms-unified.web.cern.ch/cms-unified/report/"
             wm_email = serverconfig.config_dict()['webmaster']['email']
             message_text = (
                 'Hi'+'\n\n'
                 'Here is the list of workflows automatically submitted by console \n\n' +
-                '\n'.join(submitted) +
+                '\n'.join([ unified+s for s in submitted]) +
                 '\n\n' +
                 'Tools and Integration'
                 )
