@@ -1041,18 +1041,19 @@ class WorkflowTools(object):
 
             self.update_statuses()
         
-        wm_email = serverconfig.config_dict()['webmaster']['email']
-        message_text = (
-            'Hi'+'\n\n'
-            'Here is the list of workflows automatically submitted by console \n\n' +
-            '\n'.join(submitted) +
-            '\n\n' +
-            'Tools and Integration'
-            )
+        if len(submitted):
+            wm_email = serverconfig.config_dict()['webmaster']['email']
+            message_text = (
+                'Hi'+'\n\n'
+                'Here is the list of workflows automatically submitted by console \n\n' +
+                '\n'.join(submitted) +
+                '\n\n' +
+                'Tools and Integration'
+                )
 
-        email = 'hbakhshi@cern.ch'
-        send_email(wm_email, [email, wm_email],
-                   'Automatic actions',
-                   message_text)
+            email = 'cms-comp-ops-toolsandint@cern.ch'
+            send_email(wm_email, [email, wm_email , 'hbakhshi@cern.ch'],
+                       'Automatic actions',
+                       message_text)
 
         return '\n'.join(submitted)
