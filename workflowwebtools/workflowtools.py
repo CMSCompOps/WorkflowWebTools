@@ -1043,7 +1043,7 @@ class WorkflowTools(object):
         
         wm_email = serverconfig.config_dict()['webmaster']['email']
         message_text = (
-            'Hi','\n\n'
+            'Hi'+'\n\n'
             'Here is the list of workflows automatically submitted by console \n\n' +
             '\n'.join(submitted) +
             '\n\n' +
