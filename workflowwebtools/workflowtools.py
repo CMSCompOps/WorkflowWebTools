@@ -38,6 +38,7 @@ from workflowwebtools.predict import evaluate
 
 from workflowwebtools import statuses
 
+from cmstoolbox.emailtools import send_email
 
 class WorkflowTools(object):
 
@@ -1010,6 +1011,12 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    def assistance_manual_recovered(self):
+        return errorutils.assistance_manual('assistance-manual-recovered')
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     def assistance_manual(self):
         return errorutils.assistance_manual()
 
@@ -1039,5 +1046,21 @@ class WorkflowTools(object):
                     submitted.append(workflow)
 
             self.update_statuses()
+        
+        if len(submitted):
+            unified = "https://cms-unified.web.cern.ch/cms-unified/report/"
+            wm_email = serverconfig.config_dict()['webmaster']['email']
+            message_text = (
+                'Hi'+'\n\n'
+                'Here is the list of workflows automatically submitted by console \n\n' +
+                '\n'.join([ unified+s for s in submitted]) +
+                '\n\n' +
+                'Tools and Integration'
+                )
+
+            email = 'cms-comp-ops-toolsandint@cern.ch'
+            send_email(wm_email, [email, wm_email , 'hbakhshi@cern.ch'],
+                       'Automatic actions',
+                       message_text , method='smtplib')
 
         return '\n'.join(submitted)

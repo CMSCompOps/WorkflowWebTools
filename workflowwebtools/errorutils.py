@@ -44,7 +44,7 @@ def errors_from_list(workflows):
     return indict
 
 
-def assistance_manual():
+def assistance_manual(key='assistance_manual'):
     """
     Returns the workflows in 'assistance-manual'
 
@@ -58,7 +58,7 @@ def assistance_manual():
             oracle_db_conn = cx_Oracle.connect(*config_dict['oracle'])
             oracle_cursor = oracle_db_conn.cursor()
             oracle_cursor.execute(
-                "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) = 'assistance-manual'") # pylint:disable=line-too-long
+                "SELECT NAME FROM CMS_UNIFIED_ADMIN.workflow WHERE lower(STATUS) = '{0}'".format(key)) # pylint:disable=line-too-long
             wkfs = [row for row, in oracle_cursor]
             oracle_db_conn.close()
             return wkfs
