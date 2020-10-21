@@ -1011,6 +1011,12 @@ class WorkflowTools(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    def assistance_manual_recovered(self):
+        return errorutils.assistance_manual('assistance-manual-recovered')
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     def assistance_manual(self):
         return errorutils.assistance_manual()
 
@@ -1055,6 +1061,6 @@ class WorkflowTools(object):
             email = 'cms-comp-ops-toolsandint@cern.ch'
             send_email(wm_email, [email, wm_email , 'hbakhshi@cern.ch'],
                        'Automatic actions',
-                       message_text)
+                       message_text , method='smtplib')
 
         return '\n'.join(submitted)
