@@ -151,7 +151,7 @@ def send_reset_email(email, url):
 
         send_email(serverconfig.config_dict()['webmaster']['email'], email,
                    'Reset account on WorkflowWebTools Instance',
-                   message_text)
+                   message_text , method='smtplib')
 
         cherrypy.log('Email sent.')
 
@@ -247,7 +247,7 @@ def add_user(email, username, password, url):
 
     send_email(wm_email, [email, wm_email],
                'Verify Account on WorkflowWebTools Instance',
-               message_text)
+               message_text , method='smtplib')
 
     return 0
 
