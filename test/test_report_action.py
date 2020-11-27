@@ -35,7 +35,7 @@ class TestReportResponse(unittest.TestCase):
         # Add the workflows that we want to say exists
         for acted, workflows in [(0, self.new_workflows), (1, self.old_workflows)]:
             for wf in workflows:
-                self.coll.insert_one({'workflow': wf, 'acted': acted, 'timestamp': now, 'parameters': {}})
+                self.coll.insert_one({'workflowid':manageactions.get_workflowid(wf) , 'workflow': wf, 'acted': acted, 'timestamp': now, 'parameters': {}})
 
     def tearDown(self):
         self.coll.drop()

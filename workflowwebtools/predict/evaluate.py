@@ -20,10 +20,14 @@ def static(workflow):
     :returns: The action determined by the static model
     :rtype: dict
     """
+    config = serverconfig.config_dict()
 
-    response = json.loads(
-        requests.get(serverconfig.config_dict()['aieh']['static'],
-                     params={'wf': workflow}).text)
+    if config.get('no_predict') or not config.get('aieh'):
+        response= {'parameters':{'Action': 0}}
+    else:
+        response = json.loads(
+            requests.get(serverconfig.config_dict()['aieh']['static'],
+                         params={'wf': workflow}).text)
 
     return response
 
