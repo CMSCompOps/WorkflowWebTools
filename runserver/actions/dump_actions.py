@@ -27,9 +27,10 @@ if __name__ == '__main__':
             for key, value in output.iteritems():
                 value['user'] = match.split('/')[-1].split('_')[0]
 
-                coll.update_one({'workflow': key},
+                coll.update_one({'workflowid': manageactions.get_workflowid(key)},
                         {'$set':
-                             {'timestamp': timestamp,
+                             {'workflow':key,
+                              'timestamp': timestamp,
                               'parameters': value,
                               'acted': 1}},
                         upsert=True)

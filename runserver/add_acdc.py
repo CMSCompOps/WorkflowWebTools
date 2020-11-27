@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
         prep_id = workflowinfo.WorkflowInfo(workflow).get_prep_id()
 
-        COLLECTION.update_one({'workflow': workflow},
+        COLLECTION.update_one({'workflowid': manageactions.get_workflowid(workflow)},
                               {'$set': {'parameters.ACDCs':
                                             [wkf for wkf in \
                                                  workflowinfo.PrepIDInfo(prep_id).get_workflows() \

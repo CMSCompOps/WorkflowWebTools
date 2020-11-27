@@ -33,7 +33,7 @@ setuptools.setup(
         'pyyaml>=5.1',
         'validators',
         'tabulate',
-        'pymongo<3.5.0',
+        'pymongo', #<3.5.0',
         'cx_Oracle'
         ]
     )

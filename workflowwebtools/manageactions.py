@@ -171,7 +171,7 @@ def submitaction(user, workflows, action, session=None, **kwargs):
             }
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, document))
-
+        cherrypy.log("all existing workflows: {0}".format( ','.join( [str(a) for a in coll.find({})] ) ) )
         coll.update_one({'workflow': workflow},
                         {'$set':
                              {'timestamp': int(time.time()),
@@ -182,22 +182,65 @@ def submitaction(user, workflows, action, session=None, **kwargs):
     return workflows, reasons, params
 
 
+def get_workflowid(workflow):
+    return workflow.replace('-', '_')
+
 def submit2(user, documents): # pylint: disable=missing-docstring
-    coll = get_actions_collection()
+    coll,session = get_actions_collection(True)
 
     for document in documents:
         workflow = document['workflow']
+        workflowid = get_workflowid( workflow )
         params = document['parameters']
         params['user'] = user
 
         cherrypy.log('About to insert workflow: %s action: %s' % (workflow, params))
 
-        coll.update_one({'workflow': workflow},
-                        {'$set':
-                             {'timestamp': int(time.time()),
-                              'parameters': params,
-                              'acted': 0}},
-                        upsert=True)
+        if coll.count_documents({"workflowid":workflowid} , session):
+            cherrypy.log('{0} already exists'.format(workflow) )
+
+            try:
+                coll.update_one({'workflowid':workflowid},
+                                {'$set':
+                                 {
+                                     'workflow':workflow,
+                                     'timestamp': int(time.time()),
+                                     'parameters': params,
+                                     'acted': 0
+                                 }},
+                                upsert=False ,
+                                session = session)
+            except:
+                cherrypy.log("there was an error in updating the workflow")
+                return -30
+                
+            obj = coll.find_one({'workflowid':workflowid},
+                                session = session )
+            if obj :
+                cherrypy.log("here is the id of the edited entry {0}".format( str(obj['_id'] ) ) )
+                return obj['_id']
+            else:
+                return -10
+        else:
+            cherrypy.log("seems to be a new workflow")
+            res = None
+            try:
+                res = coll.insert_one({'workflowid':workflowid,
+                                       'workflow': workflow,
+                                       'timestamp': int(time.time()),
+                                       'parameters': params,
+                                       'acted': 0},
+                                      session=session )
+            except BaseException as e:
+                cherrypy.log("there was an error in inserting the new workflow")
+                cherrypy.log( str(e) )
+                return -40
+                
+            if res:
+                cherrypy.log("here is the id of the new entry {0}".format( str(res.inserted_id ) ))
+                return res.inserted_id
+            else:
+                return -20
 
 
 def get_actions(num_days=None, num_hours=24, acted=0):
@@ -239,7 +282,7 @@ def get_datetime_submitted(workflow):
 
     coll = get_actions_collection()
 
-    info = coll.find_one({'workflow': workflow})
+    info = coll.find_one({'workflowid': get_workflowid(workflow)})
     if info:
         return datetime.datetime.fromtimestamp(info['timestamp'])
 
@@ -283,7 +326,7 @@ def report_actions(workflows, output=None):
                      {'$set': {'acted': 1}})
 
 
-def get_actions_collection():
+def get_actions_collection(returnsession=False):
     """Gets the actions collection from MongoDB.
 
     :returns: the actions collection
@@ -299,11 +342,14 @@ def get_actions_collection():
 
     coll = client[config_dict['database']].actions
 
-    if coll.count() == 0 or 'workflow' not in list(coll.index_information()):
-        coll.create_index([('workflow', pymongo.TEXT)],
-                          name='workflow', unique=True)
+    if coll.count() == 0 or 'workflowid' not in list(coll.index_information()):
+        coll.create_index([('workflowid', pymongo.TEXT)],
+                          name='workflowid', unique=True)
 
-    return coll
+    if returnsession:
+        return coll, client.start_session()
+    else:
+        return coll
 
 
 def fix_sites(**kwargs):
@@ -321,10 +367,10 @@ def fix_sites(**kwargs):
         workflow = split_task[1]
         subtask = '/'.join(split_task[2:])
 
-        output = coll.find_one({'workflow': workflow})['parameters']
+        output = coll.find_one({'workflowid': get_workflowid(workflow)})['parameters']
         output['Parameters'][subtask]['sites'] = value['sites']
 
-        coll.update_one({'workflow': workflow},
+        coll.update_one({'workflowid': get_workflowid(workflow)},
                         {'$set': {'parameters': output}})
 
     print(params)
