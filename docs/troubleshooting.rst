@@ -13,20 +13,20 @@ To complete all of the following steps, you need sudo access to the machine.
  #. SSH into a CERN machine.
  #. Try downloading actions from the machine::
 
-        wget -O test.json --no-check-certificate "https://vocms0113.cern.ch/getaction?days=30&acted=-1"
+        wget -O test.json --no-check-certificate "https://wfrecovery.cern.ch/getaction?days=30&acted=-1"
 
     If the file ``test.json`` is not empty, then the service is likely still running properly.
     Go back to checking your own connection.
  #. SSH into the server from LXPLUS::
 
-        ssh vocms0113
+        ssh wfrecovery
 
  #. Check the process ID and see if it is still running::
 
         # This shows the PID
-        cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid
-        # This checks what processes are running with name 'python2.7'
-        pgrep python2.7
+        cat /home/console/runserver/pid
+        # This checks what processes are running with name 'workflowtool'
+        pgrep workflowtool
 
  #. The cache may be in the process of updating.
     You can check this with the following::
@@ -37,16 +37,16 @@ To complete all of the following steps, you need sudo access to the machine.
 
  #. If it is running, the cache is not being rebuilt, and the server is still definitely not responding, kill the process::
 
-        sudo kill -9 $(cat /home/dabercro/OpsSpace/WorkflowWebTools/runserver/pid)
+        sudo kill -9 $(cat /home/console/runserver/pid)
 
  #. Do the following to start the process again::
 
-        cd /home/dabercro/OpsSpace/WorkflowWebTools/runserver
-        ./run.sh
+        cd /home/console/runserver/
+        nohup ./run.sh &
 
  #. Check the server status::
 
-        sudo tail -f /home/dabercro/OpsSpace/WorkflowWebTools/runserver/nohup.out
+        sudo tail -f /home/console/runserver/nohup.out
 
     (You can exit ``tail`` with ``Ctrl + c``.) Hopefully, the last line eventually says something like::
 
