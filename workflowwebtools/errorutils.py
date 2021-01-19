@@ -44,7 +44,7 @@ def errors_from_list(workflows):
     return indict
 
 
-def assistance_manual(key='assistance_manual'):
+def assistance_manual(key='assistance-manual'):
     """
     Returns the workflows in 'assistance-manual'
 
@@ -63,10 +63,12 @@ def assistance_manual(key='assistance_manual'):
             oracle_db_conn.close()
             return wkfs
 
-        except cx_Oracle.DatabaseError:
-            pass
-
-    return []
+        except cx_Oracle.DatabaseError as e:
+            print(e)
+            return []
+    else:
+        print("oracle database is not configured")
+        return []
 
 
 def open_location(data_location):
